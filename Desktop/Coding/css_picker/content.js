@@ -341,26 +341,38 @@ class ElementHighlighter {
     try {
       const { property, value, elementInfo } = message;
       
-      if (!this.selectedElement) {
-        console.error('No element selected for styling');
+      console.log('updateElementStyle called with:', { property, value, elementInfo });
+      console.log('this.selectedElement:', this.selectedElement);
+      console.log('this.$currentHighlighted:', this.$currentHighlighted);
+      
+      // selectedElement가 없다면 현재 하이라이트된 요소 사용
+      let targetElement = this.selectedElement;
+      if (!targetElement && this.$currentHighlighted && this.$currentHighlighted.length > 0) {
+        targetElement = this.$currentHighlighted[0];
+        console.log('Using currentHighlighted element:', targetElement);
+      }
+      
+      if (!targetElement) {
+        console.error('No element available for styling');
         return;
       }
       
       // 스타일 직접 적용 (inline style이 가장 높은 우선순위를 가짐)
-      this.selectedElement.style.setProperty(property, value, 'important');
+      targetElement.style.setProperty(property, value, 'important');
       
       // 변경된 스타일 기록 저장
       if (!this.modifiedStyles) {
         this.modifiedStyles = new Map();
       }
       
-      if (!this.modifiedStyles.has(this.selectedElement)) {
-        this.modifiedStyles.set(this.selectedElement, new Map());
+      if (!this.modifiedStyles.has(targetElement)) {
+        this.modifiedStyles.set(targetElement, new Map());
       }
       
-      this.modifiedStyles.get(this.selectedElement).set(property, value);
+      this.modifiedStyles.get(targetElement).set(property, value);
       
-      console.log(`Updated ${property}: ${value} on element`, this.selectedElement);
+      console.log(`✅ Updated ${property}: ${value} on element`, targetElement);
+      console.log('Element style after update:', targetElement.style.cssText);
     } catch (error) {
       console.error('Failed to update element style:', error);
     }

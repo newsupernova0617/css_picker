@@ -390,6 +390,13 @@ class SidePanel {
       // 수정된 스타일 추적
       this.modifiedStyles[property] = value.trim();
       
+      console.log('Sending update_css message:', {
+        type: 'update_css',
+        property: property,
+        value: value.trim(),
+        elementInfo: this.currentElement
+      });
+      
       // content script에게 스타일 변경 요청
       chrome.runtime.sendMessage({
         type: 'update_css',
@@ -397,6 +404,8 @@ class SidePanel {
         value: value.trim(),
         elementInfo: this.currentElement,
         timestamp: Date.now()
+      }, (response) => {
+        console.log('Response from content script:', response);
       });
     } catch (error) {
       console.error('Failed to apply style change:', error);
