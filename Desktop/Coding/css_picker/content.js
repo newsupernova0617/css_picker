@@ -1,0 +1,209 @@
+// 웹페이지의 HTML 요소들에 마우스를 올렸을 때 테두리를 그어주는 클래스입니다
+// 이 스크립트는 모든 웹페이지에 삽입되어 실행됩니다 (content script)
+class ElementHighlighter {
+  
+  // 클래스가 생성될 때 실행되는 초기화 함수입니다
+  constructor() {
+    // 현재 하이라이트(테두리 표시)되고 있는 HTML 요소를 저장하는 변수
+    this.$currentHighlighted = null;
+    
+    // 하이라이터가 현재 활성화되어 있는지를 나타내는 변수 (true = 켜짐, false = 꺼짐)
+    this.isActive = false;
+    
+    // 요소의 원래 outline 스타일을 저장하는 변수 (나중에 복원하기 위해)
+    this.originalOutline = '';
+    
+    // 하이라이트할 때 사용할 테두리 색깔
+    this.highlightColor = '#ff0000'; // 빨간색
+    
+    // 하이라이트할 때 사용할 테두리 두께
+    this.highlightWidth = '2px'; // 2픽셀
+    
+    // 초기화 함수를 호출합니다
+    this.init();
+  }
+  
+  // 컨텐츠 스크립트를 초기화하는 함수입니다
+  init() {
+    // 백그라운드 스크립트에서 메시지가 올 때를 처리하는 리스너를 등록합니다
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      this.handleMessage(message, sender, sendResponse); // 메시지를 처리하는 함수를 호출합니다
+    });
+    
+    // 마우스 이벤트 핸들러 함수들을 bind해서 저장합니다
+    // bind를 사용하는 이유: 나중에 removeEventListener로 제거할 때 같은 함수 참조가 필요하기 때문입니다
+    this.boundHandleMouseOver = this.handleMouseOver.bind(this);
+    this.boundHandleMouseOut = this.handleMouseOut.bind(this);
+  }
+  
+  // 백그라운드 스크립트에서 온 메시지를 처리하는 함수입니다
+  handleMessage(message, sender, sendResponse) {
+    // 메시지에서 액션과 타임스탬프를 추출합니다 (구조 분해 할당)
+    const { action, timestamp } = message;
+    
+    try {
+      // try-catch는 오류가 발생할 수 있는 코드를 안전하게 실행하는 방법입니다
+      // 액션 타입에 따라 다른 동작을 수행합니다
+      switch (action) {
+        case "border-on":
+          // "테두리 켜기" 메시지를 받았을 때
+          this.enable(); // 하이라이터를 활성화합니다
+          sendResponse({ success: true, action: "enabled" }); // 성공 응답을 보냅니다
+          break;
+          
+        case "border-off":
+          // "테두리 끄기" 메시지를 받았을 때
+          this.disable(); // 하이라이터를 비활성화합니다
+          sendResponse({ success: true, action: "disabled" }); // 성공 응답을 보냅니다
+          break;
+          
+        default:
+          // 알 수 없는 액션인 경우
+          sendResponse({ success: false, error: "Unknown action" }); // 오류 응답을 보냅니다
+      }
+    } catch (error) {
+      // 오류가 발생하면 콘솔에 출력하고 오류 응답을 보냅니다
+      console.error("Error handling message:", error);
+      sendResponse({ success: false, error: error.message });
+    }
+  }
+  
+  // 요소 하이라이터를 활성화하는 함수입니다
+  enable() {
+    // 이미 활성화되어 있다면 함수를 종료합니다
+    if (this.isActive) return;
+    
+    // 활성화 상태로 변경합니다
+    this.isActive = true;
+    
+    // jQuery를 사용해서 document에 이벤트 리스너를 등록합니다
+    // .on()의 세 번째 매개변수 true는 capturing 모드를 의미합니다
+    $(document).on("mouseover.highlighter", this.boundHandleMouseOver);
+    $(document).on("mouseout.highlighter", this.boundHandleMouseOut);
+    
+    // 콘솔에 활성화 메시지를 출력합니다
+    console.log("Element highlighter enabled");
+  }
+  
+  // 요소 하이라이터를 비활성화하는 함수입니다
+  disable() {
+    // 이미 비활성화되어 있다면 함수를 종료합니다
+    if (!this.isActive) return;
+    
+    // 비활성화 상태로 변경합니다
+    this.isActive = false;
+    
+    // jQuery를 사용해서 이벤트 리스너를 제거합니다
+    // .highlighter 네임스페이스를 사용해서 해당 이벤트들만 제거합니다
+    $(document).off(".highlighter");
+    
+    // 현재 하이라이트된 요소가 있다면 하이라이트를 제거합니다
+    this.clearHighlight();
+    
+    // 콘솔에 비활성화 메시지를 출력합니다
+    console.log("Element highlighter disabled");
+  }
+  
+  // 마우스가 요소 위로 올라갔을 때 실행되는 함수입니다
+  handleMouseOver(event) {
+    // 하이라이터가 비활성화 상태라면 함수를 종료합니다
+    if (!this.isActive) return;
+    
+    // 이벤트 버블링을 중지합니다 (부모 요소로 이벤트가 전파되는 것을 막습니다)
+    event.stopPropagation();
+    
+    // 이전에 하이라이트된 요소가 있다면 하이라이트를 제거합니다
+    this.clearHighlight();
+    
+    // 마우스가 올라간 요소를 가져옵니다
+    const target = event.target;
+    
+    // 이 요소가 하이라이트해도 되는 요소인지 확인합니다
+    if (this.shouldHighlight(target)) {
+      this.highlightElement(target); // 요소를 하이라이트합니다
+    }
+  }
+  
+  // 마우스가 요소에서 벗어났을 때 실행되는 함수입니다
+  handleMouseOut(event) {
+    // 하이라이터가 비활성화 상태라면 함수를 종료합니다
+    if (!this.isActive) return;
+    
+    // 이벤트 버블링을 중지합니다
+    event.stopPropagation();
+    
+    // 마우스가 벗어난 요소가 현재 하이라이트된 요소와 같다면
+    if (this.$currentHighlighted && this.$currentHighlighted[0] === event.target) {
+      this.clearHighlight(); // 하이라이트를 제거합니다
+    }
+  }
+  
+  // 특정 요소가 하이라이트되어도 되는지 판단하는 함수입니다
+  shouldHighlight(element) {
+    // 요소가 없거나, body 태그이거나, html 태그라면 하이라이트하지 않습니다
+    if (!element || element === document.body || element === document.documentElement) {
+      return false;
+    }
+    
+    // 요소의 태그 이름을 소문자로 변환합니다
+    const tagName = element.tagName.toLowerCase();
+    
+    // 하이라이트하면 안 되는 태그들의 목록입니다
+    const skipTags = ['html', 'body', 'script', 'style', 'meta', 'title', 'head'];
+    
+    // skipTags 배열에 현재 태그가 포함되어 있지 않다면 하이라이트해도 됩니다
+    // ! 연산자는 "반대"를 의미하므로, "포함되어 있지 않다면 true"를 반환합니다
+    return !skipTags.includes(tagName);
+  }
+  
+  // 특정 요소를 하이라이트하는 함수입니다
+  highlightElement(element) {
+    // jQuery 객체로 변환해서 현재 하이라이트된 요소로 저장합니다
+    this.$currentHighlighted = $(element);
+    
+    // jQuery의 .css()를 사용해서 원래 outline 스타일을 저장합니다
+    this.originalOutline = this.$currentHighlighted.css('outline') || '';
+    
+    // jQuery의 .css()를 사용해서 하이라이트 스타일을 적용합니다
+    this.$currentHighlighted.css({
+      outline: `${this.highlightWidth} solid ${this.highlightColor}`,
+      outlineOffset: '1px'
+    });
+  }
+  
+  // 현재 하이라이트된 요소의 하이라이트를 제거하는 함수입니다
+  clearHighlight() {
+    // 현재 하이라이트된 요소가 있는지 확인합니다
+    if (this.$currentHighlighted && this.$currentHighlighted.length > 0) {
+      // jQuery의 .css()를 사용해서 스타일을 원래대로 복원합니다
+      this.$currentHighlighted.css({
+        outline: this.originalOutline,
+        outlineOffset: ''
+      });
+      
+      // 현재 하이라이트된 요소 변수를 비웁니다
+      this.$currentHighlighted = null;
+      
+      // 저장된 원래 outline 스타일도 비웁니다
+      this.originalOutline = '';
+    }
+  }
+  
+  // 하이라이트 스타일(색깔, 두께)을 업데이트하는 함수입니다
+  updateHighlightStyle(color, width) {
+    // 새로운 색깔이 주어지면 업데이트하고, 아니면 기존 색깔을 유지합니다
+    this.highlightColor = color || this.highlightColor;
+    
+    // 새로운 두께가 주어지면 업데이트하고, 아니면 기존 두께를 유지합니다
+    this.highlightWidth = width || this.highlightWidth;
+    
+    // 현재 하이라이트된 요소가 있다면 새로운 스타일을 즉시 적용합니다
+    if (this.$currentHighlighted && this.$currentHighlighted.length > 0) {
+      this.$currentHighlighted.css('outline', `${this.highlightWidth} solid ${this.highlightColor}`);
+    }
+  }
+}
+
+// ElementHighlighter 클래스의 인스턴스(실제 객체)를 생성합니다
+// 이렇게 하면 요소 하이라이터가 시작됩니다
+new ElementHighlighter();
