@@ -17,6 +17,8 @@ class SidePanel {
     // 현재 선택된 요소 정보를 저장하는 변수
     this.currentElement = null;
     this.originalStyles = {}; // 원본 스타일 백업용
+    this.modifiedStyles = {}; // 수정된 스타일 추적용
+    this.currentSelector = null; // 현재 요소의 CSS 선택자
     
     // 초기화 함수를 호출합니다
     this.init();
@@ -58,6 +60,7 @@ class SidePanel {
     this.$propertiesContainer = $("#propertiesContainer");
     this.$closeCssInfo = $("#closeCssInfo");
     this.$resetStyles = $("#resetStyles");
+    this.$copyCssDropdown = $("#copyCssBtn");
   }
   
   // 각종 이벤트 리스너들을 설정하는 함수입니다
@@ -179,6 +182,27 @@ class SidePanel {
     this.$resetStyles.click(() => {
       this.resetAllStyles();
     });
+    
+    // Copy CSS 드롭다운 이벤트 리스너 설정
+    this.$copyCssDropdown.click((e) => {
+      e.preventDefault();
+      this.toggleDropdown();
+    });
+    
+    // 드롭다운 항목 클릭 이벤트
+    $(document).on('click', '.dropdown-item[data-format]', (e) => {
+      e.preventDefault();
+      const format = $(e.target).data('format');
+      this.copyCssToClipboard(format);
+      this.hideDropdown();
+    });
+    
+    // 드롭다운 외부 클릭 시 닫기
+    $(document).click((e) => {
+      if (!$(e.target).closest('.copy-css-dropdown').length) {
+        this.hideDropdown();
+      }
+    });
   }
   
   // CSS 요소 정보를 화면에 표시하는 함수입니다
@@ -209,8 +233,14 @@ class SidePanel {
         id: cssInfo.id
       };
       
+      // CSS 선택자 생성
+      this.currentSelector = this.generateCssSelector(this.currentElement);
+      
       // 원본 스타일 백업
       this.backupOriginalStyles(cssInfo.properties);
+      
+      // 수정된 스타일 초기화
+      this.modifiedStyles = {};
       
       // CSS 정보 섹션 보이기 및 설명 섹션 숨기기
       this.showCssInfo();
@@ -357,6 +387,9 @@ class SidePanel {
         return;
       }
       
+      // 수정된 스타일 추적
+      this.modifiedStyles[property] = value.trim();
+      
       // content script에게 스타일 변경 요청
       chrome.runtime.sendMessage({
         type: 'update_css',
@@ -403,6 +436,9 @@ class SidePanel {
       this.applyStyleChange(property, this.originalStyles[property]);
     });
     
+    // 수정된 스타일 초기화
+    this.modifiedStyles = {};
+    
     // UI도 원본값으로 업데이트
     this.$propertiesContainer.find('.property-value').each((index, element) => {
       const $element = $(element);
@@ -412,6 +448,156 @@ class SidePanel {
         $element.text(originalValue);
       }
     });
+  }
+  
+  // 드롭다운 토글 함수
+  toggleDropdown() {
+    const $dropdown = $('.copy-css-dropdown');
+    $dropdown.toggleClass('show');
+  }
+  
+  // 드롭다운 숨기기 함수
+  hideDropdown() {
+    const $dropdown = $('.copy-css-dropdown');
+    $dropdown.removeClass('show');
+  }
+  
+  // CSS 선택자를 생성하는 함수입니다
+  generateCssSelector(elementInfo) {
+    // ID가 있으면 ID 사용
+    if (elementInfo.id && elementInfo.id !== '(none)') {
+      return `#${elementInfo.id}`;
+    }
+    
+    // 클래스가 있으면 클래스 사용
+    if (elementInfo.className && elementInfo.className !== '(none)') {
+      const classes = elementInfo.className.split(' ').filter(cls => cls.trim());
+      if (classes.length > 0) {
+        return `.${classes.join('.')}`;
+      }
+    }
+    
+    // 태그명만 사용
+    return elementInfo.tagName;
+  }
+  
+  // CSS를 클립보드로 복사하는 함수입니다
+  async copyCssToClipboard(format) {
+    try {
+      if (!this.currentElement || !this.currentSelector) {
+        this.showError('No element selected to copy CSS from.');
+        return;
+      }
+      
+      let cssCode = '';
+      
+      switch (format) {
+        case 'css':
+          cssCode = this.generateCssRule();
+          break;
+        case 'inline':
+          cssCode = this.generateInlineStyle();
+          break;
+        case 'js':
+          cssCode = this.generateJsObject();
+          break;
+        case 'modified':
+          cssCode = this.generateModifiedOnlyCss();
+          break;
+        default:
+          cssCode = this.generateCssRule();
+      }
+      
+      // 클립보드에 복사
+      await navigator.clipboard.writeText(cssCode);
+      
+      // 성공 피드백
+      this.showSuccessMessage(`CSS copied to clipboard! (${format.toUpperCase()})`);
+      
+      console.log('Copied CSS:', cssCode);
+    } catch (error) {
+      console.error('Failed to copy CSS:', error);
+      this.showError('Failed to copy CSS to clipboard.');
+    }
+  }
+  
+  // CSS Rule 형식 생성
+  generateCssRule() {
+    const styles = this.getCombinedStyles();
+    let css = `${this.currentSelector} {\n`;
+    
+    Object.entries(styles).forEach(([property, value]) => {
+      css += `  ${property}: ${value};\n`;
+    });
+    
+    css += '}';
+    return css;
+  }
+  
+  // Inline Style 형식 생성
+  generateInlineStyle() {
+    const styles = this.getCombinedStyles();
+    const styleStr = Object.entries(styles)
+      .map(([property, value]) => `${property}: ${value}`)
+      .join('; ');
+    
+    return `style="${styleStr}"`;
+  }
+  
+  // JavaScript Object 형식 생성
+  generateJsObject() {
+    const styles = this.getCombinedStyles();
+    let js = '{\n';
+    
+    Object.entries(styles).forEach(([property, value]) => {
+      // CSS 속성명을 camelCase로 변환
+      const camelCaseProperty = property.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
+      js += `  ${camelCaseProperty}: '${value}',\n`;
+    });
+    
+    js += '}';
+    return js;
+  }
+  
+  // 수정된 속성만 CSS 생성
+  generateModifiedOnlyCss() {
+    if (Object.keys(this.modifiedStyles).length === 0) {
+      return '/* No modifications made */';
+    }
+    
+    let css = `${this.currentSelector} {\n`;
+    Object.entries(this.modifiedStyles).forEach(([property, value]) => {
+      css += `  ${property}: ${value};\n`;
+    });
+    css += '}';
+    
+    return css;
+  }
+  
+  // 수정된 스타일과 원본 스타일을 결합하는 함수
+  getCombinedStyles() {
+    // 수정된 스타일이 우선, 그 다음 원본 스타일
+    return { ...this.originalStyles, ...this.modifiedStyles };
+  }
+  
+  // 성공 메시지를 표시하는 함수입니다
+  showSuccessMessage(message) {
+    const $successDiv = $('<div>', {
+      class: 'alert alert-success alert-sm',
+      html: `<strong>✅ ${message}</strong>`,
+      style: 'margin-top: 10px; padding: 8px; font-size: 0.8rem;'
+    });
+    
+    // 기존 메시지 제거
+    this.$propertiesContainer.find('.alert').remove();
+    
+    // 새 성공 메시지 추가
+    this.$propertiesContainer.before($successDiv);
+    
+    // 2초 후 자동 제거
+    setTimeout(() => {
+      $successDiv.fadeOut(300, () => $successDiv.remove());
+    }, 2000);
   }
 }
 

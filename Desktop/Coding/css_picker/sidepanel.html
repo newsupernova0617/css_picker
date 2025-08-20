@@ -85,7 +85,21 @@
         
         <!-- CSS 속성 목록 -->
         <div class="css-properties">
-          <h4>CSS Properties:</h4>
+          <div class="properties-header">
+            <h4>CSS Properties:</h4>
+            <div class="copy-css-dropdown">
+              <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="copyCssBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                📋 Copy CSS
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="copyCssBtn">
+                <li><a class="dropdown-item" href="#" data-format="css">CSS Rule</a></li>
+                <li><a class="dropdown-item" href="#" data-format="inline">Inline Style</a></li>
+                <li><a class="dropdown-item" href="#" data-format="js">JS Object</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" data-format="modified">Modified Only</a></li>
+              </ul>
+            </div>
+          </div>
           <div class="properties-container" id="propertiesContainer">
             <!-- CSS 속성들이 동적으로 추가됩니다 -->
           </div>
