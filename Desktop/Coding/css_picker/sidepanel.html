@@ -66,8 +66,39 @@
         </div>
       </div>
       
+      <!-- CSS 정보 표시 섹션 -->
+      <div class="css-info-section" id="cssInfoSection" style="display: none;">
+        <h3>Selected Element CSS</h3>
+        
+        <!-- 요소 정보 -->
+        <div class="element-info">
+          <div class="element-detail">
+            <strong>Tag:</strong> <span id="elementTag">-</span>
+          </div>
+          <div class="element-detail">
+            <strong>Class:</strong> <span id="elementClass">-</span>
+          </div>
+          <div class="element-detail">
+            <strong>ID:</strong> <span id="elementId">-</span>
+          </div>
+        </div>
+        
+        <!-- CSS 속성 목록 -->
+        <div class="css-properties">
+          <h4>CSS Properties:</h4>
+          <div class="properties-container" id="propertiesContainer">
+            <!-- CSS 속성들이 동적으로 추가됩니다 -->
+          </div>
+        </div>
+        
+        <!-- 닫기 버튼 -->
+        <div class="css-info-controls">
+          <button id="closeCssInfo" class="btn btn-secondary btn-sm">Close</button>
+        </div>
+      </div>
+      
       <!-- 사용 방법 설명 섹션 -->
-      <div class="instructions">
+      <div class="instructions" id="instructionsSection">
         <!-- 사용 방법 제목 -->
         <h3>How to use:</h3>
         
@@ -77,6 +108,7 @@
           <li>Open this side panel on any webpage</li>
           <li>Move your cursor over page elements</li>
           <li>See elements highlighted with red borders</li>
+          <li><strong>Click on a highlighted element</strong> to view its CSS properties</li>
           <li>Close the panel to disable highlighting</li>
         </ol>
       </div>

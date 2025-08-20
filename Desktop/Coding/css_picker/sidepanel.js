@@ -28,6 +28,9 @@ class SidePanel {
       // 버튼 클릭 등의 이벤트 리스너를 설정합니다
       this.setupEventListeners();
       
+      // CSS 정보 영역을 초기화합니다
+      this.initializeCssInfoSection();
+      
       // 백그라운드 스크립트에게 "사이드패널이 열렸다"고 알려줍니다
       this.notifyOpened();
     });
@@ -41,6 +44,15 @@ class SidePanel {
     
     // "toggleBtn" id를 가진 버튼을 찾아서 저장합니다
     this.$toggleButton = $("#toggleBtn");
+    
+    // CSS 정보 관련 요소들
+    this.$cssInfoSection = $("#cssInfoSection");
+    this.$instructionsSection = $("#instructionsSection");
+    this.$elementTag = $("#elementTag");
+    this.$elementClass = $("#elementClass");
+    this.$elementId = $("#elementId");
+    this.$propertiesContainer = $("#propertiesContainer");
+    this.$closeCssInfo = $("#closeCssInfo");
   }
   
   // 각종 이벤트 리스너들을 설정하는 함수입니다
@@ -141,6 +153,70 @@ class SidePanel {
       });
       return true; // 비동기 응답 처리
     }
+    
+    // CSS 요소 정보 메시지인지 확인합니다
+    if (message.type === "element_clicked") {
+      // CSS 정보를 화면에 표시합니다
+      this.displayElementInfo(message.cssInfo);
+      sendResponse({ success: true });
+      return true;
+    }
+  }
+  
+  // CSS 정보 영역을 초기화하는 함수입니다
+  initializeCssInfoSection() {
+    // 닫기 버튼 이벤트 리스너 설정
+    this.$closeCssInfo.click(() => {
+      this.hideCssInfo();
+    });
+  }
+  
+  // CSS 요소 정보를 화면에 표시하는 함수입니다
+  displayElementInfo(cssInfo) {
+    try {
+      // 요소 기본 정보 업데이트
+      this.$elementTag.text(cssInfo.tagName);
+      this.$elementClass.text(cssInfo.className);
+      this.$elementId.text(cssInfo.id);
+      
+      // CSS 속성 컨테이너 비우기
+      this.$propertiesContainer.empty();
+      
+      // CSS 속성들을 알파벳 순으로 정렬
+      const sortedProperties = Object.keys(cssInfo.properties).sort();
+      
+      // 각 CSS 속성을 표시
+      sortedProperties.forEach(property => {
+        const value = cssInfo.properties[property];
+        const $propertyItem = $(`
+          <div class="property-item">
+            <span class="property-name">${property}</span>
+            <span class="property-value">${value}</span>
+          </div>
+        `);
+        
+        this.$propertiesContainer.append($propertyItem);
+      });
+      
+      // CSS 정보 섹션 보이기 및 설명 섹션 숨기기
+      this.showCssInfo();
+      
+      console.log('CSS info displayed:', cssInfo);
+    } catch (error) {
+      console.error('Failed to display CSS info:', error);
+    }
+  }
+  
+  // CSS 정보 섹션을 보여주는 함수입니다
+  showCssInfo() {
+    this.$cssInfoSection.show();
+    this.$instructionsSection.hide();
+  }
+  
+  // CSS 정보 섹션을 숨기는 함수입니다
+  hideCssInfo() {
+    this.$cssInfoSection.hide();
+    this.$instructionsSection.show();
   }
 }
 

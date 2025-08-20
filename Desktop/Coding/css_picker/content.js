@@ -34,6 +34,7 @@ class ElementHighlighter {
     // bind를 사용하는 이유: 나중에 removeEventListener로 제거할 때 같은 함수 참조가 필요하기 때문입니다
     this.boundHandleMouseOver = this.handleMouseOver.bind(this);
     this.boundHandleMouseOut = this.handleMouseOut.bind(this);
+    this.boundHandleClick = this.handleClick.bind(this);
   }
   
   // 백그라운드 스크립트에서 온 메시지를 처리하는 함수입니다
@@ -80,6 +81,7 @@ class ElementHighlighter {
     // .on()의 세 번째 매개변수 true는 capturing 모드를 의미합니다
     $(document).on("mouseover.highlighter", this.boundHandleMouseOver);
     $(document).on("mouseout.highlighter", this.boundHandleMouseOut);
+    $(document).on("click.highlighter", this.boundHandleClick);
     
     // 콘솔에 활성화 메시지를 출력합니다
     console.log("Element highlighter enabled");
@@ -186,6 +188,95 @@ class ElementHighlighter {
       
       // 저장된 원래 outline 스타일도 비웁니다
       this.originalOutline = '';
+    }
+  }
+  
+  // 클릭 이벤트를 처리하는 함수입니다
+  handleClick(event) {
+    // 하이라이터가 비활성화 상태라면 함수를 종료합니다
+    if (!this.isActive) return;
+    
+    // 현재 하이라이트된 요소가 없다면 함수를 종료합니다
+    if (!this.$currentHighlighted || this.$currentHighlighted.length === 0) return;
+    
+    // 이벤트 전파를 중지합니다
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // 클릭된 요소의 CSS 정보를 추출합니다
+    const cssInfo = this.extractCSSProperties(event.target);
+    
+    // 사이드패널로 CSS 정보를 전송합니다
+    this.sendElementInfo(cssInfo, event.target);
+  }
+  
+  // 요소의 CSS 속성들을 추출하는 함수입니다
+  extractCSSProperties(element) {
+    // getComputedStyle로 실제 적용된 CSS 스타일을 가져옵니다
+    const computedStyles = window.getComputedStyle(element);
+    
+    // 표시할 주요 CSS 속성들을 정의합니다
+    const importantProperties = [
+      // 레이아웃 관련
+      'display', 'position', 'float', 'clear',
+      'width', 'height', 'min-width', 'min-height', 'max-width', 'max-height',
+      
+      // 박스 모델
+      'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+      'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+      'border', 'border-width', 'border-style', 'border-color',
+      'border-radius',
+      
+      // 색상 및 배경
+      'color', 'background-color', 'background-image', 'background-size',
+      'background-repeat', 'background-position', 'opacity',
+      
+      // 폰트 관련
+      'font-family', 'font-size', 'font-weight', 'font-style',
+      'line-height', 'text-align', 'text-decoration', 'text-transform',
+      
+      // 플렉스박스
+      'flex', 'flex-direction', 'flex-wrap', 'justify-content', 'align-items',
+      
+      // 그리드
+      'grid-template-columns', 'grid-template-rows', 'grid-gap',
+      
+      // 기타
+      'z-index', 'overflow', 'cursor', 'visibility'
+    ];
+    
+    const cssInfo = {
+      tagName: element.tagName.toLowerCase(),
+      className: element.className || '(none)',
+      id: element.id || '(none)',
+      properties: {}
+    };
+    
+    // 각 속성의 값을 추출합니다
+    importantProperties.forEach(property => {
+      const value = computedStyles.getPropertyValue(property);
+      // 값이 있고, 기본값이 아닌 경우에만 저장합니다
+      if (value && value !== 'auto' && value !== 'normal' && value !== 'none' && value !== '0px') {
+        cssInfo.properties[property] = value;
+      }
+    });
+    
+    return cssInfo;
+  }
+  
+  // 요소 정보를 사이드패널로 전송하는 함수입니다
+  sendElementInfo(cssInfo, element) {
+    try {
+      // Chrome extension 메시징 API를 사용해서 사이드패널로 정보를 전송합니다
+      chrome.runtime.sendMessage({
+        type: 'element_clicked',
+        cssInfo: cssInfo,
+        timestamp: Date.now()
+      });
+      
+      console.log('Element info sent:', cssInfo);
+    } catch (error) {
+      console.error('Failed to send element info:', error);
     }
   }
   

@@ -116,6 +116,94 @@ body::-webkit-scrollbar {
   line-height: 1.4;
 }
 
+/* CSS Info section */
+.css-info-section {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  margin-bottom: 20px;
+}
+
+.css-info-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 8px;
+}
+
+.element-info {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.element-detail {
+  margin-bottom: 4px;
+  font-size: 0.875rem;
+}
+
+.element-detail strong {
+  color: #495057;
+  min-width: 50px;
+  display: inline-block;
+}
+
+.element-detail span {
+  color: #6c757d;
+  font-family: 'Courier New', monospace;
+}
+
+.css-properties h4 {
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.properties-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 8px;
+  background: #f8f9fa;
+}
+
+.property-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  padding: 4px 8px;
+  background: white;
+  border-radius: 3px;
+  border-left: 3px solid #007bff;
+  font-size: 0.8rem;
+}
+
+.property-name {
+  font-weight: 600;
+  color: #495057;
+  font-family: 'Courier New', monospace;
+}
+
+.property-value {
+  color: #6c757d;
+  font-family: 'Courier New', monospace;
+  word-break: break-all;
+  flex: 1;
+  text-align: right;
+  margin-left: 8px;
+}
+
+.css-info-controls {
+  margin-top: 16px;
+  text-align: center;
+}
+
 /* Button styles */
 .btn {
   transition: all 0.2s ease-in-out;
