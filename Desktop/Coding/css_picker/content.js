@@ -19,6 +19,12 @@ class ElementHighlighter {
     // 하이라이트할 때 사용할 테두리 두께
     this.highlightWidth = '2px'; // 2픽셀
     
+    // CSS 편집과 관련된 변수들
+    this.selectedElement = null; // 현재 선택된 요소
+    this.selectedElementSelector = null; // 선택된 요소의 CSS 선택자
+    this.modifiedStyles = new Map(); // 변경된 스타일 기록
+    this.isEditingMode = false; // 편집 모드 상태
+    
     // 초기화 함수를 호출합니다
     this.init();
   }
@@ -56,6 +62,12 @@ class ElementHighlighter {
           // "테두리 끄기" 메시지를 받았을 때
           this.disable(); // 하이라이터를 비활성화합니다
           sendResponse({ success: true, action: "disabled" }); // 성공 응답을 보냅니다
+          break;
+          
+        case "update_css":
+          // CSS 업데이트 메시지를 받았을 때
+          this.updateElementStyle(message);
+          sendResponse({ success: true, action: "css_updated" });
           break;
           
         default:
@@ -102,6 +114,9 @@ class ElementHighlighter {
     // 현재 하이라이트된 요소가 있다면 하이라이트를 제거합니다
     this.clearHighlight();
     
+    // 모든 CSS 변경사항도 정리합니다
+    this.clearAllModifications();
+    
     // 콘솔에 비활성화 메시지를 출력합니다
     console.log("Element highlighter disabled");
   }
@@ -110,6 +125,11 @@ class ElementHighlighter {
   handleMouseOver(event) {
     // 하이라이터가 비활성화 상태라면 함수를 종료합니다
     if (!this.isActive) return;
+    
+    // CSS 편집 모드일 때 클릭 이벤트만 처리하고 hover 이벤트는 무시
+    if (this.isEditingMode && this.$currentHighlighted && this.$currentHighlighted[0] !== event.target) {
+      return;
+    }
     
     // 이벤트 버블링을 중지합니다 (부모 요소로 이벤트가 전파되는 것을 막습니다)
     event.stopPropagation();
@@ -123,6 +143,8 @@ class ElementHighlighter {
     // 이 요소가 하이라이트해도 되는 요소인지 확인합니다
     if (this.shouldHighlight(target)) {
       this.highlightElement(target); // 요소를 하이라이트합니다
+      // 편집 모드 활성화
+      this.isEditingMode = true;
     }
   }
   
@@ -130,6 +152,11 @@ class ElementHighlighter {
   handleMouseOut(event) {
     // 하이라이터가 비활성화 상태라면 함수를 종료합니다
     if (!this.isActive) return;
+    
+    // CSS 편집 모드일 때는 mouseout 이벤트를 무시합니다
+    if (this.isEditingMode) {
+      return;
+    }
     
     // 이벤트 버블링을 중지합니다
     event.stopPropagation();
@@ -189,6 +216,9 @@ class ElementHighlighter {
       // 저장된 원래 outline 스타일도 비웁니다
       this.originalOutline = '';
     }
+    
+    // 편집 모드 해제
+    this.isEditingMode = false;
   }
   
   // 클릭 이벤트를 처리하는 함수입니다
@@ -267,6 +297,10 @@ class ElementHighlighter {
   // 요소 정보를 사이드패널로 전송하는 함수입니다
   sendElementInfo(cssInfo, element) {
     try {
+      // 현재 선택된 요소를 저장합니다 (CSS 수정을 위해)
+      this.selectedElement = element;
+      this.selectedElementSelector = this.generateElementSelector(element);
+      
       // Chrome extension 메시징 API를 사용해서 사이드패널로 정보를 전송합니다
       chrome.runtime.sendMessage({
         type: 'element_clicked',
@@ -278,6 +312,83 @@ class ElementHighlighter {
     } catch (error) {
       console.error('Failed to send element info:', error);
     }
+  }
+  
+  // 요소의 CSS 선택자를 생성하는 함수입니다
+  generateElementSelector(element) {
+    // ID가 있으면 ID를 사용
+    if (element.id) {
+      return `#${element.id}`;
+    }
+    
+    // 고유한 클래스 조합을 찾아보기
+    if (element.className) {
+      const classes = element.className.split(' ').filter(cls => cls.trim());
+      if (classes.length > 0) {
+        const selector = element.tagName.toLowerCase() + '.' + classes.join('.');
+        if (document.querySelectorAll(selector).length === 1) {
+          return selector;
+        }
+      }
+    }
+    
+    // nth-child를 이용한 선택자 생성
+    const parent = element.parentElement;
+    if (parent) {
+      const siblings = Array.from(parent.children);
+      const index = siblings.indexOf(element) + 1;
+      const parentSelector = parent.tagName.toLowerCase();
+      return `${parentSelector} > ${element.tagName.toLowerCase()}:nth-child(${index})`;
+    }
+    
+    return element.tagName.toLowerCase();
+  }
+  
+  // CSS 스타일을 업데이트하는 함수입니다
+  updateElementStyle(message) {
+    try {
+      const { property, value, elementInfo } = message;
+      
+      if (!this.selectedElement) {
+        console.error('No element selected for styling');
+        return;
+      }
+      
+      // 스타일 직접 적용 (inline style이 가장 높은 우선순위를 가짐)
+      this.selectedElement.style.setProperty(property, value, 'important');
+      
+      // 변경된 스타일 기록 저장
+      if (!this.modifiedStyles) {
+        this.modifiedStyles = new Map();
+      }
+      
+      if (!this.modifiedStyles.has(this.selectedElement)) {
+        this.modifiedStyles.set(this.selectedElement, new Map());
+      }
+      
+      this.modifiedStyles.get(this.selectedElement).set(property, value);
+      
+      console.log(`Updated ${property}: ${value} on element`, this.selectedElement);
+    } catch (error) {
+      console.error('Failed to update element style:', error);
+    }
+  }
+  
+  // 모든 CSS 변경사항을 정리하는 함수입니다
+  clearAllModifications() {
+    if (this.modifiedStyles) {
+      this.modifiedStyles.forEach((styleMap, element) => {
+        styleMap.forEach((value, property) => {
+          // 인라인 스타일 제거
+          element.style.removeProperty(property);
+        });
+      });
+      this.modifiedStyles.clear();
+    }
+    
+    this.selectedElement = null;
+    this.selectedElementSelector = null;
+    this.isEditingMode = false;
   }
   
   // 하이라이트 스타일(색깔, 두께)을 업데이트하는 함수입니다
