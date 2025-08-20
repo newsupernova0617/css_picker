@@ -126,10 +126,7 @@ class ElementHighlighter {
     // 하이라이터가 비활성화 상태라면 함수를 종료합니다
     if (!this.isActive) return;
     
-    // CSS 편집 모드일 때 클릭 이벤트만 처리하고 hover 이벤트는 무시
-    if (this.isEditingMode && this.$currentHighlighted && this.$currentHighlighted[0] !== event.target) {
-      return;
-    }
+    // CSS 편집 모드일 때는 이미 선택된 요소가 있더라도 다른 요소로 hover 가능하게 함
     
     // 이벤트 버블링을 중지합니다 (부모 요소로 이벤트가 전파되는 것을 막습니다)
     event.stopPropagation();
@@ -143,8 +140,6 @@ class ElementHighlighter {
     // 이 요소가 하이라이트해도 되는 요소인지 확인합니다
     if (this.shouldHighlight(target)) {
       this.highlightElement(target); // 요소를 하이라이트합니다
-      // 편집 모드 활성화
-      this.isEditingMode = true;
     }
   }
   
@@ -152,11 +147,6 @@ class ElementHighlighter {
   handleMouseOut(event) {
     // 하이라이터가 비활성화 상태라면 함수를 종료합니다
     if (!this.isActive) return;
-    
-    // CSS 편집 모드일 때는 mouseout 이벤트를 무시합니다
-    if (this.isEditingMode) {
-      return;
-    }
     
     // 이벤트 버블링을 중지합니다
     event.stopPropagation();
@@ -217,8 +207,7 @@ class ElementHighlighter {
       this.originalOutline = '';
     }
     
-    // 편집 모드 해제
-    this.isEditingMode = false;
+    // 편집 모드는 클릭할 때만 활성화되므로 clearHighlight에서는 해제하지 않음
   }
   
   // 클릭 이벤트를 처리하는 함수입니다
@@ -232,6 +221,9 @@ class ElementHighlighter {
     // 이벤트 전파를 중지합니다
     event.preventDefault();
     event.stopPropagation();
+    
+    // 편집 모드 활성화 (요소를 클릭했을 때만)
+    this.isEditingMode = true;
     
     // 클릭된 요소의 CSS 정보를 추출합니다
     const cssInfo = this.extractCSSProperties(event.target);
