@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<!-- HTML5 문서 타입 선언 - 브라우저에게 이것이 HTML5 문서임을 알려줍니다 -->
+
+<html lang="en">
+<!-- HTML 문서의 시작 태그, lang="en"은 이 문서가 영어로 작성되었음을 나타냅니다 -->
+
+<head>
+  <!-- head 섹션: 웹페이지의 메타데이터(정보)를 담는 부분입니다. 사용자에게는 보이지 않습니다 -->
+  
+  <!-- 문자 인코딩을 UTF-8로 설정 - 한글, 영어, 특수문자 등을 제대로 표시할 수 있게 합니다 -->
+  <meta charset="UTF-8">
+  
+  <!-- 반응형 디자인을 위한 viewport 설정 - 모바일에서도 제대로 보이게 합니다 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- 브라우저 탭에 표시될 페이지 제목입니다 -->
+  <title>CSS Element Picker</title>
+  
+  <!-- Bootstrap CSS 프레임워크를 CDN에서 가져와서 사용합니다 -->
+  <!-- Bootstrap은 미리 만들어진 디자인 스타일들을 제공하는 라이브러리입니다 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- 우리가 직접 만든 CSS 스타일 파일을 연결합니다 -->
+  <link rel="stylesheet" href="sidepanel.css">
+  
+  <!-- jQuery 라이브러리를 로드합니다 -->
+  <script src="jquery.min.js"></script>
+  
+  <!-- JavaScript 파일을 연결합니다. defer 속성으로 HTML이 모두 로드된 후에 실행됩니다 -->
+  <script src="sidepanel.js" defer></script>
+</head>
+
+<body>
+  <!-- body 섹션: 사용자에게 실제로 보이는 내용들이 들어가는 부분입니다 -->
+  
+  <!-- 전체 컨텐츠를 감싸는 컨테이너 div -->
+  <div class="container">
+    
+    <!-- header 섹션: 페이지의 상단 부분을 나타냅니다 -->
+    <header class="header">
+      <!-- 페이지의 주제목 -->
+      <h2 class="title">CSS Element Picker</h2>
+      
+      <!-- 현재 상태를 보여주는 표시기 -->
+      <!-- id="statusIndicator"로 JavaScript에서 이 요소를 찾아서 조작할 수 있습니다 -->
+      <span class="status-indicator" id="statusIndicator">🟢 Active</span>
+    </header>
+    
+    <!-- main 섹션: 페이지의 주요 내용이 들어가는 부분입니다 -->
+    <main class="main-content">
+      
+      <!-- 정보 섹션: 프로그램에 대한 설명과 조작 버튼이 들어있습니다 -->
+      <div class="info-section">
+        <!-- 프로그램 사용법에 대한 설명 텍스트 -->
+        <p class="description">
+          Hover over elements on the webpage to highlight them with a red border.
+        </p>
+        
+        <!-- 컨트롤 버튼들이 들어가는 영역 -->
+        <div class="controls">
+          <!-- 피커 기능을 켜고 끄는 토글 버튼 -->
+          <!-- id="toggleBtn"으로 JavaScript에서 이 버튼을 찾아서 클릭 이벤트를 연결할 수 있습니다 -->
+          <button id="toggleBtn" class="btn btn-primary btn-sm">
+            Toggle Picker
+          </button>
+        </div>
+      </div>
+      
+      <!-- CSS 정보 표시 섹션 -->
+      <div class="css-info-section" id="cssInfoSection" style="display: none;">
+        <h3>Selected Element CSS</h3>
+        
+        <!-- 요소 정보 -->
+        <div class="element-info">
+          <div class="element-detail">
+            <strong>Tag:</strong> <span id="elementTag">-</span>
+          </div>
+          <div class="element-detail">
+            <strong>Class:</strong> <span id="elementClass">-</span>
+          </div>
+          <div class="element-detail">
+            <strong>ID:</strong> <span id="elementId">-</span>
+          </div>
+        </div>
+        
+        <!-- CSS 속성 목록 -->
+        <div class="css-properties">
+          <div class="properties-header">
+            <h4>CSS Properties:</h4>
+            <div class="copy-css-dropdown">
+              <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="copyCssBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                📋 Copy CSS
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="copyCssBtn">
+                <li><a class="dropdown-item" href="#" data-format="css">CSS Rule</a></li>
+                <li><a class="dropdown-item" href="#" data-format="inline">Inline Style</a></li>
+                <li><a class="dropdown-item" href="#" data-format="js">JS Object</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" data-format="modified">Modified Only</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="properties-container" id="propertiesContainer">
+            <!-- CSS 속성들이 동적으로 추가됩니다 -->
+          </div>
+        </div>
+        
+        <!-- 컨트롤 버튼들 -->
+        <div class="css-info-controls">
+          <button id="resetStyles" class="btn btn-warning btn-sm">Reset All</button>
+          <button id="closeCssInfo" class="btn btn-secondary btn-sm">Close</button>
+        </div>
+      </div>
+      
+      <!-- 사용 방법 설명 섹션 -->
+      <div class="instructions" id="instructionsSection">
+        <!-- 사용 방법 제목 -->
+        <h3>How to use:</h3>
+        
+        <!-- 순서가 있는 목록 (ol = ordered list) -->
+        <ol>
+          <!-- 각 단계별 설명 (li = list item) -->
+          <li>Open this side panel on any webpage</li>
+          <li>Move your cursor over page elements</li>
+          <li>See elements highlighted with red borders</li>
+          <li><strong>Click on a highlighted element</strong> to view its CSS properties</li>
+          <li>Close the panel to disable highlighting</li>
+        </ol>
+      </div>
+      
+    </main>
+    <!-- main 섹션 끝 -->
+    
+  </div>
+  <!-- container div 끝 -->
+  
+</body>
+<!-- body 섹션 끝 -->
+
+</html>
+<!-- HTML 문서 끝 -->
