@@ -518,13 +518,7 @@ class ColorSampler {
       return true;
     }
     
-    // 실시간 색상 호버 메시지 처리
-    if (message.type === 'color_hover') {
-      console.log('Received color hover message:', message.color);
-      this.updateRealtimeColorPreview(message.color);
-      sendResponse({ success: true });
-      return true;
-    }
+    // 실시간 색상 호버 기능 제거됨 (EyeDropper 기본 사용)
     
     // 콘솔 메시지 처리
     if (message.action === 'console-message') {
@@ -1341,11 +1335,7 @@ class SidePanel {
     this.consoleOutput = document.getElementById("consoleOutput");
     
     // 실시간 색상 프리뷰 요소들
-    this.realtimeColorPreview = document.getElementById("realtimeColorPreview");
-    this.realtimeColorBox = document.getElementById("realtimeColorBox");
-    this.realtimeHex = document.getElementById("realtimeHex");
-    this.realtimeRgb = document.getElementById("realtimeRgb");
-    this.realtimeHsl = document.getElementById("realtimeHsl");
+    // 실시간 색상 프리뷰 요소들 제거됨
   }
   
   // 각종 이벤트 리스너들을 설정하는 함수입니다
@@ -1455,14 +1445,7 @@ class SidePanel {
       return true;
     }
     
-    // 실시간 색상 호버 메시지인지 확인합니다
-    if (message.type === "color_hover") {
-      console.log('Received color hover message:', message.color); // 디버깅용
-      // 실시간 색상 프리뷰 업데이트
-      this.updateRealtimeColorPreview(message.color);
-      sendResponse({ success: true });
-      return true;
-    }
+    // 실시간 색상 호버 기능 제거됨
   }
   
   // CSS 정보 영역을 초기화하는 함수입니다
@@ -3247,6 +3230,8 @@ class SidePanel {
     
     console.log("Color Palette mode deactivated");
   }
+
+  // EyeDropper는 이제 기본 클릭 동작으로 통합됨
   
   // 색상 샘플링 활성화
   async activateColorSampling() {
@@ -3633,56 +3618,7 @@ class SidePanel {
     this.assetManager.style.display = 'none';
   }
   
-  // 실시간 색상 프리뷰 업데이트
-  updateRealtimeColorPreview(color) {
-    console.log('Updating realtime color preview:', color, 'Color palette mode:', this.isColorPaletteMode); // 디버깅용
-    
-    if (!this.isColorPaletteMode) {
-      console.log('Not in color palette mode, skipping update');
-      return;
-    }
-    
-    if (color) {
-      // 색상 박스 업데이트
-      if (this.realtimeColorBox) {
-        const bgColor = color.hex || `rgb(${color.r || 0}, ${color.g || 0}, ${color.b || 0})`;
-        this.realtimeColorBox.style.backgroundColor = bgColor;
-        console.log('Updated color box to:', bgColor);
-      }
-      
-      // HEX 코드 업데이트
-      if (this.realtimeHex) {
-        this.realtimeHex.textContent = color.hex || '-';
-        console.log('Updated HEX to:', color.hex);
-      }
-      
-      // RGB 코드 업데이트
-      if (this.realtimeRgb) {
-        if (color.r !== undefined && color.g !== undefined && color.b !== undefined) {
-          this.realtimeRgb.textContent = `RGB: ${color.r}, ${color.g}, ${color.b}`;
-        } else if (color.rgb) {
-          this.realtimeRgb.textContent = color.rgb;
-        } else {
-          this.realtimeRgb.textContent = '-';
-        }
-        console.log('Updated RGB to:', this.realtimeRgb.textContent);
-      }
-      
-      // HSL 코드 업데이트
-      if (this.realtimeHsl) {
-        if (color.hsl) {
-          this.realtimeHsl.textContent = color.hsl;
-        } else if (color.h !== undefined && color.s !== undefined && color.l !== undefined) {
-          this.realtimeHsl.textContent = `HSL: ${color.h}°, ${color.s}%, ${color.l}%`;
-        } else {
-          this.realtimeHsl.textContent = '-';
-        }
-        console.log('Updated HSL to:', this.realtimeHsl.textContent);
-      }
-    } else {
-      console.log('No color data received');
-    }
-  }
+  // 실시간 색상 프리뷰 기능 제거됨 (EyeDropper 기본 사용)
   
   // Console 버튼 상태 업데이트
   updateConsoleButtonState(isActive) {

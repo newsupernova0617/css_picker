@@ -95,6 +95,15 @@ class ElementHighlighter {
           this.disableColorSampling();
           sendResponse({ success: true, action: "color_sampling_disabled" });
           break;
+
+        case "start-eyedropper":
+          // EyeDropper API 시작 메시지를 받았을 때
+          this.startEyeDropperMode().then(color => {
+            sendResponse({ success: !!color, color: color });
+          }).catch(error => {
+            sendResponse({ success: false, error: error.message });
+          });
+          return true; // 비동기 응답을 위해 true 반환
           
         default:
           // 알 수 없는 액션인 경우
@@ -474,62 +483,10 @@ class ElementHighlighter {
       * {
         cursor: crosshair !important;
       }
-      
-      /* 십자선 커서 */
-      .css-picker-crosshair {
-        position: fixed;
-        pointer-events: none;
-        z-index: 999999;
-      }
-      
-      .css-picker-crosshair-h {
-        position: fixed;
-        height: 1px;
-        width: 100vw;
-        background: rgba(255, 0, 0, 0.5);
-        left: 0;
-        pointer-events: none;
-        z-index: 999999;
-        mix-blend-mode: difference;
-      }
-      
-      .css-picker-crosshair-v {
-        position: fixed;
-        width: 1px;
-        height: 100vh;
-        background: rgba(255, 0, 0, 0.5);
-        top: 0;
-        pointer-events: none;
-        z-index: 999999;
-        mix-blend-mode: difference;
-      }
-      
-      .css-picker-crosshair-center {
-        position: fixed;
-        width: 11px;
-        height: 11px;
-        border: 2px solid rgba(255, 255, 255, 0.9);
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        pointer-events: none;
-        z-index: 999999;
-        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
-      }
     `;
     document.head.appendChild(cursorStyle);
     
-    // 십자선 요소들 생성
-    this.crosshairH = document.createElement('div');
-    this.crosshairH.className = 'css-picker-crosshair-h';
-    document.body.appendChild(this.crosshairH);
-    
-    this.crosshairV = document.createElement('div');
-    this.crosshairV.className = 'css-picker-crosshair-v';
-    document.body.appendChild(this.crosshairV);
-    
-    this.crosshairCenter = document.createElement('div');
-    this.crosshairCenter.className = 'css-picker-crosshair-center';
-    document.body.appendChild(this.crosshairCenter);
+    // EyeDropper 모드에서는 십자선 요소 생성하지 않음
   }
   
   // 컬러 샘플링 커서 제거
@@ -540,54 +497,20 @@ class ElementHighlighter {
       cursorStyle.remove();
     }
     
-    // 십자선 요소들 제거
-    if (this.crosshairH) {
-      this.crosshairH.remove();
-      this.crosshairH = null;
-    }
-    if (this.crosshairV) {
-      this.crosshairV.remove();
-      this.crosshairV = null;
-    }
-    if (this.crosshairCenter) {
-      this.crosshairCenter.remove();
-      this.crosshairCenter = null;
-    }
+    // EyeDropper 모드에서는 제거할 십자선 요소 없음
   }
   
-  // 컬러 샘플링 이벤트 리스너 추가
+  // 컬러 샘플링 이벤트 리스너 추가 (클릭만)
   addColorSamplingListeners() {
-    this.boundHandleColorMouseMove = this.handleColorMouseMove.bind(this);
     this.boundHandleColorClick = this.handleColorClick.bind(this);
-    
-    document.addEventListener('mousemove', this.boundHandleColorMouseMove, true);
     document.addEventListener('click', this.boundHandleColorClick, true);
   }
   
   // 컬러 샘플링 이벤트 리스너 제거
   removeColorSamplingListeners() {
-    document.removeEventListener('mousemove', this.boundHandleColorMouseMove, true);
-    document.removeEventListener('click', this.boundHandleColorClick, true);
-  }
-  
-  // 마우스 이동 시 컬러 프리뷰 업데이트
-  handleColorMouseMove(event) {
-    if (!this.colorSamplingMode) return;
-    
-    // 십자선 위치 업데이트
-    if (this.crosshairH) {
-      this.crosshairH.style.top = event.clientY + 'px';
+    if (this.boundHandleColorClick) {
+      document.removeEventListener('click', this.boundHandleColorClick, true);
     }
-    if (this.crosshairV) {
-      this.crosshairV.style.left = event.clientX + 'px';
-    }
-    if (this.crosshairCenter) {
-      this.crosshairCenter.style.left = event.clientX + 'px';
-      this.crosshairCenter.style.top = event.clientY + 'px';
-    }
-    
-    // 실시간 색상 미리보기
-    this.sendRealtimeColorPreview(event.clientX, event.clientY);
   }
   
   // 클릭 시 색상 샘플링 실행
@@ -601,9 +524,6 @@ class ElementHighlighter {
     const color = await this.sampleColorAtClick(event.clientX, event.clientY);
     
     if (color) {
-      // 먼저 호버 프리뷰도 업데이트 (클릭할 때마다 호버 색상도 보이도록)
-      this.sendRealtimeColorPreview(event.clientX, event.clientY);
-      
       // 사이드패널에 색상 정보 전송 (샘플링)
       chrome.runtime.sendMessage({
         action: 'color-sampled',
@@ -648,12 +568,12 @@ class ElementHighlighter {
     }
   }
 
-  // 클릭 전용 색상 샘플링 (EyeDropper API 우선 사용)
+  // 클릭 시 EyeDropper API 사용 (기본 동작)
   async sampleColorAtClick(x, y) {
     try {
-      // 1단계: EyeDropper API 시도 (Chrome 95+) - 클릭 전용
+      // EyeDropper API 우선 시도
       if ('EyeDropper' in window) {
-        console.log('Trying EyeDropper API for click sampling...');
+        console.log('Using EyeDropper API for color sampling...');
         const eyeDropperColor = await this.sampleWithEyeDropper();
         if (eyeDropperColor && eyeDropperColor.r !== undefined) {
           console.log('EyeDropper API success:', eyeDropperColor);
@@ -661,12 +581,44 @@ class ElementHighlighter {
         }
       }
       
-      // 2단계: 일반 샘플링 fallback
+      // EyeDropper 실패시 fallback
+      console.log('EyeDropper not available, using fallback...');
       return await this.sampleColorAtPosition(x, y);
       
     } catch (error) {
       console.error('Click color sampling failed:', error);
-      return await this.sampleColorAtPosition(x, y);
+      return { r: 255, g: 0, b: 0, a: 1 }; // 빨간색 (오류 표시)
+    }
+  }
+
+  // EyeDropper API 전용 함수 (별도 버튼에서 호출)
+  async startEyeDropperMode() {
+    try {
+      if (!('EyeDropper' in window)) {
+        throw new Error('EyeDropper API not supported');
+      }
+      
+      console.log('Starting EyeDropper mode...');
+      const eyeDropper = new EyeDropper();
+      const result = await eyeDropper.open();
+      
+      if (result && result.sRGBHex) {
+        const color = this.parseColorString(result.sRGBHex);
+        console.log('EyeDropper API success:', color);
+        
+        // 사이드패널에 색상 정보 전송
+        chrome.runtime.sendMessage({
+          action: 'color-sampled',
+          colorData: color,
+          coordinates: { x: 0, y: 0 }, // EyeDropper는 좌표 무관
+          source: 'eyedropper'
+        });
+        
+        return color;
+      }
+    } catch (error) {
+      console.log('EyeDropper failed:', error);
+      return null;
     }
   }
   
@@ -773,49 +725,7 @@ class ElementHighlighter {
     }
   }
   
-  // 지정된 위치의 색상 미리보기
-  // 실시간 색상 정보를 사이드패널로 전송
-  async sendRealtimeColorPreview(x, y) {
-    const color = await this.sampleColorAtPosition(x, y);
-    console.log('Sampled color:', color); // 디버깅용
-    
-    if (color && color.r !== undefined) {
-      // RGB 값이 있는지 확인하고 HEX 변환
-      const hex = this.rgbToHex(color.r, color.g, color.b);
-      const rgb = `rgb(${color.r}, ${color.g}, ${color.b})`;
-      const hsl = this.rgbToHsl(color.r, color.g, color.b);
-      
-      // 중앙 표시점 배경색 업데이트
-      if (this.crosshairCenter) {
-        this.crosshairCenter.style.backgroundColor = hex;
-      }
-      
-      // 완전한 색상 객체로 사이드패널에 전송
-      const colorData = {
-        r: color.r,
-        g: color.g,
-        b: color.b,
-        a: color.a || 1,
-        hex: hex,
-        rgb: rgb,
-        hsl: `hsl(${hsl.h}°, ${hsl.s}%, ${hsl.l}%)`
-      };
-      
-      console.log('Sending color data:', colorData); // 디버깅용
-      
-      // 사이드패널로 실시간 색상 정보 전송
-      try {
-        chrome.runtime.sendMessage({
-          type: 'color_hover',
-          color: colorData
-        });
-      } catch (error) {
-        console.error('Failed to send color hover message:', error);
-      }
-    } else {
-      console.log('No valid color sampled'); // 디버깅용
-    }
-  }
+  // 실시간 색상 프리뷰 기능 제거됨 (EyeDropper 기본 사용)
   
   // 색상 문자열을 RGB 객체로 파싱
   parseColorString(colorStr) {
