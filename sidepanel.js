@@ -509,12 +509,32 @@ class ColorSampler {
     chrome.runtime.onMessage.removeListener(this.handleColorSampleMessage.bind(this));
   }
 
-  // content script에서 오는 메시지 처리
+  // content script에서 오는 모든 메시지 처리 (통합)
   handleColorSampleMessage(message, sender, sendResponse) {
+    // 색상 샘플링 메시지 처리
     if (message.action === 'color-sampled') {
       this.processColorSample(message.colorData, message.coordinates);
       sendResponse({ success: true });
+      return true;
     }
+    
+    // 실시간 색상 호버 메시지 처리
+    if (message.type === 'color_hover') {
+      console.log('Received color hover message:', message.color);
+      this.updateRealtimeColorPreview(message.color);
+      sendResponse({ success: true });
+      return true;
+    }
+    
+    // 콘솔 메시지 처리
+    if (message.action === 'console-message') {
+      this.consoleManager.addMessage(message.data);
+      sendResponse({ success: true });
+      return true;
+    }
+    
+    // 기타 메시지 처리 (기존 handleMessage 로직)
+    this.handleMessage(message, sender, sendResponse);
     return true;
   }
 
@@ -821,13 +841,7 @@ class ConsoleManager {
   }
   
   init() {
-    // 메시지 리스너 등록
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      if (message.action === 'console-message') {
-        this.addMessage(message.data);
-        sendResponse({ success: true });
-      }
-    });
+    // 메시지 리스너는 메인 클래스에서 통합 처리됨
   }
   
   // 콘솔 모니터링 시작
@@ -1292,7 +1306,8 @@ class SidePanel {
     this.assetCategories = document.getElementById("assetCategories");
     
     // Color Palette 요소들
-    this.colorPaletteBtn = document.getElementById("colorPaletteBtn");
+    // 드롭다운 메뉴 아이템으로 변경
+    this.colorPaletteMenuItem = document.getElementById("colorPaletteMenuItem");
     this.colorPaletteSection = document.getElementById("colorPaletteSection");
     this.samplingStatus = document.getElementById("samplingStatus");
     this.exitColorModeBtn = document.getElementById("exitColorModeBtn");
@@ -1311,7 +1326,8 @@ class SidePanel {
     this.harmonySwatches = document.getElementById("harmonySwatches");
     
     // Console Monitor 요소들
-    this.consoleMonitorBtn = document.getElementById("consoleMonitorBtn");
+    // 드롭다운 메뉴 아이템으로 변경
+    this.consoleMenuItem = document.getElementById("consoleMenuItem");
     this.consoleSection = document.getElementById("consoleSection");
     this.toggleConsoleBtn = document.getElementById("toggleConsoleBtn");
     this.clearConsoleBtn = document.getElementById("clearConsoleBtn");
@@ -1323,6 +1339,13 @@ class SidePanel {
     this.consoleStatus = document.getElementById("consoleStatus");
     this.consolePerformanceInfo = document.getElementById("consolePerformanceInfo");
     this.consoleOutput = document.getElementById("consoleOutput");
+    
+    // 실시간 색상 프리뷰 요소들
+    this.realtimeColorPreview = document.getElementById("realtimeColorPreview");
+    this.realtimeColorBox = document.getElementById("realtimeColorBox");
+    this.realtimeHex = document.getElementById("realtimeHex");
+    this.realtimeRgb = document.getElementById("realtimeRgb");
+    this.realtimeHsl = document.getElementById("realtimeHsl");
   }
   
   // 각종 이벤트 리스너들을 설정하는 함수입니다
@@ -1339,11 +1362,7 @@ class SidePanel {
       this.notifyClosed();
     });
     
-    // Chrome 확장 프로그램의 다른 부분(백그라운드 스크립트)에서 메시지가 올 때를 처리합니다
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      // 받은 메시지를 처리하는 함수를 호출합니다
-      this.handleMessage(message, sender, sendResponse);
-    });
+    // 메시지 리스너는 ColorPalette 클래스에서 통합 처리됨
   }
   
   // 피커 기능을 켜거나 끄는 함수입니다
@@ -1384,6 +1403,8 @@ class SidePanel {
       chrome.runtime.sendMessage({ 
         type: "sidepanel_opened", // 메시지 종류를 "사이드패널 열림"으로 설정
         timestamp: Date.now() // 현재 시간을 함께 보냅니다
+      }).catch(error => {
+        console.error("Failed to send opened message:", error);
       });
     } catch (error) {
       // 메시지 보내기에 실패하면 콘솔에 오류를 출력합니다
@@ -1398,6 +1419,8 @@ class SidePanel {
       chrome.runtime.sendMessage({ 
         type: "sidepanel_closed", // 메시지 종류를 "사이드패널 닫힘"으로 설정
         timestamp: Date.now() // 현재 시간을 함께 보냅니다
+      }).catch(error => {
+        console.error("Failed to send closed message:", error);
       });
     } catch (error) {
       // 메시지 보내기에 실패하면 콘솔에 오류를 출력합니다
@@ -1428,6 +1451,15 @@ class SidePanel {
     if (message.type === "element_clicked") {
       // CSS 정보를 화면에 표시합니다
       this.displayElementInfo(message.cssInfo);
+      sendResponse({ success: true });
+      return true;
+    }
+    
+    // 실시간 색상 호버 메시지인지 확인합니다
+    if (message.type === "color_hover") {
+      console.log('Received color hover message:', message.color); // 디버깅용
+      // 실시간 색상 프리뷰 업데이트
+      this.updateRealtimeColorPreview(message.color);
       sendResponse({ success: true });
       return true;
     }
@@ -1473,8 +1505,17 @@ class SidePanel {
       this.backToCssView();
     });
     
-    // Color Palette 관련 이벤트 리스너
-    this.colorPaletteBtn.addEventListener('click', () => {
+    // 드롭다운 메뉴 아이템들 이벤트 리스너
+    // Asset Manager 메뉴 아이템
+    this.assetManagerMenuItem = document.getElementById("assetManagerMenuItem");
+    this.assetManagerMenuItem.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.toggleAssetManager();
+    });
+    
+    // Color Palette 메뉴 아이템
+    this.colorPaletteMenuItem.addEventListener('click', (e) => {
+      e.preventDefault();
       this.toggleColorPaletteMode();
     });
     
@@ -1502,10 +1543,19 @@ class SidePanel {
       this.generateColorHarmony();
     });
     
-    // Console Monitor 관련 이벤트 리스너
-    this.consoleMonitorBtn.addEventListener('click', () => {
+    // Console 메뉴 아이템
+    this.consoleMenuItem.addEventListener('click', (e) => {
+      e.preventDefault();
       this.toggleConsoleMode();
     });
+    
+    // Asset Manager 닫기 버튼
+    this.closeAssetManagerBtn = document.getElementById("closeAssetManagerBtn");
+    if (this.closeAssetManagerBtn) {
+      this.closeAssetManagerBtn.addEventListener('click', () => {
+        this.closeAssetManager();
+      });
+    }
     
     this.toggleConsoleBtn.addEventListener('click', () => {
       this.toggleConsoleMonitoring();
@@ -3189,7 +3239,7 @@ class SidePanel {
     
     // UI 상태 업데이트
     this.hideColorPaletteSection();
-    this.showOtherSections();
+    this.showInstructionsSection();  // showOtherSections 대신 showInstructionsSection 사용
     this.updateColorPaletteButtonState(false);
     
     // 선택된 색상 정보 숨기기
@@ -3236,21 +3286,47 @@ class SidePanel {
     this.cssInfoSection.style.display = 'none';
     this.instructionsSection.style.display = 'none';
     this.assetManager.style.display = 'none';
+    this.consoleSection.style.display = 'none';
   }
   
   showOtherSections() {
     this.instructionsSection.style.display = 'block';
-    this.assetManager.style.display = 'block';
+    // Asset Manager는 기본적으로 숨김
+    // this.assetManager.style.display = 'block';
+  }
+  
+  // Asset Manager 토글 함수 추가
+  toggleAssetManager() {
+    // 모든 다른 섹션 숨기기
+    this.cssInfoSection.style.display = 'none';
+    this.instructionsSection.style.display = 'none';
+    this.colorPaletteSection.style.display = 'none';
+    this.consoleSection.style.display = 'none';
+    
+    // Asset Manager 토글
+    if (this.assetManager.style.display === 'none' || !this.assetManager.style.display) {
+      this.assetManager.style.display = 'block';
+      // Asset Manager가 열릴 때 자산 새로고침
+      this.initializeAssetManager();
+    } else {
+      this.assetManager.style.display = 'none';
+      this.instructionsSection.style.display = 'block';
+    }
+  }
+  
+  // Asset Manager 닫기 함수 추가
+  closeAssetManager() {
+    this.assetManager.style.display = 'none';
+    this.showInstructionsSection();
   }
   
   // Color Palette 버튼 상태 업데이트
   updateColorPaletteButtonState(isActive) {
     if (isActive) {
-      this.colorPaletteBtn.classList.add('mode-active');
-      this.colorPaletteBtn.textContent = '✅ Color Palette';
+      // 드롭다운 메뉴 아이템이므로 클래스 변경 제거
+      // this.colorPaletteMenuItem은 이제 드롭다운 메뉴 아이템
     } else {
-      this.colorPaletteBtn.classList.remove('mode-active');
-      this.colorPaletteBtn.textContent = '🎨 Color Palette';
+      // 드롭다운 메뉴 아이템이므로 클래스 변경 제거
     }
   }
   
@@ -3515,7 +3591,7 @@ class SidePanel {
     
     // UI 표시
     this.showConsoleSection();
-    this.hideInstructionsSection();
+    this.hideOtherSections();  // hideInstructionsSection 대신 hideOtherSections 사용
     this.updateConsoleButtonState(true);
     
     console.log('🖥️ Entered Console Monitor mode');
@@ -3548,14 +3624,73 @@ class SidePanel {
     this.consoleSection.style.display = 'none';
   }
   
+  // 기존 sections 보이기 함수 (인스트럭션 화면으로 돌아가기)
+  showInstructionsSection() {
+    this.instructionsSection.style.display = 'block';
+    this.cssInfoSection.style.display = 'none';
+    this.colorPaletteSection.style.display = 'none';
+    this.consoleSection.style.display = 'none';
+    this.assetManager.style.display = 'none';
+  }
+  
+  // 실시간 색상 프리뷰 업데이트
+  updateRealtimeColorPreview(color) {
+    console.log('Updating realtime color preview:', color, 'Color palette mode:', this.isColorPaletteMode); // 디버깅용
+    
+    if (!this.isColorPaletteMode) {
+      console.log('Not in color palette mode, skipping update');
+      return;
+    }
+    
+    if (color) {
+      // 색상 박스 업데이트
+      if (this.realtimeColorBox) {
+        const bgColor = color.hex || `rgb(${color.r || 0}, ${color.g || 0}, ${color.b || 0})`;
+        this.realtimeColorBox.style.backgroundColor = bgColor;
+        console.log('Updated color box to:', bgColor);
+      }
+      
+      // HEX 코드 업데이트
+      if (this.realtimeHex) {
+        this.realtimeHex.textContent = color.hex || '-';
+        console.log('Updated HEX to:', color.hex);
+      }
+      
+      // RGB 코드 업데이트
+      if (this.realtimeRgb) {
+        if (color.r !== undefined && color.g !== undefined && color.b !== undefined) {
+          this.realtimeRgb.textContent = `RGB: ${color.r}, ${color.g}, ${color.b}`;
+        } else if (color.rgb) {
+          this.realtimeRgb.textContent = color.rgb;
+        } else {
+          this.realtimeRgb.textContent = '-';
+        }
+        console.log('Updated RGB to:', this.realtimeRgb.textContent);
+      }
+      
+      // HSL 코드 업데이트
+      if (this.realtimeHsl) {
+        if (color.hsl) {
+          this.realtimeHsl.textContent = color.hsl;
+        } else if (color.h !== undefined && color.s !== undefined && color.l !== undefined) {
+          this.realtimeHsl.textContent = `HSL: ${color.h}°, ${color.s}%, ${color.l}%`;
+        } else {
+          this.realtimeHsl.textContent = '-';
+        }
+        console.log('Updated HSL to:', this.realtimeHsl.textContent);
+      }
+    } else {
+      console.log('No color data received');
+    }
+  }
+  
   // Console 버튼 상태 업데이트
   updateConsoleButtonState(isActive) {
     if (isActive) {
-      this.consoleMonitorBtn.classList.add('mode-active');
-      this.consoleMonitorBtn.textContent = '✅ Console';
+      // 드롭다운 메뉴 아이템이므로 클래스 변경 제거
+      // this.consoleMenuItem은 이제 드롭다운 메뉴 아이템
     } else {
-      this.consoleMonitorBtn.classList.remove('mode-active');
-      this.consoleMonitorBtn.textContent = '🖥️ Console';
+      // 드롭다운 메뉴 아이템이므로 클래스 변경 제거
     }
   }
   
@@ -3636,15 +3771,40 @@ class SidePanel {
       // 현재 활성 탭에서 asset 수집
       const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tabs[0]) {
-        const response = await chrome.tabs.sendMessage(tabs[0].id, { 
-          action: "collect_assets" 
-        });
-        
-        if (response.success) {
-          this.collectedAssets = response.assets;
-          this.displayAssets();
-        } else {
-          this.assetSummary.textContent = 'Failed to collect assets';
+        try {
+          const response = await chrome.tabs.sendMessage(tabs[0].id, { 
+            action: "collect_assets" 
+          });
+          
+          if (response && response.success) {
+            this.collectedAssets = response.assets;
+            this.displayAssets();
+          } else {
+            this.assetSummary.textContent = 'Failed to collect assets';
+          }
+        } catch (messageError) {
+          // 컨텐츠 스크립트가 로드되어 있지 않으면 주입하고 다시 시도
+          try {
+            await chrome.scripting.executeScript({
+              target: { tabId: tabs[0].id },
+              files: ['content.js']
+            });
+            
+            // 주입 후 메시지 재전송
+            const response = await chrome.tabs.sendMessage(tabs[0].id, { 
+              action: "collect_assets" 
+            });
+            
+            if (response && response.success) {
+              this.collectedAssets = response.assets;
+              this.displayAssets();
+            } else {
+              this.assetSummary.textContent = 'Failed to collect assets';
+            }
+          } catch (scriptError) {
+            console.error('Failed to inject content script:', scriptError);
+            this.assetSummary.textContent = 'Cannot access this page';
+          }
         }
       }
     } catch (error) {

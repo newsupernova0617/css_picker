@@ -117,11 +117,25 @@ class BackgroundService {
         // 활성 탭 ID를 저장합니다
         this.activeTabId = tabs[0].id;
         
-        // 해당 탭의 컨텐츠 스크립트에게 "테두리 켜기" 메시지를 보냅니다
-        await chrome.tabs.sendMessage(this.activeTabId, { 
-          action: "border-on", // 액션 타입을 "테두리 켜기"로 설정
-          timestamp: Date.now() // 현재 시간을 함께 보냅니다
-        });
+        // 컨텐츠 스크립트가 로드되어 있는지 먼저 확인
+        try {
+          await chrome.tabs.sendMessage(this.activeTabId, { 
+            action: "border-on", // 액션 타입을 "테두리 켜기"로 설정
+            timestamp: Date.now() // 현재 시간을 함께 보냅니다
+          });
+        } catch (messageError) {
+          // 컨텐츠 스크립트가 로드되어 있지 않으면 주입하고 다시 시도
+          await chrome.scripting.executeScript({
+            target: { tabId: this.activeTabId },
+            files: ['content.js']
+          });
+          
+          // 주입 후 메시지 재전송
+          await chrome.tabs.sendMessage(this.activeTabId, { 
+            action: "border-on",
+            timestamp: Date.now()
+          });
+        }
         
         // 콘솔에 성공 메시지를 출력합니다
         console.log("Picker enabled for tab:", this.activeTabId);
@@ -141,11 +155,16 @@ class BackgroundService {
     if (!this.activeTabId) return;
     
     try {
-      // 해당 탭의 컨텐츠 스크립트에게 "테두리 끄기" 메시지를 보냅니다
-      await chrome.tabs.sendMessage(this.activeTabId, { 
-        action: "border-off", // 액션 타입을 "테두리 끄기"로 설정
-        timestamp: Date.now() // 현재 시간을 함께 보냅니다
-      });
+      // 컨텐츠 스크립트에게 "테두리 끄기" 메시지 전송 시도
+      try {
+        await chrome.tabs.sendMessage(this.activeTabId, { 
+          action: "border-off", // 액션 타입을 "테두리 끄기"로 설정
+          timestamp: Date.now() // 현재 시간을 함께 보냅니다
+        });
+      } catch (messageError) {
+        // 컨텐츠 스크립트가 로드되어 있지 않아도 정상적인 상황
+        console.log("Content script not loaded, normal for picker disable");
+      }
       
       // 콘솔에 성공 메시지를 출력합니다
       console.log("Picker disabled for tab:", this.activeTabId);

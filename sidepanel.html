@@ -23,8 +23,14 @@
   <!-- 우리가 직접 만든 CSS 스타일 파일을 연결합니다 -->
   <link rel="stylesheet" href="sidepanel.css">
   
-  <!-- JSZip 라이브러리를 추가합니다 - 여러 파일을 ZIP으로 압축하기 위해 사용 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- JSZip 라이브러리를 로컬에서 로드합니다 - 여러 파일을 ZIP으로 압축하기 위해 사용 -->
+  <script src="jszip.min.js"></script>
+  
+  <!-- HTML2Canvas 라이브러리를 로컬에서 로드합니다 - 픽셀 단위 색상 추출을 위해 사용 -->
+  <script src="html2canvas.min.js"></script>
+  
+  <!-- Bootstrap JS를 로컬에서 로드합니다 (드롭다운 기능을 위해 필요) -->
+  <script src="bootstrap.bundle.min.js"></script>
   
   <!-- JavaScript 파일을 연결합니다. defer 속성으로 HTML이 모두 로드된 후에 실행됩니다 -->
   <script src="sidepanel.js" defer></script>
@@ -46,20 +52,34 @@
         <!-- id="statusIndicator"로 JavaScript에서 이 요소를 찾아서 조작할 수 있습니다 -->
         <span class="status-indicator" id="statusIndicator">🟢 Active</span>
         
-        <!-- 모드 선택 버튼들 -->
-        <button id="colorPaletteBtn" class="btn btn-success btn-sm">
-          🎨 Color Palette
-        </button>
-        
-        <!-- Console Monitor 버튼 -->
-        <button id="consoleMonitorBtn" class="btn btn-info btn-sm">
-          🖥️ Console
-        </button>
-        
-        <!-- 토글 버튼 -->
+        <!-- 토글 버튼 (상태 표시기 바로 옆) -->
         <button id="toggleBtn" class="btn btn-primary btn-sm">
           Toggle Picker
         </button>
+        
+        <!-- 더보기 드롭다운 메뉴 -->
+        <div class="dropdown">
+          <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="moreOptionsBtn" data-bs-toggle="dropdown" aria-expanded="false">
+            ⋮ More
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreOptionsBtn">
+            <li>
+              <a class="dropdown-item" href="#" id="colorPaletteMenuItem">
+                🎨 Color Palette
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#" id="consoleMenuItem">
+                🖥️ Console
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#" id="assetManagerMenuItem">
+                📦 Asset Manager
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
     </header>
     
@@ -142,6 +162,19 @@
           </div>
         </div>
         
+        <!-- 실시간 색상 프리뷰 영역 -->
+        <div class="realtime-color-preview" id="realtimeColorPreview">
+          <div class="realtime-color-display">
+            <div class="realtime-color-box" id="realtimeColorBox"></div>
+            <div class="realtime-color-info">
+              <div class="color-label">Hover Color</div>
+              <div class="color-code" id="realtimeHex">-</div>
+              <div class="color-code-small" id="realtimeRgb">-</div>
+              <div class="color-code-small" id="realtimeHsl">-</div>
+            </div>
+          </div>
+        </div>
+        
         <div class="palette-controls">
           <button id="clearPaletteBtn" class="btn btn-outline-danger btn-sm">
             🗑️ Clear All
@@ -204,7 +237,12 @@
       <!-- Console Monitor 섹션 -->
       <div class="console-section" id="consoleSection" style="display: none;">
         <div class="console-header">
-          <h3>🖥️ Console Monitor</h3>
+          <div class="section-title-row">
+            <h3>🖥️ Console Monitor</h3>
+            <button id="closeConsoleBtn" class="btn-close-x" title="Close Console">
+              ×
+            </button>
+          </div>
           <div class="console-controls">
             <button id="toggleConsoleBtn" class="btn btn-info btn-sm">
               🔍 Start Monitor
@@ -214,9 +252,6 @@
             </button>
             <button id="exportConsoleBtn" class="btn btn-outline-info btn-sm">
               📤 Export
-            </button>
-            <button id="closeConsoleBtn" class="btn btn-secondary btn-sm">
-              ✕ Close
             </button>
           </div>
         </div>
@@ -279,10 +314,15 @@
         </div>
       </div>
       
-      <!-- Asset Manager 섹션 -->
-      <div class="asset-manager" id="assetManager">
+      <!-- Asset Manager 섹션 (기본 숨김) -->
+      <div class="asset-manager" id="assetManager" style="display: none;">
         <div class="asset-header">
-          <h3>📦 Asset Manager</h3>
+          <div class="section-title-row">
+            <h3>📦 Asset Manager</h3>
+            <button id="closeAssetManagerBtn" class="btn-close-x" title="Close Asset Manager">
+              ×
+            </button>
+          </div>
           <div class="asset-summary">
             <span id="assetSummary">Loading assets...</span>
             <button id="refreshAssetsBtn" class="btn btn-outline-secondary btn-sm ms-2" title="Refresh Assets">

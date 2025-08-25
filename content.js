@@ -467,34 +467,69 @@ class ElementHighlighter {
     // 기존 커서 제거
     this.removeColorSamplingCursor();
     
-    // 커서 스타일 추가
+    // 십자선 커서 스타일 추가
     const cursorStyle = document.createElement('style');
     cursorStyle.id = 'css-picker-cursor-style';
     cursorStyle.textContent = `
       * {
         cursor: crosshair !important;
       }
-      .css-picker-color-preview {
+      
+      /* 십자선 커서 */
+      .css-picker-crosshair {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 40px;
-        height: 40px;
-        border: 2px solid white;
-        border-radius: 50%;
         pointer-events: none;
         z-index: 999999;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(0,0,0,0.1);
+      }
+      
+      .css-picker-crosshair-h {
+        position: fixed;
+        height: 1px;
+        width: 100vw;
+        background: rgba(255, 0, 0, 0.5);
+        left: 0;
+        pointer-events: none;
+        z-index: 999999;
+        mix-blend-mode: difference;
+      }
+      
+      .css-picker-crosshair-v {
+        position: fixed;
+        width: 1px;
+        height: 100vh;
+        background: rgba(255, 0, 0, 0.5);
+        top: 0;
+        pointer-events: none;
+        z-index: 999999;
+        mix-blend-mode: difference;
+      }
+      
+      .css-picker-crosshair-center {
+        position: fixed;
+        width: 11px;
+        height: 11px;
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
         transform: translate(-50%, -50%);
-        display: none;
+        pointer-events: none;
+        z-index: 999999;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
       }
     `;
     document.head.appendChild(cursorStyle);
     
-    // 컬러 프리뷰 요소 생성
-    this.colorSamplingCursor = document.createElement('div');
-    this.colorSamplingCursor.className = 'css-picker-color-preview';
-    document.body.appendChild(this.colorSamplingCursor);
+    // 십자선 요소들 생성
+    this.crosshairH = document.createElement('div');
+    this.crosshairH.className = 'css-picker-crosshair-h';
+    document.body.appendChild(this.crosshairH);
+    
+    this.crosshairV = document.createElement('div');
+    this.crosshairV.className = 'css-picker-crosshair-v';
+    document.body.appendChild(this.crosshairV);
+    
+    this.crosshairCenter = document.createElement('div');
+    this.crosshairCenter.className = 'css-picker-crosshair-center';
+    document.body.appendChild(this.crosshairCenter);
   }
   
   // 컬러 샘플링 커서 제거
@@ -505,10 +540,18 @@ class ElementHighlighter {
       cursorStyle.remove();
     }
     
-    // 프리뷰 요소 제거
-    if (this.colorSamplingCursor) {
-      this.colorSamplingCursor.remove();
-      this.colorSamplingCursor = null;
+    // 십자선 요소들 제거
+    if (this.crosshairH) {
+      this.crosshairH.remove();
+      this.crosshairH = null;
+    }
+    if (this.crosshairV) {
+      this.crosshairV.remove();
+      this.crosshairV = null;
+    }
+    if (this.crosshairCenter) {
+      this.crosshairCenter.remove();
+      this.crosshairCenter = null;
     }
   }
   
@@ -529,15 +572,22 @@ class ElementHighlighter {
   
   // 마우스 이동 시 컬러 프리뷰 업데이트
   handleColorMouseMove(event) {
-    if (!this.colorSamplingMode || !this.colorSamplingCursor) return;
+    if (!this.colorSamplingMode) return;
     
-    // 커서 위치 업데이트
-    this.colorSamplingCursor.style.left = event.clientX + 'px';
-    this.colorSamplingCursor.style.top = event.clientY + 'px';
-    this.colorSamplingCursor.style.display = 'block';
+    // 십자선 위치 업데이트
+    if (this.crosshairH) {
+      this.crosshairH.style.top = event.clientY + 'px';
+    }
+    if (this.crosshairV) {
+      this.crosshairV.style.left = event.clientX + 'px';
+    }
+    if (this.crosshairCenter) {
+      this.crosshairCenter.style.left = event.clientX + 'px';
+      this.crosshairCenter.style.top = event.clientY + 'px';
+    }
     
-    // 실시간 색상 미리보기 (옵션)
-    this.previewColorAtPosition(event.clientX, event.clientY);
+    // 실시간 색상 미리보기
+    this.sendRealtimeColorPreview(event.clientX, event.clientY);
   }
   
   // 클릭 시 색상 샘플링 실행
@@ -547,11 +597,14 @@ class ElementHighlighter {
     event.preventDefault();
     event.stopPropagation();
     
-    // 클릭한 위치의 색상 샘플링
-    const color = await this.sampleColorAtPosition(event.clientX, event.clientY);
+    // 클릭한 위치의 색상 샘플링 (EyeDropper API 우선 사용)
+    const color = await this.sampleColorAtClick(event.clientX, event.clientY);
     
     if (color) {
-      // 사이드패널에 색상 정보 전송
+      // 먼저 호버 프리뷰도 업데이트 (클릭할 때마다 호버 색상도 보이도록)
+      this.sendRealtimeColorPreview(event.clientX, event.clientY);
+      
+      // 사이드패널에 색상 정보 전송 (샘플링)
       chrome.runtime.sendMessage({
         action: 'color-sampled',
         colorData: color,
@@ -566,10 +619,139 @@ class ElementHighlighter {
     }
   }
   
-  // 지정된 위치의 색상 샘플링
+  // 지정된 위치의 색상 샘플링 (2단계 fallback 시스템 - hover용)
   async sampleColorAtPosition(x, y) {
     try {
-      // 실제로는 element의 computed style에서 색상 정보를 추출
+      // 1단계: HTML2Canvas 픽셀 추출 시도
+      console.log('Trying HTML2Canvas pixel sampling...');
+      const canvasColor = await this.sampleWithCanvas(x, y);
+      if (canvasColor && canvasColor.r !== undefined) {
+        console.log('HTML2Canvas success:', canvasColor);
+        return canvasColor;
+      }
+      
+      // 2단계: CSS 방식 fallback
+      console.log('Trying CSS-based sampling...');
+      const cssColor = await this.sampleWithCSS(x, y);
+      if (cssColor && cssColor.r !== undefined) {
+        console.log('CSS sampling success:', cssColor);
+        return cssColor;
+      }
+      
+      // 모든 방식 실패시 기본값 반환
+      console.warn('All color sampling methods failed, returning default');
+      return { r: 128, g: 128, b: 128, a: 1 }; // 회색
+      
+    } catch (error) {
+      console.error('Color sampling failed:', error);
+      return { r: 255, g: 0, b: 0, a: 1 }; // 빨간색 (오류 표시)
+    }
+  }
+
+  // 클릭 전용 색상 샘플링 (EyeDropper API 우선 사용)
+  async sampleColorAtClick(x, y) {
+    try {
+      // 1단계: EyeDropper API 시도 (Chrome 95+) - 클릭 전용
+      if ('EyeDropper' in window) {
+        console.log('Trying EyeDropper API for click sampling...');
+        const eyeDropperColor = await this.sampleWithEyeDropper();
+        if (eyeDropperColor && eyeDropperColor.r !== undefined) {
+          console.log('EyeDropper API success:', eyeDropperColor);
+          return eyeDropperColor;
+        }
+      }
+      
+      // 2단계: 일반 샘플링 fallback
+      return await this.sampleColorAtPosition(x, y);
+      
+    } catch (error) {
+      console.error('Click color sampling failed:', error);
+      return await this.sampleColorAtPosition(x, y);
+    }
+  }
+  
+  // EyeDropper API를 사용한 색상 추출
+  async sampleWithEyeDropper() {
+    try {
+      const eyeDropper = new EyeDropper();
+      const result = await eyeDropper.open();
+      
+      if (result && result.sRGBHex) {
+        return this.parseColorString(result.sRGBHex);
+      }
+    } catch (error) {
+      console.log('EyeDropper failed:', error);
+    }
+    return null;
+  }
+  
+  // HTML2Canvas를 사용한 픽셀 단위 색상 추출
+  async sampleWithCanvas(x, y) {
+    try {
+      // HTML2Canvas가 로드되어 있는지 확인
+      if (!window.html2canvas) {
+        // 동적으로 HTML2Canvas 로드
+        await this.loadHTML2Canvas();
+      }
+      
+      // 뷰포트 내에서의 좌표로 변환
+      const rect = document.body.getBoundingClientRect();
+      const canvasX = x - rect.left + window.scrollX;
+      const canvasY = y - rect.top + window.scrollY;
+      
+      // 작은 영역만 캔버스로 렌더링 (성능 최적화)
+      const element = document.elementFromPoint(x, y);
+      if (!element) return null;
+      
+      const canvas = await html2canvas(element, {
+        allowTaint: true,
+        useCORS: true,
+        scale: 1,
+        logging: false,
+        width: element.offsetWidth,
+        height: element.offsetHeight
+      });
+      
+      // 해당 좌표의 픽셀 데이터 추출
+      const ctx = canvas.getContext('2d');
+      const elementRect = element.getBoundingClientRect();
+      const localX = x - elementRect.left;
+      const localY = y - elementRect.top;
+      
+      const pixelData = ctx.getImageData(localX, localY, 1, 1).data;
+      
+      return {
+        r: pixelData[0],
+        g: pixelData[1],
+        b: pixelData[2],
+        a: pixelData[3] / 255
+      };
+      
+    } catch (error) {
+      console.log('Canvas sampling failed:', error);
+    }
+    return null;
+  }
+  
+  // HTML2Canvas 동적 로드
+  async loadHTML2Canvas() {
+    return new Promise((resolve, reject) => {
+      if (window.html2canvas) {
+        resolve();
+        return;
+      }
+      
+      const script = document.createElement('script');
+      script.src = chrome.runtime.getURL('html2canvas.min.js');
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load html2canvas'));
+      document.head.appendChild(script);
+    });
+  }
+  
+  // 기존 CSS 방식 (폴백)
+  async sampleWithCSS(x, y) {
+    try {
       const element = document.elementFromPoint(x, y);
       if (!element) return null;
       
@@ -586,17 +768,52 @@ class ElementHighlighter {
       return this.parseColorString(color);
       
     } catch (error) {
-      console.error('Color sampling failed:', error);
+      console.error('CSS sampling failed:', error);
       return null;
     }
   }
   
   // 지정된 위치의 색상 미리보기
-  async previewColorAtPosition(x, y) {
+  // 실시간 색상 정보를 사이드패널로 전송
+  async sendRealtimeColorPreview(x, y) {
     const color = await this.sampleColorAtPosition(x, y);
-    if (color && this.colorSamplingCursor) {
+    console.log('Sampled color:', color); // 디버깅용
+    
+    if (color && color.r !== undefined) {
+      // RGB 값이 있는지 확인하고 HEX 변환
       const hex = this.rgbToHex(color.r, color.g, color.b);
-      this.colorSamplingCursor.style.backgroundColor = hex;
+      const rgb = `rgb(${color.r}, ${color.g}, ${color.b})`;
+      const hsl = this.rgbToHsl(color.r, color.g, color.b);
+      
+      // 중앙 표시점 배경색 업데이트
+      if (this.crosshairCenter) {
+        this.crosshairCenter.style.backgroundColor = hex;
+      }
+      
+      // 완전한 색상 객체로 사이드패널에 전송
+      const colorData = {
+        r: color.r,
+        g: color.g,
+        b: color.b,
+        a: color.a || 1,
+        hex: hex,
+        rgb: rgb,
+        hsl: `hsl(${hsl.h}°, ${hsl.s}%, ${hsl.l}%)`
+      };
+      
+      console.log('Sending color data:', colorData); // 디버깅용
+      
+      // 사이드패널로 실시간 색상 정보 전송
+      try {
+        chrome.runtime.sendMessage({
+          type: 'color_hover',
+          color: colorData
+        });
+      } catch (error) {
+        console.error('Failed to send color hover message:', error);
+      }
+    } else {
+      console.log('No valid color sampled'); // 디버깅용
     }
   }
   
@@ -637,6 +854,36 @@ class ElementHighlighter {
       return hex.length === 1 ? "0" + hex : hex;
     };
     return `#${componentToHex(r)}${componentToHex(g)}${componentToHex(b)}`.toUpperCase();
+  }
+  
+  // RGB를 HSL로 변환
+  rgbToHsl(r, g, b) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+      h = s = 0; // achromatic
+    } else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+
+    return {
+      h: Math.round(h * 360),
+      s: Math.round(s * 100),
+      l: Math.round(l * 100)
+    };
   }
   
   // 색상 샘플링 성공 효과 표시

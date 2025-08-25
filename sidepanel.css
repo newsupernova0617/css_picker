@@ -43,6 +43,27 @@ body::-webkit-scrollbar {
   gap: 8px;
 }
 
+/* 드롭다운 메뉴 스타일 */
+.header-controls .dropdown {
+  display: inline-block;
+}
+
+.header-controls .dropdown-menu {
+  min-width: 160px;
+}
+
+.header-controls .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  text-decoration: none;
+}
+
+.header-controls .dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
 .title {
   margin: 0;
   font-size: 1.25rem;
@@ -877,6 +898,85 @@ body::-webkit-scrollbar {
   .properties-controls > * {
     width: 100%;
   }
+}
+
+/* Realtime Color Preview */
+.realtime-color-preview {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.realtime-color-display {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.realtime-color-box {
+  width: 80px;
+  height: 80px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  background: #f8f9fa;
+  flex-shrink: 0;
+}
+
+.realtime-color-info {
+  flex: 1;
+}
+
+.color-label {
+  font-size: 12px;
+  color: #6c757d;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.color-code {
+  font-size: 18px;
+  font-weight: bold;
+  color: #212529;
+  font-family: 'Courier New', monospace;
+  margin-bottom: 2px;
+}
+
+.color-code-small {
+  font-size: 12px;
+  color: #6c757d;
+  font-family: 'Courier New', monospace;
+}
+
+/* Section Title Row and Close Button Styles */
+.section-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.btn-close-x {
+  background: none;
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-close-x:hover {
+  background-color: #f8f9fa;
+  color: #dc3545;
+}
+
+.btn-close-x:active {
+  transform: scale(0.95);
 }
 
 /* Color Palette Styles */
