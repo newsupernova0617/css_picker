@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Picker Pro - Premium Chrome Extension for Developers</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6f42c1;
+            --success-color: #28a745;
+            --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .hero-section {
+            background: var(--gradient-bg);
+            color: white;
+            padding: 100px 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .pricing-card {
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .pricing-card.featured {
+            border-color: var(--primary-color);
+            position: relative;
+            transform: scale(1.05);
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-color);
+            color: white;
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .btn-gradient {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+            color: white;
+        }
+
+        .testimonial-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            height: 100%;
+        }
+
+        .auth-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 50px 0;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .comparison-table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.1);
+        }
+
+        .faq-item {
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+    </style>
+    
+    <!-- Clerk Authentication -->
+    <script
+        async
+        crossorigin="anonymous"
+        data-clerk-publishable-key="pk_test_bWVldC13YXJ0aG9nLTgyLmNsZXJrLmFjY291bnRzLmRldiQ"
+        src="https://meet-warthog-82.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+        type="text/javascript"
+    ></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#" style="color: var(--primary-color);">
+                🎨 CSS Picker Pro
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#pricing">Pricing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#testimonials">Reviews</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#faq">FAQ</a>
+                    </li>
+                </ul>
+                
+                <!-- Authentication Controls -->
+                <div class="navbar-nav">
+                    <div id="auth-controls">
+                        <button id="sign-in-btn" class="btn btn-outline-primary me-2">Sign In</button>
+                        <button id="sign-up-btn" class="btn btn-primary">Get Started</button>
+                    </div>
+                    
+                    <div id="user-controls" style="display: none;">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <span id="user-name">User</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" id="dashboard-link">Dashboard</a></li>
+                                <li><a class="dropdown-item" href="#" id="billing-link">Billing</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" id="sign-out-btn">Sign Out</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold mb-4">
+                        The Ultimate CSS Inspector for Chrome
+                    </h1>
+                    <p class="lead mb-4">
+                        Inspect, edit, and export CSS with advanced features. Color sampling, Tailwind conversion, 
+                        asset management, and more. Loved by 10,000+ developers worldwide.
+                    </p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a href="#" class="btn btn-gradient btn-lg" id="hero-get-started">
+                            Get Started Free
+                        </a>
+                        <a href="https://chrome.google.com/webstore" class="btn btn-outline-light btn-lg">
+                            🌐 Chrome Store
+                        </a>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <small class="text-white-50">
+                            ⭐ 4.8/5 rating • 10,000+ users • Free plan available
+                        </small>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="text-center">
+                        <img src="/static/hero-screenshot.png" alt="CSS Picker Pro Screenshot" 
+                             class="img-fluid rounded shadow-lg" style="max-width: 500px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold">Powerful Features for Developers</h2>
+                <p class="lead text-muted">Everything you need to inspect, modify, and export CSS</p>
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">🎨</span>
+                    <h4>Advanced CSS Inspector</h4>
+                    <p class="text-muted">Inspect and edit CSS properties in real-time. View computed styles, modify values, and see changes instantly.</p>
+                </div>
+
+                <div class="feature-card">
+                    <span class="feature-icon">🎭</span>
+                    <h4>Color Palette Generator</h4>
+                    <p class="text-muted">Extract colors from any webpage. Build perfect color palettes and export them in multiple formats.</p>
+                </div>
+
+                <div class="feature-card">
+                    <span class="feature-icon">🎯</span>
+                    <h4>Tailwind CSS Conversion</h4>
+                    <p class="text-muted">Convert regular CSS to Tailwind classes automatically. Perfect for modern frameworks and utility-first development.</p>
+                </div>
+
+                <div class="feature-card">
+                    <span class="feature-icon">📦</span>
+                    <h4>Asset Management</h4>
+                    <p class="text-muted">Download images, fonts, stylesheets, and other assets from any webpage. Organize and export as ZIP files.</p>
+                </div>
+
+                <div class="feature-card">
+                    <span class="feature-icon">🖥️</span>
+                    <h4>Console Monitor</h4>
+                    <p class="text-muted">Advanced console monitoring with filtering, search, and export capabilities. Debug faster than ever.</p>
+                </div>
+
+                <div class="feature-card">
+                    <span class="feature-icon">📤</span>
+                    <h4>Export Everything</h4>
+                    <p class="text-muted">Export CSS rules, color palettes, console logs, and more. Multiple formats supported including CSS, JSON, and images.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold">Simple, Transparent Pricing</h2>
+                <p class="lead text-muted">Start free, upgrade when you need more power</p>
+            </div>
+
+            <div class="row justify-content-center">
+                <!-- Free Plan -->
+                <div class="col-lg-4 mb-4">
+                    <div class="pricing-card p-4 h-100">
+                        <div class="text-center">
+                            <h4 class="fw-bold">Free</h4>
+                            <div class="display-6 fw-bold text-primary mb-3">$0</div>
+                            <p class="text-muted">Perfect for getting started</p>
+                        </div>
+                        
+                        <ul class="list-unstyled">
+                            <li class="mb-2">✅ CSS Inspection & Editing</li>
+                            <li class="mb-2">✅ Real-time Style Changes</li>
+                            <li class="mb-2">✅ Basic Element Selection</li>
+                            <li class="mb-2 text-muted">❌ Color Sampling</li>
+                            <li class="mb-2 text-muted">❌ Asset Management</li>
+                            <li class="mb-2 text-muted">❌ Tailwind Conversion</li>
+                            <li class="mb-2 text-muted">❌ Export Features</li>
+                        </ul>
+                        
+                        <div class="d-grid mt-4">
+                            <button class="btn btn-outline-primary" onclick="getStartedFree()">
+                                Get Started Free
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Premium Plan -->
+                <div class="col-lg-4 mb-4">
+                    <div class="pricing-card featured p-4 h-100">
+                        <div class="pricing-badge">🔥 Limited Time Sale!</div>
+                        <div class="text-center">
+                            <h4 class="fw-bold">Lifetime Premium</h4>
+                            <div class="mb-2">
+                                <span class="text-muted text-decoration-line-through fs-5">$39</span>
+                                <span class="badge bg-danger ms-2">25% OFF</span>
+                            </div>
+                            <div class="display-6 fw-bold text-primary mb-3">$29<small class="fs-6 text-muted"> one-time</small></div>
+                            <p class="text-success fw-bold">✨ Lifetime Access - No Monthly Fees!</p>
+                        </div>
+                        
+                        <ul class="list-unstyled">
+                            <li class="mb-2">✅ Everything in Free</li>
+                            <li class="mb-2">✅ <strong>Unlimited Color Sampling</strong></li>
+                            <li class="mb-2">✅ <strong>Asset Management & Download</strong></li>
+                            <li class="mb-2">✅ <strong>Tailwind CSS Conversion</strong></li>
+                            <li class="mb-2">✅ <strong>Export All Formats</strong></li>
+                            <li class="mb-2">✅ <strong>Console Monitoring</strong></li>
+                            <li class="mb-2">✅ <strong>Priority Support</strong></li>
+                        </ul>
+                        
+                        <div class="d-grid mt-4">
+                            <button class="btn btn-gradient" onclick="upgradeToPremium()" id="upgrade-btn">
+                                🚀 Get Lifetime Access - $29
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <p class="text-muted">
+                    💳 One-time payment • Lifetime updates • 30-day money-back guarantee
+                </p>
+                <div class="alert alert-warning d-inline-block">
+                    ⏰ <strong>Limited Time:</strong> Sale ends soon! Regular price $39
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold">Loved by Developers</h2>
+                <p class="lead text-muted">See what our users are saying</p>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <div class="testimonial-card">
+                        <div class="mb-3">⭐⭐⭐⭐⭐</div>
+                        <p class="mb-3">"CSS Picker Pro has revolutionized my workflow. The color sampling feature alone is worth the price. Highly recommended!"</p>
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary text-white p-2 me-3">SJ</div>
+                            <div>
+                                <div class="fw-bold">Sarah Johnson</div>
+                                <small class="text-muted">Frontend Developer</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 mb-4">
+                    <div class="testimonial-card">
+                        <div class="mb-3">⭐⭐⭐⭐⭐</div>
+                        <p class="mb-3">"The Tailwind conversion feature is incredible. Saves me hours of manual work converting CSS to utility classes."</p>
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-success text-white p-2 me-3">MR</div>
+                            <div>
+                                <div class="fw-bold">Mike Rodriguez</div>
+                                <small class="text-muted">Full Stack Developer</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 mb-4">
+                    <div class="testimonial-card">
+                        <div class="mb-3">⭐⭐⭐⭐⭐</div>
+                        <p class="mb-3">"Best CSS inspection tool I've ever used. The asset management feature is a game-changer for my projects."</p>
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-warning text-white p-2 me-3">AL</div>
+                            <div>
+                                <div class="fw-bold">Anna Lee</div>
+                                <small class="text-muted">UI/UX Designer</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold">Frequently Asked Questions</h2>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="faq-item">
+                            <div class="accordion-item">
+                                <h3 class="accordion-header">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                        What's included in the free plan?
+                                    </button>
+                                </h3>
+                                <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        The free plan includes CSS inspection and real-time editing capabilities. You can view element styles, modify CSS properties, and see changes instantly. However, advanced features like color sampling, asset management, and export functions require Premium.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <div class="accordion-item">
+                                <h3 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                        Can I cancel my Premium subscription anytime?
+                                    </button>
+                                </h3>
+                                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        Yes! You can cancel your subscription at any time. There are no long-term contracts, and you'll continue to have access to Premium features until the end of your current billing period.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <div class="accordion-item">
+                                <h3 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                        How does the color sampling feature work?
+                                    </button>
+                                </h3>
+                                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        The color sampling feature uses Chrome's EyeDropper API to let you pick colors from anywhere on a webpage. You can build color palettes, get hex/RGB/HSL values, and export your palettes in various formats.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <div class="accordion-item">
+                                <h3 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                        Is my data secure?
+                                    </button>
+                                </h3>
+                                <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        Absolutely. We use industry-standard security practices including encrypted data transmission, secure authentication via Clerk, and we never store sensitive website data. All processing happens locally in your browser.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="fw-bold mb-3">🎨 CSS Picker Pro</h5>
+                    <p class="text-muted">The ultimate Chrome extension for developers who love clean, efficient CSS workflows.</p>
+                </div>
+                <div class="col-lg-2 mb-4">
+                    <h6 class="fw-bold mb-3">Product</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#features" class="text-muted text-decoration-none">Features</a></li>
+                        <li><a href="#pricing" class="text-muted text-decoration-none">Pricing</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Changelog</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 mb-4">
+                    <h6 class="fw-bold mb-3">Support</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#faq" class="text-muted text-decoration-none">FAQ</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Documentation</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 mb-4">
+                    <h6 class="fw-bold mb-3">Legal</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-muted text-decoration-none">Privacy Policy</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="text-center text-muted">
+                <p>&copy; 2024 CSS Picker Pro. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Stripe JS -->
+    <script src="https://js.stripe.com/v3/"></script>
+
+    <!-- Custom JavaScript -->
+    <script>
+        // Check if this is an extension auth request
+        const urlParams = new URLSearchParams(window.location.search);
+        const isExtensionAuth = urlParams.get('extension_auth') === 'true';
+        const extensionId = urlParams.get('extension_id');
+
+        // Initialize Clerk
+        window.addEventListener('load', async () => {
+            try {
+                await Clerk.load();
+                
+                if (Clerk.user) {
+                    showUserControls();
+                    updateUserDisplay();
+                    
+                    // If this is extension auth and user is already logged in
+                    if (isExtensionAuth && extensionId) {
+                        await sendAuthToExtension(extensionId);
+                    }
+                } else {
+                    showAuthControls();
+                }
+            } catch (error) {
+                console.error('Error loading Clerk:', error);
+                showAuthControls();
+            }
+        });
+
+        // Authentication Functions
+        function showAuthControls() {
+            document.getElementById('auth-controls').style.display = 'block';
+            document.getElementById('user-controls').style.display = 'none';
+        }
+
+        async function showUserControls() {
+            document.getElementById('auth-controls').style.display = 'none';
+            document.getElementById('user-controls').style.display = 'block';
+            
+            // Create user profile in backend database
+            await createUserProfile();
+        }
+
+        function updateUserDisplay() {
+            if (Clerk.user) {
+                const userName = Clerk.user.firstName || Clerk.user.emailAddress || 'User';
+                document.getElementById('user-name').textContent = userName;
+            }
+        }
+
+        async function createUserProfile() {
+            try {
+                if (!Clerk.user || !Clerk.session) {
+                    console.log('No authenticated user or session');
+                    return;
+                }
+
+                const token = await Clerk.session.getToken();
+                if (!token) {
+                    console.log('Failed to get session token');
+                    return;
+                }
+
+                console.log('Creating user profile in database...');
+                console.log('Using token:', token ? token.substring(0, 20) + '...' : 'null');
+                
+                const response = await fetch('/api/user/profile', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('API response status:', response.status);
+                
+                if (response.ok) {
+                    const userData = await response.json();
+                    console.log('User profile created/retrieved:', userData);
+                } else {
+                    const errorText = await response.text();
+                    console.error('Failed to create user profile:', response.status, response.statusText);
+                    console.error('Error response:', errorText);
+                }
+            } catch (error) {
+                console.error('Error creating user profile:', error);
+            }
+        }
+
+        let contentScriptReady = false;
+
+        // Listen for content script ready message
+        window.addEventListener('message', (event) => {
+            if (event.origin !== 'http://localhost:4242') return;
+            
+            if (event.data.type === 'EXTENSION_CONTENT_SCRIPT_READY') {
+                console.log('Content script is ready');
+                contentScriptReady = true;
+            } else if (event.data.type === 'AUTH_FORWARDED_SUCCESS') {
+                console.log('Auth data successfully forwarded to extension');
+                // Show success message to user
+                if (isExtensionAuth) {
+                    showExtensionAuthSuccess();
+                    setTimeout(() => window.close(), 3000);
+                }
+            } else if (event.data.type === 'AUTH_FORWARDED_ERROR') {
+                console.error('Failed to forward auth data:', event.data.error);
+            }
+        });
+
+        async function sendAuthToExtension(extensionId) {
+            try {
+                if (!Clerk.user || !Clerk.session) {
+                    console.log('No authenticated user to send to extension');
+                    return;
+                }
+
+                const sessionToken = await Clerk.session.getToken();
+                if (!sessionToken) {
+                    console.log('Failed to get session token for extension');
+                    return;
+                }
+
+                const userData = {
+                    user: {
+                        id: Clerk.user.id,
+                        firstName: Clerk.user.firstName,
+                        lastName: Clerk.user.lastName,
+                        emailAddress: Clerk.user.primaryEmailAddress?.emailAddress,
+                        createdAt: Clerk.user.createdAt
+                    },
+                    sessionToken: sessionToken
+                };
+
+                console.log('Sending auth data to extension via postMessage:', userData);
+
+                // Send message via postMessage to content script
+                window.postMessage({
+                    type: 'CLERK_AUTH_SUCCESS',
+                    data: userData
+                }, 'http://localhost:4242');
+
+            } catch (error) {
+                console.error('Error sending auth to extension:', error);
+            }
+        }
+
+        function showExtensionAuthSuccess() {
+            // Create and show success message
+            const successAlert = document.createElement('div');
+            successAlert.className = 'alert alert-success position-fixed top-0 start-50 translate-middle-x mt-3';
+            successAlert.style.zIndex = '9999';
+            successAlert.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="me-2">✅</div>
+                    <div>
+                        <strong>로그인 성공!</strong><br>
+                        <small>CSS Picker 확장프로그램에 계정이 연결되었습니다. 잠시 후 이 탭이 자동으로 닫힙니다.</small>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(successAlert);
+
+            // Remove alert after 2.5 seconds
+            setTimeout(() => {
+                if (successAlert.parentNode) {
+                    successAlert.parentNode.removeChild(successAlert);
+                }
+            }, 2500);
+        }
+
+        // Event Listeners
+        document.getElementById('sign-in-btn').addEventListener('click', () => {
+            Clerk.openSignIn();
+        });
+
+        document.getElementById('sign-up-btn').addEventListener('click', () => {
+            Clerk.openSignUp();
+        });
+
+        document.getElementById('sign-out-btn').addEventListener('click', async () => {
+            await Clerk.signOut();
+            showAuthControls();
+        });
+
+        document.getElementById('hero-get-started').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (Clerk.user) {
+                // User is signed in, redirect to extension or dashboard
+                window.open('https://chrome.google.com/webstore', '_blank');
+            } else {
+                // User not signed in, open sign up
+                Clerk.openSignUp();
+            }
+        });
+
+        // Plan Functions
+        function getStartedFree() {
+            if (Clerk.user) {
+                // User is signed in, they can start using free plan
+                window.open('https://chrome.google.com/webstore', '_blank');
+            } else {
+                // User not signed in, open sign up
+                Clerk.openSignUp();
+            }
+        }
+
+        async function upgradeToPremium() {
+            if (!Clerk.user) {
+                Clerk.openSignUp();
+                return;
+            }
+
+            try {
+                // Get session token
+                const token = await Clerk.session.getToken();
+                
+                // Create checkout session
+                const response = await fetch('/api/checkout/create', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.checkout_url) {
+                    // Redirect to Stripe checkout
+                    window.location.href = data.checkout_url;
+                } else {
+                    throw new Error('Failed to create checkout session');
+                }
+            } catch (error) {
+                console.error('Error upgrading to premium:', error);
+                alert('Something went wrong. Please try again.');
+            }
+        }
+
+        // Billing portal
+        document.getElementById('billing-link').addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            try {
+                const token = await Clerk.session.getToken();
+                
+                const response = await fetch('/api/billing/portal', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.portal_url) {
+                    window.location.href = data.portal_url;
+                } else {
+                    throw new Error('Failed to create billing portal session');
+                }
+            } catch (error) {
+                console.error('Error opening billing portal:', error);
+                alert('Something went wrong. Please try again.');
+            }
+        });
+
+window.addEventListener("load", async () => {
+  await window.Clerk.load();
+
+  if (window.Clerk.user) {
+    showUserControls();
+    updateUserDisplay();
+  } else {
+    showAuthControls();
+  }
+
+  window.Clerk.addListener(async ({ user }) => {
+    if (user) {
+      showUserControls();
+      updateUserDisplay();
+      
+      // If this is extension auth, send auth data to extension
+      if (isExtensionAuth && extensionId) {
+        await sendAuthToExtension(extensionId);
+      }
+    } else {
+      showAuthControls();
+    }
+  });
+});
+
+
+    </script>
+</body>
+</html>

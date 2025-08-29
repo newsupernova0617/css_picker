@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git push:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(git add:*)",
+      "Bash(dir)",
+      "Bash(echo $PWD)",
+      "Bash(node:*)",
+      "Bash(grep:*)",
+      "Bash(git pull:*)",
+      "Bash(curl:*)",
+      "Bash(git init:*)",
+      "WebSearch",
+      "Bash(where claude)",
+      "Read(C:\\Users\\yj437\\AppData\\Roaming/**)",
+      "Bash(claude mcp:*)",
+      "Bash(python:*)",
+      "Bash(git reset:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\c\\Users\\yj437\\Desktop\\Coding"
+    ]
+  }
+}
