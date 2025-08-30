@@ -1735,10 +1735,7 @@ class SidePanel {
     this.userEmail = document.getElementById("userEmail");
     this.userAvatar = document.getElementById("userAvatar");
     
-    // Plan Management 요소들
-    this.planStatusSection = document.getElementById("planStatusSection");
-    this.planBadge = document.getElementById("planBadge");
-    this.planName = document.getElementById("planName");
+    // Plan Management 요소들 (간소화됨)
     this.upgradeBtn = document.getElementById("upgradeBtn");
     this.upgradeModal = document.getElementById("upgradeModal");
     this.upgradeMessage = document.getElementById("upgradeMessage");
@@ -1747,8 +1744,6 @@ class SidePanel {
     
     // Home Screen 요소들
     this.homeSection = document.getElementById("homeSection");
-    this.homeAuthStatus = document.getElementById("homeAuthStatus");
-    this.homeSignInBtn = document.getElementById("homeSignInBtn");
     this.generalHelpBtn = document.getElementById("generalHelpBtn");
     
     // Header Welcome 요소들 (이제 header에 있음)
@@ -2004,16 +1999,6 @@ class SidePanel {
     if (this.assetManagerHelpBtn) {
       this.assetManagerHelpBtn.addEventListener('click', () => {
         this.showFeatureHelp('assetmanager');
-      });
-    }
-    
-    // Home Sign In button
-    if (this.homeSignInBtn) {
-      this.homeSignInBtn.addEventListener('click', () => {
-        // Trigger the main sign in button
-        if (this.signInBtn) {
-          this.signInBtn.click();
-        }
       });
     }
     
@@ -2398,21 +2383,15 @@ class SidePanel {
       if (this.homeAuthPrompt) {
         this.homeAuthPrompt.style.display = 'none';
       }
-      if (this.homeAuthStatus) {
-        this.homeAuthStatus.style.display = 'none';
-      }
     } else {
       // Signed out: show auth prompts
       this.homeWelcomeTitle.textContent = '🏠 CSS Picker Extension';
       this.homeWelcomeMessage.textContent = 'Choose a tool to get started with web development analysis';
       
-      // Show auth prompts when signed out (only on home screen)
+      // Show auth prompt when signed out (only on home screen)
       if (this.currentSection === 'home') {
         if (this.homeAuthPrompt) {
           this.homeAuthPrompt.style.display = 'block';
-        }
-        if (this.homeAuthStatus) {
-          this.homeAuthStatus.style.display = 'block';
         }
       }
     }
@@ -5589,17 +5568,6 @@ class SidePanel {
   async updatePlanUI() {
     try {
       const currentPlan = planManager.getCurrentPlan();
-      
-      if (this.planName) {
-        this.planName.textContent = currentPlan.name;
-      }
-      
-      if (this.planBadge) {
-        this.planBadge.classList.remove('premium');
-        if (currentPlan.name === 'Premium Plan') {
-          this.planBadge.classList.add('premium');
-        }
-      }
       
       if (this.upgradeBtn) {
         if (planManager.needsUpgrade()) {

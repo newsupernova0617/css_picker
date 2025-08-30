@@ -45,6 +45,9 @@
           <p id="homeWelcomeMessage">Choose a tool to get started with web development analysis</p>
           <div class="home-auth-prompt" id="homeAuthPrompt" style="display: none;">
             <small>💡 Sign in to access premium features and sync your settings</small>
+            <button class="btn btn-primary btn-sm upgrade-btn" id="upgradeBtn" style="display: none;">
+              Upgrade to Premium
+            </button>
           </div>
         </div>
         <button class="btn btn-outline-light btn-sm help-btn" id="generalHelpBtn" title="How to Use This Extension">
@@ -93,16 +96,6 @@
       </div>
     </div>
     
-    <!-- Plan Status Section -->
-    <div class="plan-status-section" id="planStatusSection">
-      <div class="plan-badge" id="planBadge">
-        <span class="plan-name" id="planName">Free Plan</span>
-        <button class="btn btn-primary btn-sm upgrade-btn" id="upgradeBtn" style="display: none;">
-          Upgrade to Premium
-        </button>
-      </div>
-    </div>
-    
     <!-- Premium Feature Modal -->
     <div class="modal fade" id="upgradeModal" tabindex="-1" aria-labelledby="upgradeModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
@@ -140,18 +133,6 @@
       
       <!-- Home Screen (New Default) -->
       <div class="home-section" id="homeSection">
-        <!-- Home Authentication Status -->
-        <div class="home-auth-status" id="homeAuthStatus" style="display: none;">
-          <div class="auth-status-card">
-            <div class="auth-status-icon">🔐</div>
-            <div class="auth-status-content">
-              <h5>Sign In to Unlock Premium Features</h5>
-              <p>Access advanced tools like Color Palette, Console Monitor, and Asset Manager</p>
-              <button class="btn btn-primary btn-sm" id="homeSignInBtn">Sign In Now</button>
-            </div>
-          </div>
-        </div>
-        
         <div class="feature-cards">
           <div class="feature-card" id="homeToCSSSelectorCard">
             <div class="feature-icon">🎯</div>

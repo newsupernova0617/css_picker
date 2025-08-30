@@ -14,7 +14,8 @@ class ElementHighlighter {
     this.originalOutline = '';
     
     // 하이라이트할 때 사용할 테두리 색깔
-    this.highlightColor = '#ff0000'; // 빨간색
+    this.hoverColor = '#0066ff'; // 파란색 (hover 시)
+    this.selectedColor = '#ff0000'; // 빨간색 (selected 시)
     
     // 하이라이트할 때 사용할 테두리 두께
     this.highlightWidth = '2px'; // 2픽셀
@@ -240,8 +241,8 @@ class ElementHighlighter {
     // 원래 outline 스타일을 저장합니다
     this.originalOutline = element.style.outline || '';
     
-    // 하이라이트 스타일을 적용합니다
-    element.style.outline = `${this.highlightWidth} solid ${this.highlightColor}`;
+    // 하이라이트 스타일을 적용합니다 (hover는 파란색)
+    element.style.outline = `${this.highlightWidth} solid ${this.hoverColor}`;
     element.style.outlineOffset = '1px';
   }
   
@@ -291,8 +292,9 @@ class ElementHighlighter {
     this.isEditingMode = true;
     this.selectedElement = clickedElement;
     
-    // 선택된 요소에 하이라이트 유지
-    this.highlightElement(clickedElement);
+    // 선택된 요소에 빨간색 테두리 적용
+    clickedElement.style.outline = `${this.highlightWidth} solid ${this.selectedColor}`;
+    clickedElement.style.outlineOffset = '1px';
     
     // 클릭된 요소의 CSS 정보를 추출합니다
     const cssInfo = this.extractCSSProperties(clickedElement);

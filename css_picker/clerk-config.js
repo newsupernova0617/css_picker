@@ -2,7 +2,7 @@
 // You need to replace this with your actual Clerk publishable key from the dashboard
 
 console.log('🔧 clerk-config.js is loading...');
-
+//clerk 관련 정보들
 const CLERK_CONFIG = {
   publishableKey: 'pk_test_bWVldC13YXJ0aG9nLTgyLmNsZXJrLmFjY291bnRzLmRldiQ',
   // Replace with your Clerk frontend API URL  
@@ -88,19 +88,101 @@ class ClerkExtensionClient {
   }
   
   // Redirect to landing page for Clerk authentication
-  async signIn() {
+  async signIn(email, password) {
     try {
-      // Open landing page in a new tab for Clerk authentication
-      const extensionId = chrome.runtime.id;
-      const authUrl = `${this.config.landingPageUrl}?extension_auth=true&extension_id=${extensionId}`;
+      console.log('🔐 Starting direct Clerk authentication...');
       
-      // Open landing page for authentication
-      chrome.tabs.create({ url: authUrl });
+      // Clerk API endpoint for sign in
+      const response = await fetch(`${this.config.frontendApi}/v1/client/sign_ins`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.config.publishableKey}`
+        },
+        body: JSON.stringify({
+          strategy: 'password',
+          identifier: email,
+          password: password
+        })
+      });
       
-      return { success: true, redirected: true };
+      const data = await response.json();
+      
+      if (response.ok && data.status === 'complete') {
+        // Get session token
+        const sessionToken = data.response.created_session_id;
+        
+        // Get user data
+        const user = {
+          id: data.response.user.id,
+          email: data.response.user.email_addresses[0].email_address,
+          firstName: data.response.user.first_name,
+          lastName: data.response.user.last_name
+        };
+        
+        // Handle successful authentication
+        await this.handleAuthSuccess({ user, sessionToken });
+        
+        return { success: true };
+      } else {
+        throw new Error(data.errors?.[0]?.message || 'Authentication failed');
+      }
       
     } catch (error) {
-      console.error('Sign in failed:', error);
+      console.error('Direct sign in failed:', error);
+      return { success: false, error: error.message };
+    }
+  }
+  
+  async signUp(email, password, firstName, lastName) {
+    try {
+      console.log('✨ Starting direct Clerk sign up...');
+      
+      // Clerk API endpoint for sign up
+      const response = await fetch(`${this.config.frontendApi}/v1/client/sign_ups`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.config.publishableKey}`
+        },
+        body: JSON.stringify({
+          email_address: email,
+          password: password,
+          first_name: firstName,
+          last_name: lastName
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        if (data.status === 'complete') {
+          // Account created and signed in
+          const sessionToken = data.response.created_session_id;
+          const user = {
+            id: data.response.user.id,
+            email: data.response.user.email_addresses[0].email_address,
+            firstName: data.response.user.first_name,
+            lastName: data.response.user.last_name
+          };
+          
+          await this.handleAuthSuccess({ user, sessionToken });
+          return { success: true };
+        } else if (data.status === 'missing_requirements') {
+          // Need email verification
+          return { 
+            success: false, 
+            needsVerification: true, 
+            message: 'Please check your email for verification link',
+            signUpId: data.response.id
+          };
+        }
+      } else {
+        throw new Error(data.errors?.[0]?.message || 'Sign up failed');
+      }
+      
+    } catch (error) {
+      console.error('Direct sign up failed:', error);
       return { success: false, error: error.message };
     }
   }

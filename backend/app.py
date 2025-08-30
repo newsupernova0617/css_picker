@@ -1,5 +1,5 @@
-# Flask Backend for CSS Picker SaaS Chrome Extension
-# Handles authentication, payments, and user plan management
+# CSS Picker Chrome Extension SaaS 백엔드 Flask 애플리케이션
+# 사용자 인증(Clerk), 결제 처리(Stripe), 사용자 플랜 관리를 담당
 from dotenv import load_dotenv
 import os
 import json
@@ -9,125 +9,128 @@ from datetime import datetime, timedelta
 from functools import wraps
 
 
-import libsql as libsql
-import stripe
-import requests
-import jwt
-from flask import Flask, request, jsonify, render_template
-from flask_cors import CORS
-from werkzeug.exceptions import BadRequest
+import libsql as libsql  # Turso 데이터베이스 연결용
+import stripe  # Stripe 결제 처리용
+import requests  # HTTP 요청 처리용
+import jwt  # JWT 토큰 검증용
+from flask import Flask, request, jsonify, render_template  # Flask 웹 프레임워크
+from flask_cors import CORS  # CORS 설정용
+from werkzeug.exceptions import BadRequest  # HTTP 에러 처리용
 
-# ✅ .env 먼저 로드
+# ✅ 환경변수 파일(.env) 먼저 로드
 load_dotenv()
 
-# Initialize Flask app
+# Flask 애플리케이션 초기화
 app = Flask(__name__)
-CORS(app)  # Enable CORS for Chrome extension
+CORS(app)  # Chrome Extension에서 접근할 수 있도록 CORS 활성화
 
-# Configuration
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')
-stripe.api_key = os.getenv('STRIPE_SECRET_KEY', 'sk_test_your_stripe_secret_key_here')
+# 기본 설정
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')  # Flask 세션 암호화 키
+stripe.api_key = os.getenv('STRIPE_SECRET_KEY', 'sk_test_your_stripe_secret_key_here')  # Stripe API 키
 
-# Turso Database Configuration  
+# Turso 데이터베이스 설정 (SQLite 호환 클라우드 데이터베이스)
 TURSO_DATABASE_URL = os.getenv('TURSO_DATABASE_URL', 'libsql://your-database-url.turso.io')
 TURSO_AUTH_TOKEN = os.getenv('TURSO_AUTH_TOKEN', 'your-turso-auth-token')
 
-# Stripe Configuration
-STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', 'whsec_your_webhook_secret')
-STRIPE_PRICE_ID = os.getenv('STRIPE_PRICE_ID', 'price_your_premium_price_id')
+# Stripe 결제 시스템 설정
+STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', 'whsec_your_webhook_secret')  # 웹훅 보안 키
+STRIPE_PRICE_ID = os.getenv('STRIPE_PRICE_ID', 'price_your_premium_price_id')  # 프리미엄 플랜 가격 ID
 
-# Clerk Configuration
+# Clerk 인증 시스템 설정 (사용자 인증 및 세션 관리)
 CLERK_SECRET_KEY = os.getenv('CLERK_SECRET_KEY', 'sk_test_GvnKOcbAgR68NEfR8K91KsTgZjP4k3b6Nyw6VVwyuX')
 
 class DatabaseManager:
+    """데이터베이스 연결 및 테이블 관리를 담당하는 클래스"""
+    
     def __init__(self):
+        """DatabaseManager 초기화 - DB 연결 및 테이블 생성"""
         self.db = None
         self.connect()
         self.create_tables()
     
     def connect(self):
-        """Connect to Turso database"""
+        """Turso 데이터베이스에 연결"""
         try:
             self.db = libsql.connect(TURSO_DATABASE_URL, auth_token=TURSO_AUTH_TOKEN)
-            print("Connected to Turso database")
+            print("Turso 데이터베이스 연결 성공")
         except Exception as e:
-            print(f"Failed to connect to database: {e}")
+            print(f"데이터베이스 연결 실패: {e}")
             raise
     
     def create_tables(self):
-        """Create database tables if they don't exist"""
+        """데이터베이스 테이블들을 생성 (존재하지 않을 경우)"""
         try:
             cursor = self.db.cursor()
             
-            # Users table
+            # 사용자 테이블 - 모든 사용자 정보 저장
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS users (
-                    id TEXT PRIMARY KEY,
-                    clerk_user_id TEXT UNIQUE NOT NULL,
-                    email TEXT NOT NULL,
-                    plan TEXT DEFAULT 'free',
-                    premium_activated_at DATETIME,
-                    stripe_customer_id TEXT,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    id TEXT PRIMARY KEY,                        -- 고유 사용자 ID
+                    clerk_user_id TEXT UNIQUE NOT NULL,         -- Clerk 사용자 ID (외부 인증)
+                    email TEXT NOT NULL,                        -- 사용자 이메일
+                    plan TEXT DEFAULT 'free',                   -- 플랜 타입 ('free' 또는 'premium')
+                    premium_activated_at DATETIME,              -- 프리미엄 활성화 시간
+                    stripe_customer_id TEXT,                    -- Stripe 고객 ID
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,  -- 계정 생성 시간
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP   -- 마지막 업데이트 시간
                 )
             """)
             
-            # Payments table (for lifetime payments)
+            # 결제 테이블 - 일회성 평생 결제 기록 저장
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS payments (
-                    id TEXT PRIMARY KEY,
-                    user_id TEXT REFERENCES users(id),
-                    stripe_payment_intent_id TEXT UNIQUE,
-                    amount INTEGER NOT NULL,
-                    status TEXT NOT NULL,
-                    payment_date DATETIME,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    id TEXT PRIMARY KEY,                        -- 고유 결제 ID
+                    user_id TEXT REFERENCES users(id),          -- 사용자 ID (외래키)
+                    stripe_payment_intent_id TEXT UNIQUE,       -- Stripe 결제 의도 ID
+                    amount INTEGER NOT NULL,                    -- 결제 금액 (센트 단위)
+                    status TEXT NOT NULL,                       -- 결제 상태
+                    payment_date DATETIME,                      -- 결제 완료 시간
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP -- 레코드 생성 시간
                 )
             """)
             
-            # Usage logs table
+            # 사용량 로그 테이블 - 기능별 일일 사용량 추적
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS usage_logs (
-                    id TEXT PRIMARY KEY,
-                    user_id TEXT REFERENCES users(id),
-                    feature TEXT,
-                    usage_date DATE,
-                    count INTEGER DEFAULT 1,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    id TEXT PRIMARY KEY,                        -- 고유 로그 ID
+                    user_id TEXT REFERENCES users(id),          -- 사용자 ID (외래키)
+                    feature TEXT,                               -- 사용한 기능명
+                    usage_date DATE,                            -- 사용 날짜
+                    count INTEGER DEFAULT 1,                    -- 사용 횟수
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP -- 로그 생성 시간
                 )
             """)
             
             self.db.commit()
-            print("Database tables created/verified")
+            print("데이터베이스 테이블 생성/검증 완료")
             
         except Exception as e:
-            print(f"Failed to create tables: {e}")
+            print(f"테이블 생성 실패: {e}")
             raise
 
-# Global database manager
+# 전역 데이터베이스 매니저 인스턴스
 db_manager = DatabaseManager()
 
 def verify_clerk_session_token(token):
-    """Verify Clerk JWT session token using networkless verification"""
+    """Clerk JWT 세션 토큰을 네트워크 없이 검증하는 함수"""
     try:
-        print(f"Verifying Clerk JWT token: {token[:10]}...")
+        print(f"Clerk JWT 토큰 검증 중: {token[:10]}...")
         
-        # Get Clerk JWKS to verify the token
+        # Clerk JWKS(JSON Web Key Set)를 가져와서 토큰 검증용 키 확보
         jwks_url = "https://meet-warthog-82.clerk.accounts.dev/.well-known/jwks.json"
         jwks_response = requests.get(jwks_url)
         
         if jwks_response.status_code != 200:
-            print(f"Failed to fetch JWKS: {jwks_response.status_code}")
+            print(f"JWKS 가져오기 실패: {jwks_response.status_code}")
             return None
         
         jwks = jwks_response.json()
         
-        # Decode JWT header to get the key ID
+        # JWT 헤더에서 키 ID(kid) 추출
         unverified_header = jwt.get_unverified_header(token)
         kid = unverified_header.get('kid')
         
-        # Find the matching key
+        # 일치하는 공개키 찾기
         key = None
         for jwk in jwks['keys']:
             if jwk['kid'] == kid:
@@ -135,25 +138,25 @@ def verify_clerk_session_token(token):
                 break
         
         if not key:
-            print(f"No matching key found for kid: {kid}")
+            print(f"키 ID에 일치하는 키를 찾을 수 없음: {kid}")
             return None
         
-        # Verify and decode the JWT
+        # JWT 토큰 검증 및 디코딩
         payload = jwt.decode(
             token,
             key,
             algorithms=['RS256'],
-            audience=None,  # Skip audience validation for now
-            options={"verify_aud": False}  # Skip audience verification
+            audience=None,  # 현재는 audience 검증 생략
+            options={"verify_aud": False}  # audience 검증 비활성화
         )
         
-        print(f"JWT verified successfully, payload: {payload}")
+        print(f"JWT 토큰 검증 성공, payload: {payload}")
         
-        # Extract user information from JWT payload
-        user_id = payload.get('sub')  # Subject is usually the user ID
+        # JWT payload에서 사용자 정보 추출
+        user_id = payload.get('sub')  # Subject는 보통 사용자 ID
         
         if user_id:
-            # Get user details from Clerk API
+            # Clerk API에서 사용자 상세 정보 가져오기
             headers = {
                 'Authorization': f'Bearer {CLERK_SECRET_KEY}',
                 'Content-Type': 'application/json'
@@ -170,8 +173,8 @@ def verify_clerk_session_token(token):
                     'last_name': user_data.get('last_name')
                 }
             else:
-                print(f"Failed to fetch user data: {user_response.status_code}")
-                # Return basic info from JWT if API call fails
+                print(f"사용자 데이터 가져오기 실패: {user_response.status_code}")
+                # API 호출 실패시 JWT에서 기본 정보만 반환
                 return {
                     'user_id': user_id,
                     'email': payload.get('email'),
@@ -182,32 +185,33 @@ def verify_clerk_session_token(token):
         return None
         
     except jwt.ExpiredSignatureError:
-        print("JWT token has expired")
+        print("JWT 토큰이 만료됨")
         return None
     except jwt.InvalidTokenError as e:
-        print(f"Invalid JWT token: {e}")
+        print(f"잘못된 JWT 토큰: {e}")
         return None
     except Exception as e:
-        print(f"Error verifying Clerk token: {e}")
+        print(f"Clerk 토큰 검증 오류: {e}")
         return None
 
 def verify_clerk_token(f):
-    """Decorator to verify Clerk authentication token"""
+    """Clerk 인증 토큰 검증 데코레이터 - API 엔드포인트를 보호"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        # Authorization 헤더에서 Bearer 토큰 추출
         auth_header = request.headers.get('Authorization')
         if not auth_header or not auth_header.startswith('Bearer '):
-            return jsonify({'error': 'Missing or invalid authorization header'}), 401
+            return jsonify({'error': 'Authorization 헤더가 없거나 잘못됨'}), 401
         
         token = auth_header.split(' ')[1]
         
-        # Verify token with Clerk API
+        # Clerk API로 토큰 검증
         user_data = verify_clerk_session_token(token)
         
         if not user_data:
-            return jsonify({'error': 'Invalid or expired token'}), 401
+            return jsonify({'error': '잘못되거나 만료된 토큰'}), 401
         
-        # Set user data in request context
+        # 검증된 사용자 데이터를 request 컨텍스트에 설정
         request.user_id = user_data['user_id']
         request.user_email = user_data['email']
         request.user_first_name = user_data.get('first_name')
@@ -218,15 +222,15 @@ def verify_clerk_token(f):
 
 
 def get_or_create_user(clerk_user_id, email):
-    """Get existing user or create new one"""
+    """기존 사용자 조회 또는 신규 사용자 생성"""
     cursor = db_manager.db.cursor()
     
-    # Try to find existing user
+    # 기존 사용자 찾기 시도
     cursor.execute("SELECT id, clerk_user_id, email, plan, premium_activated_at, stripe_customer_id, created_at, updated_at FROM users WHERE clerk_user_id = ?", (clerk_user_id,))
     user_row = cursor.fetchone()
     
     if user_row:
-        # Convert row to dictionary manually
+        # 행을 딕셔너리로 수동 변환하여 반환
         return {
             'id': user_row[0],
             'clerk_user_id': user_row[1],
@@ -238,7 +242,7 @@ def get_or_create_user(clerk_user_id, email):
             'updated_at': user_row[7]
         }
     
-    # Create new user
+    # 신규 사용자 생성 (Clerk ID를 해시하여 고유 ID 생성)
     user_id = f"usr_{hashlib.md5(clerk_user_id.encode()).hexdigest()[:12]}"
     cursor.execute("""
         INSERT INTO users (id, clerk_user_id, email, plan)
@@ -247,7 +251,7 @@ def get_or_create_user(clerk_user_id, email):
     
     db_manager.db.commit()
     
-    # Return new user
+    # 새로 생성된 사용자 반환
     cursor.execute("SELECT id, clerk_user_id, email, plan, premium_activated_at, stripe_customer_id, created_at, updated_at FROM users WHERE id = ?", (user_id,))
     new_user_row = cursor.fetchone()
     
@@ -262,89 +266,105 @@ def get_or_create_user(clerk_user_id, email):
         'updated_at': new_user_row[7]
     }
 
-# Routes
+# 웹 페이지 및 API 라우트 정의
 
 @app.route('/')
 def index():
-    """Landing page"""
+    """CSS Picker 랜딩 페이지 (Clerk 인증 통합)"""
     return render_template('index.html')
 
 @app.route('/success')
 def success():
-    """Payment success page"""
+    """결제 성공 페이지"""
     return render_template('success.html')
 
 @app.route('/upgrade')
 def upgrade():
-    """Upgrade to premium page"""
+    """프리미엄 업그레이드 페이지"""
     return render_template('index.html')
 
 @app.route('/cancel')
 def cancel():
-    """Payment cancelled page"""
+    """결제 취소 페이지"""
     return render_template('cancel.html')
 
 @app.route('/health')
 def health():
-    """Health check endpoint"""
+    """서버 상태 확인 엔드포인트"""
     return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
 
-# 개발용 임시 엔드포인트
-@app.route('/api/dev/set-premium', methods=['POST'])
-def dev_set_premium():
-    """Development only: Set user to premium by email"""
-    try:
-        data = request.get_json()
-        email = data.get('email')
+# 개발용 임시 엔드포인트 (프로덕션에서는 제거 필요)
+# @app.route('/api/dev/set-premium', methods=['POST'])
+# def dev_set_premium():
+#     """개발 전용: 이메일로 사용자를 프리미엄으로 설정"""
+#     try:
+#         data = request.get_json()
+#         email = data.get('email')
         
-        if not email:
-            return jsonify({'error': 'Email required'}), 400
+#         if not email:
+#             return jsonify({'error': '이메일이 필요합니다'}), 400
             
-        cursor = db_manager.db.cursor()
+#         cursor = db_manager.db.cursor()
         
-        # Find user by email
-        cursor.execute("SELECT id, plan FROM users WHERE email = ?", (email,))
-        user_row = cursor.fetchone()
+#         # 이메일로 사용자 찾기
+#         cursor.execute("SELECT id, plan FROM users WHERE email = ?", (email,))
+#         user_row = cursor.fetchone()
         
-        if not user_row:
-            return jsonify({'error': 'User not found'}), 404
+#         if not user_row:
+#             return jsonify({'error': '사용자를 찾을 수 없습니다'}), 404
             
-        user_id, current_plan = user_row
+#         user_id, current_plan = user_row
         
-        # Update to lifetime
-        cursor.execute("""
-            UPDATE users 
-            SET plan = 'lifetime', 
-                premium_activated_at = CURRENT_TIMESTAMP,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-        """, (user_id,))
+#         # 평생 플랜으로 업데이트
+#         cursor.execute("""
+#             UPDATE users 
+#             SET plan = 'premium', 
+#                 premium_activated_at = CURRENT_TIMESTAMP,
+#                 updated_at = CURRENT_TIMESTAMP
+#             WHERE id = ?
+#         """, (user_id,))
         
-        db_manager.db.commit()
+#         db_manager.db.commit()
         
-        return jsonify({
-            'success': True,
-            'user_id': user_id,
-            'email': email,
-            'previous_plan': current_plan,
-            'new_plan': 'lifetime'
-        })
+#         return jsonify({
+#             'success': True,
+#             'user_id': user_id,
+#             'email': email,
+#             'previous_plan': current_plan,
+#             'new_plan': 'premium'
+#         })
         
-    except Exception as e:
-        print(f"Error in dev endpoint: {e}")
-        return jsonify({'error': str(e)}), 500
+#     except Exception as e:
+#         print(f"개발 엔드포인트 오류: {e}")
+#         return jsonify({'error': str(e)}), 500
 
 
-# User Management Endpoints
+# 사용자 관리 API 엔드포인트
 
-@app.route('/api/user/profile', methods=['GET'])
+@app.route('/api/user/profile', methods=['GET', 'POST'])
 @verify_clerk_token
-def get_user_profile():
-    """Get user profile and plan information"""
+def handle_user_profile():
+    """사용자 프로필 GET/POST 요청 처리"""
     try:
-        print(f"Getting user profile for user_id: {request.user_id}, email: {request.user_email}")
+        if request.method == 'POST':
+            # 랜딩 페이지에서 프로필 생성/업데이트 처리
+            data = request.get_json() or {}
+            print(f"사용자 프로필 생성/업데이트 - user_id: {request.user_id}, email: {request.user_email}")
+            
+            # POST 요청의 추가 데이터로 사용자 업데이트
+            cursor = db_manager.db.cursor()
+            cursor.execute("""
+                UPDATE users SET 
+                    email = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE clerk_user_id = ?
+            """, (request.user_email, request.user_id))
+            db_manager.db.commit()
+            
+        # 사용자 조회 또는 생성 (GET과 POST 모두)
+        print(f"사용자 프로필 조회 - user_id: {request.user_id}, email: {request.user_email}")
         user = get_or_create_user(request.user_id, request.user_email)
-        print(f"User created/retrieved: {user}")
+        print(f"사용자 생성/조회 완료: {user}")
         
         return jsonify({
             'id': user['id'],
@@ -355,20 +375,20 @@ def get_user_profile():
         })
         
     except Exception as e:
-        print(f"Error getting user profile: {e}")
+        print(f"사용자 프로필 처리 오류: {e}")
         import traceback
-        print(f"Traceback: {traceback.format_exc()}")
-        return jsonify({'error': 'Internal server error'}), 500
+        print(f"스택 트레이스: {traceback.format_exc()}")
+        return jsonify({'error': '내부 서버 오류'}), 500
 
 @app.route('/api/user/usage', methods=['GET'])
 @verify_clerk_token
 def get_user_usage():
-    """Get user usage statistics"""
+    """사용자 사용량 통계 조회"""
     try:
         user = get_or_create_user(request.user_id, request.user_email)
         cursor = db_manager.db.cursor()
         
-        # Get today's usage
+        # 오늘의 사용량 조회
         today = datetime.now().date()
         cursor.execute("""
             SELECT feature, SUM(count) as total_count
@@ -389,26 +409,26 @@ def get_user_usage():
         })
         
     except Exception as e:
-        print(f"Error getting user usage: {e}")
-        return jsonify({'error': 'Internal server error'}), 500
+        print(f"사용자 사용량 조회 오류: {e}")
+        return jsonify({'error': '내부 서버 오류'}), 500
 
-# Usage Tracking Endpoints
+# 사용량 추적 API 엔드포인트
 
 @app.route('/api/usage/track', methods=['POST'])
 @verify_clerk_token  
 def track_usage():
-    """Track feature usage"""
+    """기능 사용량 추적"""
     try:
         data = request.get_json()
         feature = data.get('feature')
         
         if not feature:
-            return jsonify({'error': 'Feature name required'}), 400
+            return jsonify({'error': '기능 이름이 필요합니다'}), 400
         
         user = get_or_create_user(request.user_id, request.user_email)
         cursor = db_manager.db.cursor()
         
-        # Insert usage log
+        # 사용량 로그 삽입
         usage_id = f"usage_{hashlib.md5(f'{user['id']}{feature}{datetime.now()}'.encode()).hexdigest()[:12]}"
         today = datetime.now().date()
         
@@ -422,19 +442,19 @@ def track_usage():
         return jsonify({'success': True, 'feature': feature, 'timestamp': datetime.now().isoformat()})
         
     except Exception as e:
-        print(f"Error tracking usage: {e}")
-        return jsonify({'error': 'Internal server error'}), 500
+        print(f"사용량 추적 오류: {e}")
+        return jsonify({'error': '내부 서버 오류'}), 500
 
-# Payment Endpoints
+# 결제 처리 API 엔드포인트
 
 @app.route('/api/checkout/create', methods=['POST'])
 @verify_clerk_token
 def create_checkout():
-    """Create Stripe checkout session"""
+    """Stripe 체크아웃 세션 생성"""
     try:
         user = get_or_create_user(request.user_id, request.user_email)
         
-        # Create or get Stripe customer
+        # Stripe 고객 생성 또는 조회
         stripe_customer_id = user.get('stripe_customer_id')
         if not stripe_customer_id:
             customer = stripe.Customer.create(
@@ -443,7 +463,7 @@ def create_checkout():
             )
             stripe_customer_id = customer.id
             
-            # Update user record
+            # 사용자 레코드 업데이트
             cursor = db_manager.db.cursor()
             cursor.execute("""
                 UPDATE users SET stripe_customer_id = ?, updated_at = CURRENT_TIMESTAMP
@@ -451,15 +471,15 @@ def create_checkout():
             """, (stripe_customer_id, user['id']))
             db_manager.db.commit()
         
-        # Create checkout session
+        # 체크아웃 세션 생성 (일회성 평생 결제)
         session = stripe.checkout.Session.create(
             customer=stripe_customer_id,
             payment_method_types=['card'],
             line_items=[{
-                'price': STRIPE_PRICE_ID,
+                'price': STRIPE_PRICE_ID,  # $29 평생 플랜
                 'quantity': 1,
             }],
-            mode='payment',
+            mode='payment',  # 일회성 결제
             success_url=request.host_url + 'success?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=request.host_url + 'cancel',
             metadata={
@@ -470,18 +490,18 @@ def create_checkout():
         return jsonify({'checkout_url': session.url, 'session_id': session.id})
         
     except Exception as e:
-        print(f"Error creating checkout: {e}")
-        return jsonify({'error': 'Internal server error'}), 500
+        print(f"체크아웃 생성 오류: {e}")
+        return jsonify({'error': '내부 서버 오류'}), 500
 
 @app.route('/api/billing/portal', methods=['POST'])
 @verify_clerk_token
 def create_billing_portal():
-    """Create Stripe billing portal session"""
+    """Stripe 청구 포털 세션 생성"""
     try:
         user = get_or_create_user(request.user_id, request.user_email)
         
         if not user.get('stripe_customer_id'):
-            return jsonify({'error': 'No billing information found'}), 400
+            return jsonify({'error': '청구 정보를 찾을 수 없습니다'}), 400
         
         session = stripe.billing_portal.Session.create(
             customer=user['stripe_customer_id'],
@@ -491,51 +511,52 @@ def create_billing_portal():
         return jsonify({'portal_url': session.url})
         
     except Exception as e:
-        print(f"Error creating billing portal: {e}")
-        return jsonify({'error': 'Internal server error'}), 500
+        print(f"청구 포털 생성 오류: {e}")
+        return jsonify({'error': '내부 서버 오류'}), 500
 
-# Stripe Webhooks
+# Stripe 웹훅 처리
 
 @app.route('/webhooks/stripe', methods=['POST'])
 def stripe_webhook():
-    """Handle Stripe webhooks"""
+    """Stripe 웹훅 이벤트 처리"""
     payload = request.get_data()
     sig_header = request.headers.get('Stripe-Signature')
     
     try:
+        # 웹훅 서명 검증 및 이벤트 구성
         event = stripe.Webhook.construct_event(
             payload, sig_header, STRIPE_WEBHOOK_SECRET
         )
     except ValueError:
-        print("Invalid payload")
+        print("잘못된 페이로드")
         return '', 400
     except stripe.error.SignatureVerificationError:
-        print("Invalid signature")  
+        print("잘못된 서명")  
         return '', 400
     
-    # Handle the event
+    # 이벤트 타입별 처리
     if event['type'] == 'checkout.session.completed':
-        handle_checkout_completed(event['data']['object'])
+        handle_checkout_completed(event['data']['object'])  # 체크아웃 완료 처리
     elif event['type'] == 'payment_intent.succeeded':
-        handle_payment_succeeded(event['data']['object'])
+        handle_payment_succeeded(event['data']['object'])  # 결제 성공 처리
     
     return '', 200
 
 def handle_checkout_completed(session):
-    """Handle successful checkout completion for one-time lifetime payment"""
+    """일회성 평생 결제 체크아웃 완료 처리"""
     try:
         user_id = session['metadata']['user_id']
         payment_intent_id = session['payment_intent']
         
         cursor = db_manager.db.cursor()
         
-        # Update user plan to lifetime premium with activation timestamp
+        # 사용자 플랜을 평생 프리미엄으로 업그레이드 (활성화 타임스탬프 포함)
         cursor.execute("""
-            UPDATE users SET plan = 'lifetime', premium_activated_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+            UPDATE users SET plan = 'premium', premium_activated_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         """, (user_id,))
         
-        # Record the lifetime payment ($29.00 = 2900 cents)
+        # 평생 결제 기록 저장 ($29.00 = 2900 센트)
         payment_id = f"pay_{hashlib.md5(payment_intent_id.encode()).hexdigest()[:12]}"
         cursor.execute("""
             INSERT INTO payments (id, user_id, stripe_payment_intent_id, amount, status, payment_date)
@@ -543,24 +564,25 @@ def handle_checkout_completed(session):
         """, (payment_id, user_id, payment_intent_id))
         
         db_manager.db.commit()
-        print(f"User {user_id} upgraded to lifetime premium ($29.00)")
+        print(f"사용자 {user_id}가 평생 프리미엄으로 업그레이드됨 ($29.00)")
         
     except Exception as e:
-        print(f"Error handling checkout completion: {e}")
+        print(f"체크아웃 완료 처리 오류: {e}")
 
 def handle_payment_succeeded(payment_intent):
-    """Handle successful one-time payment"""
+    """일회성 결제 성공 처리"""
     try:
-        print(f"Payment succeeded for payment intent {payment_intent['id']}")
+        print(f"결제 성공 - payment intent {payment_intent['id']}")
         
     except Exception as e:
-        print(f"Error handling payment success: {e}")
+        print(f"결제 성공 처리 오류: {e}")
 
+# Flask 애플리케이션 실행
 if __name__ == '__main__':
-    print("Starting CSS Picker Backend...")
-    print("Database:", TURSO_DATABASE_URL.split('@')[-1] if '@' in TURSO_DATABASE_URL else TURSO_DATABASE_URL)
-    print("Stripe Mode:", "Live" if stripe.api_key.startswith('sk_live') else "Test")
+    print("CSS Picker 백엔드 시작 중...")
+    print("데이터베이스:", TURSO_DATABASE_URL.split('@')[-1] if '@' in TURSO_DATABASE_URL else TURSO_DATABASE_URL)
+    print("Stripe 모드:", "라이브" if stripe.api_key.startswith('sk_live') else "테스트")
     
-    port = int(os.getenv('PORT', 4242))
-    debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
-    app.run(debug=debug, host='0.0.0.0', port=port)
+    port = int(os.getenv('PORT', 4242))  # 기본 포트 4242
+    debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'  # 디버그 모드 설정
+    app.run(debug=debug, host='0.0.0.0', port=port)  # 모든 IP에서 접근 허용
