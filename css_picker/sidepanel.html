@@ -23,25 +23,11 @@
   <!-- 우리가 직접 만든 CSS 스타일 파일을 연결합니다 -->
   <link rel="stylesheet" href="sidepanel.css">
   
-  <!-- JSZip 라이브러리를 로컬에서 로드합니다 - 여러 파일을 ZIP으로 압축하기 위해 사용 -->
-  <script src="lib/jszip.min.js"></script>
+
   
-  <!-- HTML2Canvas 라이브러리를 로컬에서 로드합니다 - 픽셀 단위 색상 추출을 위해 사용 -->
-  <script src="lib/html2canvas.min.js"></script>
-  
-  <!-- Bootstrap JS를 로컬에서 로드합니다 (드롭다운 기능을 위해 필요) -->
-  <script src="lib/bootstrap.bundle.min.js"></script>
   
   <!-- JavaScript 파일들이 sidepanel.js에 인라인으로 포함됨 -->
   
-  <!-- 테스트용 인라인 스크립트 -->
-  <script>
-    console.log('🚨 HTML inline script is running!');
-    console.log('Chrome object exists?', typeof chrome !== 'undefined');
-    if (typeof chrome !== 'undefined' && chrome.runtime) {
-      console.log('Extension ID:', chrome.runtime.id);
-    }
-  </script>
 </head>
 
 <body>
@@ -67,6 +53,12 @@
             ⋮ More
           </button>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreOptionsBtn">
+            <li>
+              <a class="dropdown-item" href="#" id="cssPickerMenuItem">
+                🎯 CSS Picker
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
             <li>
               <a class="dropdown-item" href="#" id="colorPaletteMenuItem">
                 🎨 Color Palette
@@ -172,9 +164,76 @@
     <!-- main 섹션: 페이지의 주요 내용이 들어가는 부분입니다 -->
     <main class="main-content">
       
+      <!-- Home Screen (New Default) -->
+      <div class="home-section" id="homeSection">
+        <div class="home-welcome">
+          <h3>🏠 CSS Picker Extension</h3>
+          <p>Choose a tool to get started with web development analysis</p>
+        </div>
+        
+        <div class="feature-cards">
+          <div class="feature-card" id="homeToCSSSelectorCard">
+            <div class="feature-icon">🎯</div>
+            <div class="feature-content">
+              <h4>CSS Picker</h4>
+              <p>Select and analyze CSS properties of any element</p>
+            </div>
+            <button class="btn btn-outline-primary btn-sm">Start →</button>
+          </div>
+          
+          <div class="feature-card" id="homeToColorPaletteCard">
+            <div class="feature-icon">🎨</div>
+            <div class="feature-content">
+              <h4>Color Palette</h4>
+              <p>Sample colors and create beautiful palettes</p>
+            </div>
+            <button class="btn btn-outline-primary btn-sm">Start →</button>
+          </div>
+          
+          <div class="feature-card" id="homeToConsoleCard">
+            <div class="feature-icon">🖥️</div>
+            <div class="feature-content">
+              <h4>Console Monitor</h4>
+              <p>Track console messages and network errors</p>
+            </div>
+            <button class="btn btn-outline-primary btn-sm">Start →</button>
+          </div>
+          
+          <div class="feature-card" id="homeToAssetManagerCard">
+            <div class="feature-icon">📦</div>
+            <div class="feature-content">
+              <h4>Asset Manager</h4>
+              <p>Collect and download page assets</p>
+            </div>
+            <button class="btn btn-outline-primary btn-sm">Start →</button>
+          </div>
+        </div>
+        
+        <!-- General How to Use for Extension -->
+        <div class="home-instructions">
+          <h4>How to Use This Extension:</h4>
+          <ol>
+            <li>Choose a tool from the cards above</li>
+            <li>Each tool provides specific functionality for web analysis</li>
+            <li>Click the Home button (🏠) from any tool to return here</li>
+            <li>Use the "?" button in each tool for specific help</li>
+          </ol>
+        </div>
+      </div>
+      
       <!-- CSS 정보 표시 섹션 -->
       <div class="css-info-section" id="cssInfoSection" style="display: none;">
-        <h3>Selected Element CSS</h3>
+        <div class="section-header">
+          <h3>🎯 Selected Element CSS</h3>
+          <div class="section-nav">
+            <button class="btn btn-outline-secondary btn-sm" id="cssHomeBtn" title="Return to Home">
+              🏠 Home
+            </button>
+            <button class="btn btn-outline-info btn-sm" id="cssHelpBtn" title="CSS Picker Help">
+              ?
+            </button>
+          </div>
+        </div>
         
         <!-- 압축된 요소 정보 -->
         <div class="element-info-compact">
@@ -201,28 +260,13 @@
                   Select All
                 </label>
               </div>
-              <div class="copy-css-dropdown">
-                <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="copyCssBtn" data-bs-toggle="dropdown" aria-expanded="false">
+              <div class="copy-buttons">
+                <button class="btn btn-primary btn-sm" type="button" id="copyCssBtn">
                   📋 Copy CSS
                 </button>
-                <ul class="dropdown-menu" aria-labelledby="copyCssBtn">
-                  <li><a class="dropdown-item" href="#" data-format="css">CSS Rule</a></li>
-                  <li><a class="dropdown-item" href="#" data-format="inline">Inline Style</a></li>
-                  <li><a class="dropdown-item" href="#" data-format="js">JS Object</a></li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" href="#" data-format="modified">Modified Only</a></li>
-                </ul>
-              </div>
-              <div class="copy-tailwind-dropdown" id="copyTailwindDropdown" style="display: none;">
-                <button class="btn btn-success btn-sm dropdown-toggle" type="button" id="copyTailwindBtn" data-bs-toggle="dropdown" aria-expanded="false">
-                  📋 Copy Tailwind
+                <button class="btn btn-success btn-sm" id="copyTailwindBtn" style="display: none;">
+                  🎨 Copy Tailwind
                 </button>
-                <ul class="dropdown-menu" aria-labelledby="copyTailwindBtn">
-                  <li><a class="dropdown-item" href="#" data-format="tailwind-classes">Tailwind Classes</a></li>
-                  <li><a class="dropdown-item" href="#" data-format="mixed-format">Mixed Format</a></li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" href="#" data-format="tailwind-selected">Selected Only</a></li>
-                </ul>
               </div>
             </div>
           </div>
@@ -243,7 +287,17 @@
       <!-- Color Palette 섹션 -->
       <div class="color-palette-section" id="colorPaletteSection" style="display: none;">
         <div class="palette-header">
-          <h3>🎨 Color Palette</h3>
+          <div class="section-header">
+            <h3>🎨 Color Palette</h3>
+            <div class="section-nav">
+              <button class="btn btn-outline-secondary btn-sm" id="colorPaletteHomeBtn" title="Return to Home">
+                🏠 Home
+              </button>
+              <button class="btn btn-outline-info btn-sm" id="colorPaletteHelpBtn" title="Color Palette Help">
+                ?
+              </button>
+            </div>
+          </div>
           <div class="palette-status">
             <span id="samplingStatus" class="sampling-status">🎯 Click anywhere to open native color picker</span>
             <button id="exitColorModeBtn" class="btn btn-outline-secondary btn-sm">
@@ -318,9 +372,14 @@
         <div class="console-header">
           <div class="section-title-row">
             <h3>🖥️ Console Monitor</h3>
-            <button id="closeConsoleBtn" class="btn-close-x" title="Close Console">
-              ×
-            </button>
+            <div class="section-nav">
+              <button class="btn btn-outline-secondary btn-sm" id="consoleHomeBtn" title="Return to Home">
+                🏠 Home
+              </button>
+              <button class="btn btn-outline-info btn-sm" id="consoleHelpBtn" title="Console Monitor Help">
+                ?
+              </button>
+            </div>
           </div>
           <div class="console-controls">
             <button id="toggleConsoleBtn" class="btn btn-info btn-sm">
@@ -398,9 +457,14 @@
         <div class="asset-header">
           <div class="section-title-row">
             <h3>📦 Asset Manager</h3>
-            <button id="closeAssetManagerBtn" class="btn-close-x" title="Close Asset Manager">
-              ×
-            </button>
+            <div class="section-nav">
+              <button class="btn btn-outline-secondary btn-sm" id="assetManagerHomeBtn" title="Return to Home">
+                🏠 Home
+              </button>
+              <button class="btn btn-outline-info btn-sm" id="assetManagerHelpBtn" title="Asset Manager Help">
+                ?
+              </button>
+            </div>
           </div>
           <div class="asset-summary">
             <span id="assetSummary">Loading assets...</span>
@@ -431,20 +495,22 @@
         </div>
       </div>
 
-      <!-- 사용 방법 설명 섹션 -->
-      <div class="instructions" id="instructionsSection">
-        <!-- 사용 방법 제목 -->
-        <h3>How to use:</h3>
-        
-        <!-- 순서가 있는 목록 (ol = ordered list) -->
-        <ol>
-          <!-- 각 단계별 설명 (li = list item) -->
-          <li>Open this side panel on any webpage</li>
-          <li>Move your cursor over page elements</li>
-          <li>See elements highlighted with red borders</li>
-          <li><strong>Click on a highlighted element</strong> to view its CSS properties</li>
-          <li>Close the panel to disable highlighting</li>
-        </ol>
+      <!-- Help modals for each feature -->
+      <div class="modal fade" id="featureHelpModal" tabindex="-1" aria-labelledby="featureHelpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="featureHelpModalLabel">Feature Help</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="featureHelpContent">
+              <!-- Help content will be dynamically loaded here -->
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
       </div>
       
     </main>
@@ -452,7 +518,14 @@
     
   </div>
   <!-- container div 끝 -->
+    <!-- JSZip 라이브러리를 로컬에서 로드합니다 - 여러 파일을 ZIP으로 압축하기 위해 사용 -->
+  <script src="lib/jszip.min.js"></script>
   
+  <!-- HTML2Canvas 라이브러리를 로컬에서 로드합니다 - 픽셀 단위 색상 추출을 위해 사용 -->
+  <script src="lib/html2canvas.min.js"></script>
+  
+  <!-- Bootstrap JS를 로컬에서 로드합니다 (드롭다운 기능을 위해 필요) -->
+  <script src="lib/bootstrap.bundle.min.js"></script>
   <!-- Main sidepanel logic (마지막에 로드) -->
   <script src="sidepanel.js"></script>
   

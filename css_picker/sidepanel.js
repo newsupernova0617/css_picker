@@ -1,5 +1,10 @@
 console.log('===== SIDEPANEL.JS START =====');
 console.log('This file is loading at:', new Date().toISOString());
+console.log('🚨 HTML inline script moved to sidepanel.js');
+console.log('Chrome object exists?', typeof chrome !== 'undefined');
+if (typeof chrome !== 'undefined' && chrome.runtime) {
+  console.log('Extension ID:', chrome.runtime.id);
+}
 
 // ========== CLERK CONFIG INLINE (임시 해결책) ==========
 console.log('🔧 Inline clerk config loading...');
@@ -61,11 +66,17 @@ class ClerkExtensionClient {
       });
       this.notifyListeners('signIn');
       
-      // 로그인 성공 후 plan 동기화
+      // 로그인 성공 후 plan 동기화 및 UI 업데이트
       if (typeof planManager !== 'undefined') {
         console.log('Syncing plan after login...');
         await planManager.syncPlanStatus();
         console.log('Plan synced:', planManager.currentPlan);
+        
+        // UI 업데이트 (sidepanel이 있는 경우)
+        if (typeof window !== 'undefined' && window.cssSidepanel) {
+          await window.cssSidepanel.updatePlanUI();
+          window.cssSidepanel.setupPremiumLocks();
+        }
       }
     } catch (error) {
       console.error('Failed to handle auth success:', error);
@@ -101,12 +112,6 @@ class ClerkExtensionClient {
   async checkExistingSession() {
     try {
       if (this.sessionToken && this.user) {
-        // For dev sessions, always consider valid
-        if (this.sessionToken.startsWith('dev_session_')) {
-          console.log('Dev session is valid');
-          return true;
-        }
-        
         const response = await fetch(`${this.config.syncHost}/api/user/profile`, {
           headers: {
             'Authorization': `Bearer ${this.sessionToken}`,
@@ -125,10 +130,6 @@ class ClerkExtensionClient {
       return false;
     } catch (error) {
       console.error('Error checking existing session:', error);
-      // For dev mode, allow offline usage
-      if (this.sessionToken && this.sessionToken.startsWith('dev_session_')) {
-        return true;
-      }
       return false;
     }
   }
@@ -223,13 +224,6 @@ class PlanManager {
       
       this.userId = clerkClient.user?.id;
       
-      // For dev sessions, always use lifetime plan
-      if (clerkClient.sessionToken && clerkClient.sessionToken.startsWith('dev_session_')) {
-        this.currentPlan = 'lifetime';
-        console.log('✅ Dev mode: Using lifetime plan');
-        await chrome.storage.local.set({ user_plan: this.currentPlan });
-        return;
-      }
       
       const response = await fetch(`${this.backendUrl}/api/user/profile`, {
         headers: {
@@ -248,12 +242,7 @@ class PlanManager {
       }
     } catch (error) {
       console.error('Error loading user plan:', error);
-      // For dev mode, use lifetime plan even on error
-      if (clerkClient.sessionToken && clerkClient.sessionToken.startsWith('dev_session_')) {
-        this.currentPlan = 'lifetime';
-      } else {
-        this.currentPlan = 'free';
-      }
+      this.currentPlan = 'free';
     }
     
     await chrome.storage.local.set({ user_plan: this.currentPlan });
@@ -1561,6 +1550,7 @@ class SidePanel {
     this.selectedProperties = new Set(); // 체크된 속성들
     this.categoryStates = new Map(); // 카테고리 접기/펼치기 상태
     this.categorizedProperties = {}; // 분류된 속성들
+    this._dropdownEventListenerAdded = false; // 드롭다운 이벤트 리스너 중복 방지
     
     // Asset 관리 변수들
     this.collectedAssets = null; // 수집된 asset 데이터
@@ -1647,8 +1637,14 @@ class SidePanel {
     // Authentication 초기화
     this.initializeAuthentication();
     
+    // Clerk 초기화 (새로운 Clerk API 사용)
+    this.initializeClerkAuth();
+    
     // Plan Management 초기화
     this.initializePlanManagement();
+    
+    // Initialize Home as default view
+    this.initializeHomeView();
     
     // 백그라운드 스크립트에게 "사이드패널이 열렸다"고 알려줍니다
     this.notifyOpened();
@@ -1748,11 +1744,41 @@ class SidePanel {
     this.upgradeMessage = document.getElementById("upgradeMessage");
     this.benefitsList = document.getElementById("benefitsList");
     this.upgradeNowBtn = document.getElementById("upgradeNowBtn");
+    
+    // Home Screen 요소들
+    this.homeSection = document.getElementById("homeSection");
+    this.homeToCSSSelectorCard = document.getElementById("homeToCSSSelectorCard");
+    this.homeToColorPaletteCard = document.getElementById("homeToColorPaletteCard");
+    this.homeToConsoleCard = document.getElementById("homeToConsoleCard");
+    this.homeToAssetManagerCard = document.getElementById("homeToAssetManagerCard");
+    
+    // Navigation 요소들 (Home 버튼들)
+    this.cssHomeBtn = document.getElementById("cssHomeBtn");
+    this.colorPaletteHomeBtn = document.getElementById("colorPaletteHomeBtn");
+    this.consoleHomeBtn = document.getElementById("consoleHomeBtn");
+    this.assetManagerHomeBtn = document.getElementById("assetManagerHomeBtn");
+    
+    // Help 버튼들
+    this.cssHelpBtn = document.getElementById("cssHelpBtn");
+    this.colorPaletteHelpBtn = document.getElementById("colorPaletteHelpBtn");
+    this.consoleHelpBtn = document.getElementById("consoleHelpBtn");
+    this.assetManagerHelpBtn = document.getElementById("assetManagerHelpBtn");
+    
+    // Help Modal
+    this.featureHelpModal = document.getElementById("featureHelpModal");
+    this.featureHelpModalLabel = document.getElementById("featureHelpModalLabel");
+    this.featureHelpContent = document.getElementById("featureHelpContent");
+    
+    // Current section state
+    this.currentSection = 'home';
   }
   
   // 각종 이벤트 리스너들을 설정하는 함수입니다
   // 이벤트 리스너는 "특정 상황이 발생했을 때 실행할 함수"를 등록하는 것입니다
   setupEventListeners() {
+    // Home Screen Navigation
+    this.setupHomeNavigation();
+    
     // vanilla JavaScript의 .addEventListener()로 클릭 이벤트를 등록합니다
     this.toggleButton.addEventListener('click', () => {
       this.togglePicker(); // 피커를 켜거나 끄는 함수를 호출합니다
@@ -1788,6 +1814,42 @@ class SidePanel {
     }
   }
   
+  // 다른 기능 사용 시 CSS Picker 비활성화
+  deactivatePickerForOtherFeatures() {
+    if (this.isActive) {
+      console.log('Deactivating CSS Picker for other feature usage');
+      this.isActive = false;
+      this.notifyClosed(); // 백그라운드에게 "꺼짐"을 알리고
+      this.updateStatus("🔴 Inactive Picker", "inactive"); // 화면에 "비활성" 상태를 표시
+    }
+  }
+
+  // 모든 활성 기능들을 종료하는 통합 함수
+  deactivateAllFeatures() {
+    console.log('Deactivating all active features');
+    
+    // CSS Picker 비활성화
+    this.deactivatePickerForOtherFeatures();
+    
+    // Color Palette 모드 종료
+    if (this.isColorPaletteMode) {
+      console.log('Exiting Color Palette mode');
+      this.exitColorPaletteMode();
+    }
+    
+    // Console 모드 종료  
+    if (this.isConsoleMode) {
+      console.log('Exiting Console mode');
+      this.exitConsoleMode();
+    }
+    
+    // Asset Manager 닫기
+    if (this.assetManager && this.assetManager.style.display !== 'none') {
+      console.log('Closing Asset Manager');
+      this.closeAssetManager();
+    }
+  }
+
   // 화면에 표시되는 상태를 업데이트하는 함수입니다
   updateStatus(text, state) {
     // toggleButton의 텍스트와 클래스를 업데이트합니다
@@ -1797,10 +1859,11 @@ class SidePanel {
     this.toggleButton.innerHTML = text;
     
     // 버튼 클래스를 업데이트합니다 (상태에 따라 다른 색상)
+    // 일관성을 위해 success = 활성, secondary = 비활성 사용
     if (state === "active") {
-      this.toggleButton.className = "btn btn-success btn-sm";
+      this.toggleButton.className = "btn btn-primary btn-sm";
     } else {
-      this.toggleButton.className = "btn btn-danger btn-sm";
+      this.toggleButton.className = "btn btn-secondary btn-sm";
     }
   }
   
@@ -1867,8 +1930,335 @@ class SidePanel {
     // 실시간 색상 호버 기능 제거됨
   }
   
+  // Home Navigation Setup
+  setupHomeNavigation() {
+    // Home Screen Feature Cards
+    this.homeToCSSSelectorCard.addEventListener('click', () => {
+      this.navigateToFeature('css');
+    });
+    
+    this.homeToColorPaletteCard.addEventListener('click', () => {
+      this.navigateToFeature('colorpalette');
+    });
+    
+    this.homeToConsoleCard.addEventListener('click', () => {
+      this.navigateToFeature('console');
+    });
+    
+    this.homeToAssetManagerCard.addEventListener('click', () => {
+      this.navigateToFeature('assetmanager');
+    });
+    
+    // Home buttons from each feature
+    if (this.cssHomeBtn) {
+      this.cssHomeBtn.addEventListener('click', () => {
+        this.navigateToHome();
+      });
+    }
+    
+    if (this.colorPaletteHomeBtn) {
+      this.colorPaletteHomeBtn.addEventListener('click', () => {
+        this.navigateToHome();
+      });
+    }
+    
+    if (this.consoleHomeBtn) {
+      this.consoleHomeBtn.addEventListener('click', () => {
+        this.navigateToHome();
+      });
+    }
+    
+    if (this.assetManagerHomeBtn) {
+      this.assetManagerHomeBtn.addEventListener('click', () => {
+        this.navigateToHome();
+      });
+    }
+    
+    // Help buttons
+    if (this.cssHelpBtn) {
+      this.cssHelpBtn.addEventListener('click', () => {
+        this.showFeatureHelp('css');
+      });
+    }
+    
+    if (this.colorPaletteHelpBtn) {
+      this.colorPaletteHelpBtn.addEventListener('click', () => {
+        this.showFeatureHelp('colorpalette');
+      });
+    }
+    
+    if (this.consoleHelpBtn) {
+      this.consoleHelpBtn.addEventListener('click', () => {
+        this.showFeatureHelp('console');
+      });
+    }
+    
+    if (this.assetManagerHelpBtn) {
+      this.assetManagerHelpBtn.addEventListener('click', () => {
+        this.showFeatureHelp('assetmanager');
+      });
+    }
+  }
+  
+  // Navigate to specific feature
+  async navigateToFeature(featureName) {
+    // Check premium access for premium features
+    const premiumFeatures = ['colorpalette', 'console', 'assetmanager'];
+    if (premiumFeatures.includes(featureName)) {
+      if (!(await this.checkFeatureAccess(this.getFeatureKey(featureName)))) {
+        return; // Access denied, modal shown
+      }
+    }
+    
+    // Deactivate all features first
+    this.deactivateAllFeatures();
+    
+    // Hide Home screen
+    this.homeSection.style.display = 'none';
+    
+    // Show the requested feature
+    this.currentSection = featureName;
+    
+    switch (featureName) {
+      case 'css':
+        // Show CSS picker but don't activate until user wants to select element
+        this.showInstructions();
+        break;
+      case 'colorpalette':
+        this.showColorPaletteSection();
+        break;
+      case 'console':
+        this.showConsoleSection();
+        break;
+      case 'assetmanager':
+        this.showAssetManagerSection();
+        break;
+    }
+    
+    // Update header to show we're not in home mode
+    this.updateHeaderForFeature(featureName);
+  }
+  
+  // Navigate back to Home
+  navigateToHome() {
+    // Deactivate all features
+    this.deactivateAllFeatures();
+    
+    // Hide all feature sections
+    this.hideAllFeatureSections();
+    
+    // Show Home screen
+    this.homeSection.style.display = 'block';
+    this.currentSection = 'home';
+    
+    // Reset header to initial state
+    this.updateHeaderForHome();
+  }
+  
+  // Hide all feature sections
+  hideAllFeatureSections() {
+    if (this.cssInfoSection) this.cssInfoSection.style.display = 'none';
+    if (this.colorPaletteSection) this.colorPaletteSection.style.display = 'none';
+    if (this.consoleSection) this.consoleSection.style.display = 'none';
+    if (this.assetManager) this.assetManager.style.display = 'none';
+  }
+  
+  // Update header for specific feature
+  updateHeaderForFeature(featureName) {
+    // Hide Home screen elements if any
+    // Update toggle button to reflect current feature
+  }
+  
+  // Update header for Home
+  updateHeaderForHome() {
+    // Reset to initial state
+  }
+  
+  // Show instructions (used for CSS picker default state)
+  showInstructions() {
+    // This method might already exist, but ensuring CSS info is ready
+    this.hideAllFeatureSections();
+    // Don't show CSS info section yet, user needs to select element first
+  }
+  
+  // Get feature key for premium access checking
+  getFeatureKey(featureName) {
+    const featureMap = {
+      'colorpalette': 'color_sampling',
+      'console': 'console_monitoring',
+      'assetmanager': 'asset_management'
+    };
+    return featureMap[featureName];
+  }
+  
+  // Show feature help modal
+  showFeatureHelp(featureName) {
+    const helpContent = this.getFeatureHelpContent(featureName);
+    this.featureHelpModalLabel.textContent = helpContent.title;
+    this.featureHelpContent.innerHTML = helpContent.content;
+    
+    // Show modal using Bootstrap
+    const modal = new bootstrap.Modal(this.featureHelpModal);
+    modal.show();
+  }
+  
+  // Get help content for each feature
+  getFeatureHelpContent(featureName) {
+    const helpContents = {
+      css: {
+        title: '🎯 CSS Picker Help',
+        content: `
+          <div class="help-section">
+            <h5>How to Use CSS Picker</h5>
+            <ul class="help-steps">
+              <li>
+                <span class="step-number">1</span>
+                <span class="step-content">Click the "Active Picker" button to start selecting elements</span>
+              </li>
+              <li>
+                <span class="step-number">2</span>
+                <span class="step-content">Move your cursor over page elements to see blue hover highlights</span>
+              </li>
+              <li>
+                <span class="step-number">3</span>
+                <span class="step-content">Click on any element to view its CSS properties</span>
+              </li>
+              <li>
+                <span class="step-number">4</span>
+                <span class="step-content">Edit CSS values directly in the properties panel</span>
+              </li>
+              <li>
+                <span class="step-number">5</span>
+                <span class="step-content">Use "Select All" to choose which properties to copy</span>
+              </li>
+              <li>
+                <span class="step-number">6</span>
+                <span class="step-content">Convert to Tailwind classes for utility-first development</span>
+              </li>
+            </ul>
+          </div>
+        `
+      },
+      colorpalette: {
+        title: '🎨 Color Palette Help',
+        content: `
+          <div class="help-section">
+            <h5>How to Use Color Palette</h5>
+            <ul class="help-steps">
+              <li>
+                <span class="step-number">1</span>
+                <span class="step-content">Click anywhere on the webpage to open the native color picker</span>
+              </li>
+              <li>
+                <span class="step-number">2</span>
+                <span class="step-content">Select colors using the eyedropper tool</span>
+              </li>
+              <li>
+                <span class="step-number">3</span>
+                <span class="step-content">Collected colors will appear in your palette</span>
+              </li>
+              <li>
+                <span class="step-number">4</span>
+                <span class="step-content">Click on any color swatch to copy it in different formats</span>
+              </li>
+              <li>
+                <span class="step-number">5</span>
+                <span class="step-content">Export your palette or generate color harmonies</span>
+              </li>
+            </ul>
+          </div>
+        `
+      },
+      console: {
+        title: '🖥️ Console Monitor Help',
+        content: `
+          <div class="help-section">
+            <h5>How to Use Console Monitor</h5>
+            <ul class="help-steps">
+              <li>
+                <span class="step-number">1</span>
+                <span class="step-content">Click "Start Monitor" to begin capturing console messages</span>
+              </li>
+              <li>
+                <span class="step-number">2</span>
+                <span class="step-content">Filter messages by type: Errors, Warnings, Info, Debug</span>
+              </li>
+              <li>
+                <span class="step-number">3</span>
+                <span class="step-content">Use the search box to find specific messages</span>
+              </li>
+              <li>
+                <span class="step-number">4</span>
+                <span class="step-content">Monitor network errors and failed requests</span>
+              </li>
+              <li>
+                <span class="step-number">5</span>
+                <span class="step-content">Export console logs for debugging or reporting</span>
+              </li>
+            </ul>
+          </div>
+        `
+      },
+      assetmanager: {
+        title: '📦 Asset Manager Help',
+        content: `
+          <div class="help-section">
+            <h5>How to Use Asset Manager</h5>
+            <ul class="help-steps">
+              <li>
+                <span class="step-number">1</span>
+                <span class="step-content">Asset collection starts automatically when you open this tool</span>
+              </li>
+              <li>
+                <span class="step-number">2</span>
+                <span class="step-content">Browse assets by category: Images, Fonts, CSS, JavaScript</span>
+              </li>
+              <li>
+                <span class="step-number">3</span>
+                <span class="step-content">Select individual assets or use "Select All" for bulk operations</span>
+              </li>
+              <li>
+                <span class="step-number">4</span>
+                <span class="step-content">Download selected assets individually or as a ZIP file</span>
+              </li>
+              <li>
+                <span class="step-number">5</span>
+                <span class="step-content">Use "Refresh" to scan for new assets on the current page</span>
+              </li>
+            </ul>
+          </div>
+        `
+      }
+    };
+    
+    return helpContents[featureName] || { title: 'Help', content: 'No help available.' };
+  }
+  
+  // Initialize Home View as Default
+  initializeHomeView() {
+    // Hide all feature sections initially
+    this.hideAllFeatureSections();
+    
+    // Show Home section
+    if (this.homeSection) {
+      this.homeSection.style.display = 'block';
+      this.currentSection = 'home';
+    }
+    
+    // Reset toggle button to initial state (not active)
+    if (this.toggleButton) {
+      this.updateToggleButton(false);
+    }
+  }
+  
   // CSS 정보 영역을 초기화하는 함수입니다
   initializeCssInfoSection() {
+    // 이벤트 위임이 이미 설정되었는지 확인
+    if (this._dropdownEventListenerAdded) {
+      // 이미 추가된 경우 다른 초기화 작업만 수행
+      this.initializeCssInfoBasic();
+      return;
+    }
     // 닫기 버튼 이벤트 리스너 설정
     this.closeCssInfo.addEventListener('click', () => {
       this.hideCssInfo();
@@ -1879,11 +2269,7 @@ class SidePanel {
       this.resetAllStyles();
     });
     
-    // Copy CSS 드롭다운 이벤트 리스너 설정
-    this.copyCssDropdown.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.toggleDropdown();
-    });
+    // Copy CSS 드롭다운 메뉴 아이템들은 이벤트 위임으로 처리됨 (2027-2037줄 참조)
     
     // 새로운 UI 요소들의 이벤트 리스너
     this.copySelectorBtn.addEventListener('click', () => {
@@ -1899,7 +2285,14 @@ class SidePanel {
     });
     
     // Tailwind 변환 관련 이벤트 리스너
-    this.convertToTailwindBtn.addEventListener('click', () => {
+    this.convertToTailwindBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      
+      // Premium 기능 권한 체크
+      if (!(await this.checkFeatureAccess('tailwind_conversion'))) {
+        return; // 권한 없으면 모달 표시 후 종료
+      }
+      
       this.convertToTailwindView();
     });
     
@@ -1908,16 +2301,43 @@ class SidePanel {
     });
     
     // 드롭다운 메뉴 아이템들 이벤트 리스너
+    // CSS Picker 메뉴 아이템
+    this.cssPickerMenuItem = document.getElementById("cssPickerMenuItem");
+    this.cssPickerMenuItem.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      // CSS Picker 토글
+      this.togglePicker();
+    });
+    
     // Asset Manager 메뉴 아이템
     this.assetManagerMenuItem = document.getElementById("assetManagerMenuItem");
-    this.assetManagerMenuItem.addEventListener('click', (e) => {
+    this.assetManagerMenuItem.addEventListener('click', async (e) => {
       e.preventDefault();
+      
+      // Premium 기능 권한 체크
+      if (!(await this.checkFeatureAccess('asset_management'))) {
+        return; // 권한 없으면 모달 표시 후 종료
+      }
+      
+      // 모든 다른 기능들 종료
+      this.deactivateAllFeatures();
+      
       this.toggleAssetManager();
     });
     
     // Color Palette 메뉴 아이템
-    this.colorPaletteMenuItem.addEventListener('click', (e) => {
+    this.colorPaletteMenuItem.addEventListener('click', async (e) => {
       e.preventDefault();
+      
+      // Premium 기능 권한 체크
+      if (!(await this.checkFeatureAccess('color_sampling'))) {
+        return; // 권한 없으면 모달 표시 후 종료
+      }
+      
+      // 모든 다른 기능들 종료
+      this.deactivateAllFeatures();
+      
       this.toggleColorPaletteMode();
     });
     
@@ -1946,8 +2366,17 @@ class SidePanel {
     });
     
     // Console 메뉴 아이템
-    this.consoleMenuItem.addEventListener('click', (e) => {
+    this.consoleMenuItem.addEventListener('click', async (e) => {
       e.preventDefault();
+      
+      // Premium 기능 권한 체크
+      if (!(await this.checkFeatureAccess('console_monitoring'))) {
+        return; // 권한 없으면 모달 표시 후 종료
+      }
+      
+      // 모든 다른 기능들 종료
+      this.deactivateAllFeatures();
+      
       this.toggleConsoleMode();
     });
     
@@ -1997,29 +2426,45 @@ class SidePanel {
       }
     });
     
-    // 드롭다운 항목 클릭 이벤트 (이벤트 위임 사용)
-    document.addEventListener('click', (e) => {
-      if (e.target.matches('.dropdown-item[data-format]')) {
-        e.preventDefault();
-        const format = e.target.getAttribute('data-format');
-        
-        // Tailwind 형식인지 확인
-        if (format.startsWith('tailwind-') || format === 'mixed-format') {
-          this.copyTailwindToClipboard(format);
-        } else {
-          this.copyCssToClipboard(format);
-        }
-        
-        this.hideDropdown();
-      }
-    });
+    // 간단한 복사 버튼 이벤트 리스너 설정
+    this.initializeCopyButtons();
     
-    // 드롭다운 외부 클릭 시 닫기
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.copy-css-dropdown') && !e.target.closest('.copy-tailwind-dropdown')) {
-        this.hideDropdown();
-      }
-    });
+    // 이벤트 리스너가 추가되었음을 표시
+    this._dropdownEventListenerAdded = true;
+    
+    // 기본 초기화 작업 수행
+    this.initializeCssInfoBasic();
+  }
+  
+  // 간단한 복사 버튼 초기화
+  initializeCopyButtons() {
+    // Copy CSS 버튼 이벤트 리스너
+    if (this.copyCssDropdown) {
+      this.copyCssDropdown.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('Copy CSS button clicked'); // 디버깅용
+        
+        // CSS Rule 형태로 복사
+        this.copyCssToClipboard('css');
+      });
+    }
+    
+    // Copy Tailwind 버튼 이벤트 리스너
+    const copyTailwindBtn = document.getElementById('copyTailwindBtn');
+    if (copyTailwindBtn) {
+      copyTailwindBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('Copy Tailwind button clicked'); // 디버깅용
+        
+        // Tailwind Classes 형태로 복사
+        this.copyTailwindToClipboard('tailwind-classes');
+      });
+    }
+  }
+  
+  // CSS 정보 섹션의 기본 초기화 작업
+  initializeCssInfoBasic() {
+    // 추가적인 초기화 작업이 필요한 경우 여기에 추가
   }
   
   // CSS 요소 정보를 화면에 표시하는 함수입니다
@@ -2047,6 +2492,12 @@ class SidePanel {
       
       // Accordion UI 생성
       this.buildAccordionUI();
+      
+      // Select All 체크박스를 기본적으로 체크 상태로 설정
+      if (this.selectAllCheckbox) {
+        this.selectAllCheckbox.checked = true;
+        this.selectAllCheckbox.indeterminate = false;
+      }
       
       // 원본 스타일 백업
       this.backupOriginalStyles(cssInfo.properties);
@@ -2516,17 +2967,7 @@ class SidePanel {
     });
   }
   
-  // 드롭다운 토글 함수
-  toggleDropdown() {
-    const dropdown = document.querySelector('.copy-css-dropdown');
-    dropdown.classList.toggle('show');
-  }
-  
-  // 드롭다운 숨기기 함수
-  hideDropdown() {
-    const dropdown = document.querySelector('.copy-css-dropdown');
-    dropdown.classList.remove('show');
-  }
+  // 드롭다운 관련 함수들은 Bootstrap이 자동으로 처리하므로 제거됨
   
   // CSS 선택자를 생성하는 함수입니다
   generateCssSelector(elementInfo) {
@@ -3040,11 +3481,22 @@ class SidePanel {
   
   // 모든 속성 선택 함수
   selectAllProperties() {
-    Object.values(this.categorizedProperties).forEach(categoryProperties => {
-      Object.keys(categoryProperties).forEach(property => {
-        this.selectedProperties.add(property);
+    if (this.isTailwindView && this.tailwindProperties) {
+      // Tailwind view: select all converted and unconverted properties
+      this.tailwindProperties.converted.forEach(prop => {
+        this.selectedProperties.add(prop.name);
       });
-    });
+      this.tailwindProperties.unconverted.forEach(prop => {
+        this.selectedProperties.add(prop.name);
+      });
+    } else {
+      // Regular CSS view: select all categorized properties
+      Object.values(this.categorizedProperties).forEach(categoryProperties => {
+        Object.keys(categoryProperties).forEach(property => {
+          this.selectedProperties.add(property);
+        });
+      });
+    }
     this.updateUI();
   }
   
@@ -3277,12 +3729,13 @@ class SidePanel {
     try {
       // 현재 속성들을 평면화하여 변환용 배열로 만들기
       const allProperties = [];
-      Object.values(this.categorizedProperties).forEach(categoryProps => {
-        categoryProps.forEach(prop => {
+      Object.entries(this.categorizedProperties).forEach(([categoryName, categoryProps]) => {
+        // categoryProps는 객체이므로 Object.entries를 사용
+        Object.entries(categoryProps).forEach(([propertyName, propertyValue]) => {
           allProperties.push({
-            name: prop.property,
-            value: prop.value,
-            category: prop.category
+            name: propertyName,
+            value: propertyValue,
+            category: categoryName
           });
         });
       });
@@ -3301,8 +3754,17 @@ class SidePanel {
       // UI를 Tailwind 뷰로 전환
       this.switchToTailwindUI();
       
+      // Tailwind 속성들을 기본 선택 상태로 설정
+      this.initializeTailwindSelection();
+      
       // Tailwind 속성들을 UI에 렌더링
       this.renderTailwindProperties();
+      
+      // Select All 체크박스를 기본적으로 체크 상태로 설정
+      if (this.selectAllCheckbox) {
+        this.selectAllCheckbox.checked = true;
+        this.selectAllCheckbox.indeterminate = false;
+      }
       
       // 성공 메시지 표시
       this.showSuccessMessage(`Converted ${stats.converted} properties to Tailwind CSS (${stats.conversionRate}% success rate)`);
@@ -3337,9 +3799,9 @@ class SidePanel {
     this.convertToTailwindBtn.style.display = 'none';
     this.backToCssBtn.style.display = 'inline-block';
     
-    // CSS 복사 드롭다운 숨기고 Tailwind 복사 드롭다운 표시
-    this.copyCssDropdown.parentNode.style.display = 'none';
-    this.copyTailwindDropdown.style.display = 'block';
+    // CSS 복사 버튼 숨기고 Tailwind 복사 버튼 표시
+    this.copyCssDropdown.style.display = 'none';
+    document.getElementById('copyTailwindBtn').style.display = 'inline-block';
   }
 
   // UI를 CSS 뷰로 전환
@@ -3353,9 +3815,9 @@ class SidePanel {
     this.convertToTailwindBtn.style.display = 'inline-block';
     this.backToCssBtn.style.display = 'none';
     
-    // Tailwind 복사 드롭다운 숨기고 CSS 복사 드롭다운 표시
-    this.copyTailwindDropdown.style.display = 'none';
-    this.copyCssDropdown.parentNode.style.display = 'block';
+    // Tailwind 복사 버튼 숨기고 CSS 복사 버튼 표시
+    document.getElementById('copyTailwindBtn').style.display = 'none';
+    this.copyCssDropdown.style.display = 'inline-block';
   }
 
   // 경고 알림 표시
@@ -3378,6 +3840,24 @@ class SidePanel {
       warningDiv.style.transition = 'opacity 0.3s';
       setTimeout(() => warningDiv.remove(), 300);
     }, 5000);
+  }
+
+  // Tailwind 속성들을 기본 선택 상태로 초기화
+  initializeTailwindSelection() {
+    // 선택된 속성들을 초기화
+    this.selectedProperties.clear();
+    
+    // 변환된 Tailwind 속성들을 모두 선택
+    this.tailwindProperties.converted.forEach(prop => {
+      this.selectedProperties.add(prop.name);
+    });
+    
+    // 변환되지 않은 CSS 속성들도 모두 선택
+    this.tailwindProperties.unconverted.forEach(prop => {
+      this.selectedProperties.add(prop.name);
+    });
+    
+    console.log(`Initialized ${this.selectedProperties.size} Tailwind properties as selected`);
   }
 
   // Tailwind 속성들을 UI에 렌더링
@@ -3451,7 +3931,7 @@ class SidePanel {
     const headerButton = document.createElement('button');
     headerButton.className = 'category-header';
     headerButton.innerHTML = `
-      <input type="checkbox" class="category-checkbox" data-category="${categoryKey}">
+      <input type="checkbox" class="category-checkbox" data-category="${categoryKey}" checked>
       <span class="category-title">${categoryData.name}</span>
       <span class="category-count">${properties.length}</span>
       <span class="category-toggle">▶</span>
@@ -3495,7 +3975,7 @@ class SidePanel {
     const displayName = property.isTailwind ? 'class' : property.name;
     
     propertyDiv.innerHTML = `
-      <input type="checkbox" class="property-checkbox" data-property="${property.name}">
+      <input type="checkbox" class="property-checkbox" data-property="${property.name}" checked>
       <span class="property-name-accordion">${displayName}:</span>
       <span class="property-value-accordion" data-property="${property.name}" data-original="${property.value}">
         ${displayValue}
@@ -4013,11 +4493,6 @@ class SidePanel {
   enterConsoleMode() {
     this.isConsoleMode = true;
     
-    // 다른 모드들 종료
-    if (this.isColorPaletteMode) {
-      this.exitColorPaletteMode();
-    }
-    
     // UI 표시
     this.showConsoleSection();
     this.hideOtherSections();  // hideInstructionsSection 대신 hideOtherSections 사용
@@ -4051,6 +4526,16 @@ class SidePanel {
   // Console 섹션 숨김
   hideConsoleSection() {
     this.consoleSection.style.display = 'none';
+  }
+  
+  // Asset Manager 섹션 보임
+  showAssetManagerSection() {
+    this.assetManager.style.display = 'block';
+  }
+  
+  // Asset Manager 섹션 숨김
+  hideAssetManagerSection() {
+    this.assetManager.style.display = 'none';
   }
   
   // 기존 sections 보이기 함수 (인스트럭션 화면으로 돌아가기)
@@ -4658,179 +5143,114 @@ class SidePanel {
     }
   }
   
-  // Show Clerk login modal
-  showClerkLoginModal() {
-    // Create modal overlay
-    const modalOverlay = document.createElement('div');
-    modalOverlay.className = 'clerk-login-modal-overlay';
-    modalOverlay.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 999999;
-    `;
-    
-    // Create modal container
-    const modal = document.createElement('div');
-    modal.className = 'clerk-login-modal';
-    modal.style.cssText = `
-      background: white;
-      border-radius: 12px;
-      width: 400px;
-      max-width: 90%;
-      max-height: 600px;
-      padding: 20px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-      position: relative;
-    `;
-    
-    // Close button
-    const closeBtn = document.createElement('button');
-    closeBtn.innerHTML = '×';
-    closeBtn.style.cssText = `
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-      color: #666;
-    `;
-    closeBtn.onclick = () => modalOverlay.remove();
-    
-    // Modal content with simple dev login
-    modal.innerHTML = `
-      <h3 style="margin-bottom: 20px; color: #333;">Sign in to CSS Picker</h3>
-      <div class="clerk-signin-container">
-        <div style="text-align: center; padding: 20px;">
-          <p style="margin-bottom: 20px;">Development Login</p>
-          
-          <!-- Dev Login Form -->
-          <div class="email-signin" style="margin-bottom: 20px;">
-            <input type="email" id="clerkEmailInput" placeholder="Enter your email" value="yj437777@gmail.com" style="
-              width: 100%;
-              padding: 10px;
-              margin-bottom: 15px;
-              border: 1px solid #ddd;
-              border-radius: 6px;
-            ">
-            <button id="clerkDevSignIn" class="btn btn-primary" style="
-              width: 100%;
-              padding: 10px;
-              background: #5865F2;
-              color: white;
-              border: none;
-              border-radius: 6px;
-              cursor: pointer;
-            ">Dev Sign In (No Password)</button>
-          </div>
-          
-          <div id="clerkAuthError" style="
-            color: red;
-            margin-top: 15px;
-            display: none;
-            font-size: 14px;
-          "></div>
-          
-          <div id="clerkAuthSuccess" style="
-            color: green;
-            margin-top: 15px;
-            display: none;
-            font-size: 14px;
-          "></div>
-        </div>
-      </div>
-    `;
-    
-    modal.appendChild(closeBtn);
-    modalOverlay.appendChild(modal);
-    document.body.appendChild(modalOverlay);
-    
-    // Setup event handlers
-    this.setupClerkModalHandlers(modalOverlay);
+  // Show Clerk login - redirect to backend auth page
+  async showClerkLoginModal() {
+    try {
+      const extensionId = chrome.runtime.id;
+      const authUrl = `${CLERK_CONFIG.landingPageUrl}?extension_auth=true&extension_id=${extensionId}`;
+      
+      console.log('Opening authentication page:', authUrl);
+      
+      // Open backend authentication page in new tab
+      await chrome.tabs.create({ 
+        url: authUrl,
+        active: true 
+      });
+      
+      return { success: true, redirected: true };
+    } catch (error) {
+      console.error('Failed to open authentication page:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+
+  // Handle successful Clerk authentication
+  async handleClerkAuthSuccess() {
+    try {
+      const user = window.Clerk.user;
+      const session = window.Clerk.session;
+      
+      if (!user || !session) {
+        throw new Error('인증 정보를 가져올 수 없습니다');
+      }
+
+      // Get session token for API calls
+      const token = await session.getToken();
+      
+      // Create user profile data
+      const userData = {
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          emailAddress: user.primaryEmailAddress?.emailAddress,
+          createdAt: user.createdAt
+        },
+        sessionToken: token
+      };
+
+      // Store authentication data
+      await chrome.storage.local.set({
+        clerk_session: token,
+        clerk_user: userData.user
+      });
+
+      // Update UI state
+      this.isSignedIn = true;
+      this.currentUser = userData.user;
+      this.authState = 'signed-in';
+      this.updateAuthUI('signed-in');
+
+      // Initialize plan management
+      await this.initializePlanManagement();
+
+      // Create user profile in backend if needed
+      await this.createUserProfile(token);
+
+      console.log('Clerk authentication successful:', userData);
+    } catch (error) {
+      console.error('Failed to handle Clerk auth success:', error);
+      throw error;
+    }
+  }
+
+  // Create user profile in backend
+  async createUserProfile(token) {
+    try {
+      const response = await fetch(`${CLERK_CONFIG.syncHost}/api/user/profile`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        console.log('User profile created/retrieved:', userData);
+      } else {
+        console.error('Failed to create user profile:', response.status);
+      }
+    } catch (error) {
+      console.error('Error creating user profile:', error);
+    }
+  }
+
+  // Initialize Clerk authentication (using existing ClerkExtensionClient)
+  async initializeClerkAuth() {
+    try {
+      // Use existing ClerkExtensionClient instead of direct Clerk SDK
+      console.log('Using existing ClerkExtensionClient for authentication');
+      
+      // The existing clerkClient handles everything through background script
+      // and auth-content.js, so no additional initialization needed here
+      
+    } catch (error) {
+      console.error('Failed to initialize Clerk auth:', error);
+    }
   }
   
-  // Setup Clerk modal event handlers
-  setupClerkModalHandlers(modalOverlay) {
-    const emailInput = modalOverlay.querySelector('#clerkEmailInput');
-    const devSignInBtn = modalOverlay.querySelector('#clerkDevSignIn');
-    const errorDiv = modalOverlay.querySelector('#clerkAuthError');
-    const successDiv = modalOverlay.querySelector('#clerkAuthSuccess');
-    
-    // Dev sign in (simplified for development)
-    devSignInBtn.addEventListener('click', async () => {
-      const email = emailInput.value;
-      
-      if (!email) {
-        errorDiv.textContent = 'Please enter email';
-        errorDiv.style.display = 'block';
-        return;
-      }
-      
-      try {
-        successDiv.textContent = 'Signing in...';
-        successDiv.style.display = 'block';
-        errorDiv.style.display = 'none';
-        
-        // For development, create a mock user session
-        const mockUser = {
-          id: 'user_dev_' + Date.now(),
-          email: email,
-          firstName: email.split('@')[0],
-          lastName: '',
-          profileImageUrl: null
-        };
-        
-        const mockSession = 'dev_session_' + Date.now();
-        
-        // Store in chrome storage
-        await chrome.storage.local.set({
-          clerk_session: mockSession,
-          clerk_user: mockUser,
-          user_plan: 'lifetime' // Set as premium for dev
-        });
-        
-        // Update Clerk client state
-        clerkClient.user = mockUser;
-        clerkClient.sessionToken = mockSession;
-        clerkClient.isSignedIn = true;
-        
-        // Update plan manager
-        planManager.currentPlan = 'lifetime';
-        
-        // Update UI
-        this.isSignedIn = true;
-        this.currentUser = mockUser;
-        this.authState = 'signed-in';
-        this.updateAuthUI('signed-in');
-        
-        // Initialize plan management
-        await this.initializePlanManagement();
-        
-        successDiv.textContent = '✅ Signed in successfully!';
-        
-        // Close modal after success
-        setTimeout(() => {
-          modalOverlay.remove();
-          // Reload to refresh all features
-          location.reload();
-        }, 1000);
-        
-      } catch (error) {
-        errorDiv.textContent = 'Sign in failed. Please try again.';
-        errorDiv.style.display = 'block';
-        successDiv.style.display = 'none';
-        console.error('Dev sign in error:', error);
-      }
-    });
-  }
   
   // 로그아웃 처리
   async handleSignOut() {
@@ -5002,6 +5422,11 @@ class SidePanel {
       return;
     }
     
+    // 로그인 후 plan 동기화 (백엔드에서 최신 플랜 상태 가져오기)
+    console.log('Syncing plan status after login...');
+    await planManager.syncPlanStatus();
+    console.log('Plan synced:', planManager.currentPlan);
+    
     // Plan 상태 UI 업데이트
     await this.updatePlanUI();
     
@@ -5090,13 +5515,20 @@ class SidePanel {
     const canUse = await planManager.canUseFeature(featureName);
     console.log(`Feature ${featureName}: ${canUse.allowed ? '✅ Unlocked' : '🔒 Locked'}`);
     
+    // 메인 메뉴 아이템들과 이미 권한 체크가 있는 버튼들은
+    // 이미 메인 이벤트 리스너에서 checkFeatureAccess()를 호출하므로 
+    // 여기서는 시각적 표시만 관리하고 추가 이벤트 리스너는 붙이지 않음
+    const mainMenuItems = ['colorPaletteMenuItem', 'assetManagerMenuItem', 'consoleMenuItem', 'convertToTailwindBtn'];
+    
     if (!canUse.allowed) {
-      // 요소에 클릭 이벤트 추가 (기존 이벤트 차단)
-      element.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        this.showUpgradeModal(featureName, displayName);
-      });
+      // 메인 메뉴 아이템이 아닌 경우에만 클릭 이벤트 추가
+      if (!mainMenuItems.includes(elementId)) {
+        element.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.showUpgradeModal(featureName, displayName);
+        });
+      }
       
       // 시각적 잠금 표시 추가
       this.addPremiumLockOverlay(element, displayName);
@@ -5184,6 +5616,24 @@ class SidePanel {
     }
   }
   
+  // Premium 기능 접근 권한 체크
+  async checkFeatureAccess(featureName) {
+    try {
+      const canUse = await planManager.canUseFeature(featureName);
+      
+      if (!canUse.allowed) {
+        // 업그레이드 모달 표시
+        this.showUpgradeModal(featureName);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to check feature access:', error);
+      return false;
+    }
+  }
+
   // Premium 기능 체크 및 사용 추적
   async checkAndTrackFeature(featureName, callback) {
     try {
@@ -5223,4 +5673,5 @@ class SidePanel {
 // SidePanel 클래스의 인스턴스(실제 객체)를 생성합니다
 // new 키워드를 사용하면 클래스를 실제로 실행 가능한 객체로 만들어줍니다
 // 이렇게 하면 위에서 정의한 모든 함수들이 실행됩니다
-new SidePanel();
+// 글로벌 변수로 저장하여 ClerkExtensionClient에서 접근 가능하도록 함
+window.cssSidepanel = new SidePanel();
