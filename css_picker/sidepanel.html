@@ -38,44 +38,18 @@
     
     <!-- header 섹션: 페이지의 상단 부분을 나타냅니다 -->
     <header class="header">
-      <!-- 페이지의 주제목 -->
-      <h2 class="title">CSS Element Picker</h2>
-      
-      <div class="header-controls">
-        <!-- 상태가 포함된 토글 버튼 -->
-        <button id="toggleBtn" class="btn btn-primary btn-sm">
-          🟢 Active Picker
-        </button>
-        
-        <!-- 더보기 드롭다운 메뉴 -->
-        <div class="dropdown">
-          <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="moreOptionsBtn" data-bs-toggle="dropdown" aria-expanded="false">
-            ⋮ More
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreOptionsBtn">
-            <li>
-              <a class="dropdown-item" href="#" id="cssPickerMenuItem">
-                🎯 CSS Picker
-              </a>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-              <a class="dropdown-item" href="#" id="colorPaletteMenuItem">
-                🎨 Color Palette
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="#" id="consoleMenuItem">
-                🖥️ Console
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="#" id="assetManagerMenuItem">
-                📦 Asset Manager
-              </a>
-            </li>
-          </ul>
+      <!-- Dynamic welcome header that changes based on current section -->
+      <div class="home-welcome" id="headerWelcome">
+        <div class="welcome-content">
+          <h3 id="homeWelcomeTitle">🏠 CSS Picker Extension</h3>
+          <p id="homeWelcomeMessage">Choose a tool to get started with web development analysis</p>
+          <div class="home-auth-prompt" id="homeAuthPrompt" style="display: none;">
+            <small>💡 Sign in to access premium features and sync your settings</small>
+          </div>
         </div>
+        <button class="btn btn-outline-light btn-sm help-btn" id="generalHelpBtn" title="How to Use This Extension">
+          ?
+        </button>
       </div>
     </header>
     
@@ -166,9 +140,16 @@
       
       <!-- Home Screen (New Default) -->
       <div class="home-section" id="homeSection">
-        <div class="home-welcome">
-          <h3>🏠 CSS Picker Extension</h3>
-          <p>Choose a tool to get started with web development analysis</p>
+        <!-- Home Authentication Status -->
+        <div class="home-auth-status" id="homeAuthStatus" style="display: none;">
+          <div class="auth-status-card">
+            <div class="auth-status-icon">🔐</div>
+            <div class="auth-status-content">
+              <h5>Sign In to Unlock Premium Features</h5>
+              <p>Access advanced tools like Color Palette, Console Monitor, and Asset Manager</p>
+              <button class="btn btn-primary btn-sm" id="homeSignInBtn">Sign In Now</button>
+            </div>
+          </div>
         </div>
         
         <div class="feature-cards">
@@ -208,24 +189,16 @@
             <button class="btn btn-outline-primary btn-sm">Start →</button>
           </div>
         </div>
-        
-        <!-- General How to Use for Extension -->
-        <div class="home-instructions">
-          <h4>How to Use This Extension:</h4>
-          <ol>
-            <li>Choose a tool from the cards above</li>
-            <li>Each tool provides specific functionality for web analysis</li>
-            <li>Click the Home button (🏠) from any tool to return here</li>
-            <li>Use the "?" button in each tool for specific help</li>
-          </ol>
-        </div>
       </div>
       
       <!-- CSS 정보 표시 섹션 -->
       <div class="css-info-section" id="cssInfoSection" style="display: none;">
         <div class="section-header">
-          <h3>🎯 Selected Element CSS</h3>
+          <h3>🎯 CSS Picker</h3>
           <div class="section-nav">
+            <button id="toggleBtn" class="btn btn-primary btn-sm">
+              🟢 Active Picker
+            </button>
             <button class="btn btn-outline-secondary btn-sm" id="cssHomeBtn" title="Return to Home">
               🏠 Home
             </button>

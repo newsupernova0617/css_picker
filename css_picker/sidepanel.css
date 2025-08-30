@@ -29,12 +29,48 @@ body::-webkit-scrollbar {
 }
 
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 20px;
   padding-bottom: 12px;
   border-bottom: 1px solid #dee2e6;
+}
+
+.header .home-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  margin: 0;
+}
+
+.welcome-content {
+  flex: 1;
+  text-align: center;
+}
+
+.help-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.help-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+  transform: scale(1.05);
 }
 
 .header-controls {
@@ -1815,15 +1851,44 @@ body::-webkit-scrollbar {
   padding: 16px 0;
 }
 
-.home-welcome {
-  text-align: center;
+.home-auth-status {
   margin-bottom: 24px;
-  padding: 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 12px;
 }
 
+.auth-status-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.auth-status-icon {
+  font-size: 32px;
+  opacity: 0.9;
+}
+
+.auth-status-content {
+  flex: 1;
+}
+
+.auth-status-content h5 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.auth-status-content p {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+/* Header Welcome Styles (unified for all sections) */
 .home-welcome h3 {
   margin: 0 0 8px 0;
   font-size: 18px;
@@ -1834,6 +1899,19 @@ body::-webkit-scrollbar {
   margin: 0;
   opacity: 0.9;
   font-size: 14px;
+}
+
+.home-auth-prompt {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.home-auth-prompt small {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
 }
 
 .feature-cards {

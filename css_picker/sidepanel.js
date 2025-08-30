@@ -1747,6 +1747,14 @@ class SidePanel {
     
     // Home Screen 요소들
     this.homeSection = document.getElementById("homeSection");
+    this.homeAuthStatus = document.getElementById("homeAuthStatus");
+    this.homeSignInBtn = document.getElementById("homeSignInBtn");
+    this.generalHelpBtn = document.getElementById("generalHelpBtn");
+    
+    // Header Welcome 요소들 (이제 header에 있음)
+    this.homeWelcomeTitle = document.getElementById("homeWelcomeTitle");
+    this.homeWelcomeMessage = document.getElementById("homeWelcomeMessage");
+    this.homeAuthPrompt = document.getElementById("homeAuthPrompt");
     this.homeToCSSSelectorCard = document.getElementById("homeToCSSSelectorCard");
     this.homeToColorPaletteCard = document.getElementById("homeToColorPaletteCard");
     this.homeToConsoleCard = document.getElementById("homeToConsoleCard");
@@ -1998,6 +2006,23 @@ class SidePanel {
         this.showFeatureHelp('assetmanager');
       });
     }
+    
+    // Home Sign In button
+    if (this.homeSignInBtn) {
+      this.homeSignInBtn.addEventListener('click', () => {
+        // Trigger the main sign in button
+        if (this.signInBtn) {
+          this.signInBtn.click();
+        }
+      });
+    }
+    
+    // General Help button
+    if (this.generalHelpBtn) {
+      this.generalHelpBtn.addEventListener('click', () => {
+        this.showGeneralHelp();
+      });
+    }
   }
   
   // Navigate to specific feature
@@ -2053,6 +2078,9 @@ class SidePanel {
     
     // Reset header to initial state
     this.updateHeaderForHome();
+    
+    // Update home welcome message
+    this.updateHomeWelcomeMessage();
   }
   
   // Hide all feature sections
@@ -2065,13 +2093,43 @@ class SidePanel {
   
   // Update header for specific feature
   updateHeaderForFeature(featureName) {
-    // Hide Home screen elements if any
-    // Update toggle button to reflect current feature
+    if (!this.homeWelcomeTitle || !this.homeWelcomeMessage) return;
+    
+    // Hide auth prompt when in feature screens
+    if (this.homeAuthPrompt) {
+      this.homeAuthPrompt.style.display = 'none';
+    }
+    
+    const featureHeaders = {
+      css: {
+        title: '🎯 CSS Picker',
+        message: 'Select elements and analyze their CSS properties'
+      },
+      colorpalette: {
+        title: '🎨 Color Palette',
+        message: 'Sample colors and create beautiful palettes'
+      },
+      console: {
+        title: '🖥️ Console Monitor',
+        message: 'Track console messages and network errors'
+      },
+      assetmanager: {
+        title: '📦 Asset Manager',
+        message: 'Collect and download page assets'
+      }
+    };
+    
+    const header = featureHeaders[featureName];
+    if (header) {
+      this.homeWelcomeTitle.textContent = header.title;
+      this.homeWelcomeMessage.textContent = header.message;
+    }
   }
   
   // Update header for Home
   updateHeaderForHome() {
-    // Reset to initial state
+    // Update home welcome message (handles signed in/out states)
+    this.updateHomeWelcomeMessage();
   }
   
   // Show instructions (used for CSS picker default state)
@@ -2096,6 +2154,21 @@ class SidePanel {
     const helpContent = this.getFeatureHelpContent(featureName);
     this.featureHelpModalLabel.textContent = helpContent.title;
     this.featureHelpContent.innerHTML = helpContent.content;
+    
+    // Show modal using Bootstrap
+    const modal = new bootstrap.Modal(this.featureHelpModal);
+    modal.show();
+  }
+  
+  // Show general extension help modal
+  showGeneralHelp() {
+    if (!this.featureHelpModal || !this.featureHelpModalLabel || !this.featureHelpContent) {
+      return;
+    }
+    
+    const generalHelpContent = this.getGeneralHelpContent();
+    this.featureHelpModalLabel.textContent = generalHelpContent.title;
+    this.featureHelpContent.innerHTML = generalHelpContent.content;
     
     // Show modal using Bootstrap
     const modal = new bootstrap.Modal(this.featureHelpModal);
@@ -2234,6 +2307,59 @@ class SidePanel {
     return helpContents[featureName] || { title: 'Help', content: 'No help available.' };
   }
   
+  // Get general extension help content
+  getGeneralHelpContent() {
+    return {
+      title: '❓ How to Use This Extension',
+      content: `
+        <div class="help-section">
+          <h5>Getting Started</h5>
+          <ul class="help-steps">
+            <li>
+              <span class="step-number">1</span>
+              <span class="step-content">Choose a tool from the cards on the home screen</span>
+            </li>
+            <li>
+              <span class="step-number">2</span>
+              <span class="step-content">Each tool provides specific functionality for web analysis</span>
+            </li>
+            <li>
+              <span class="step-number">3</span>
+              <span class="step-content">Click the Home button (🏠) from any tool to return here</span>
+            </li>
+            <li>
+              <span class="step-number">4</span>
+              <span class="step-content">Use the "?" button in each tool for specific help</span>
+            </li>
+          </ul>
+          
+          <h5 style="margin-top: 20px;">Available Tools</h5>
+          <div style="margin-bottom: 12px;">
+            <strong>🎯 CSS Picker</strong><br>
+            <small>Select and analyze CSS properties of any element on the webpage</small>
+          </div>
+          <div style="margin-bottom: 12px;">
+            <strong>🎨 Color Palette</strong><br>
+            <small>Sample colors from the webpage and create beautiful palettes (Premium)</small>
+          </div>
+          <div style="margin-bottom: 12px;">
+            <strong>🖥️ Console Monitor</strong><br>
+            <small>Track console messages and network errors in real-time (Premium)</small>
+          </div>
+          <div style="margin-bottom: 12px;">
+            <strong>📦 Asset Manager</strong><br>
+            <small>Collect and download page assets like images and fonts (Premium)</small>
+          </div>
+          
+          <h5 style="margin-top: 20px;">Premium Features</h5>
+          <p style="font-size: 13px; color: #6c757d; margin-bottom: 8px;">
+            Sign in to unlock advanced tools and unlimited usage. Premium features are marked with color coding in the interface.
+          </p>
+        </div>
+      `
+    };
+  }
+  
   // Initialize Home View as Default
   initializeHomeView() {
     // Hide all feature sections initially
@@ -2249,6 +2375,47 @@ class SidePanel {
     if (this.toggleButton) {
       this.updateToggleButton(false);
     }
+    
+    // Update home welcome message based on auth state
+    this.updateHomeWelcomeMessage();
+  }
+  
+  // Update Home welcome message based on authentication state
+  updateHomeWelcomeMessage() {
+    if (!this.homeWelcomeTitle || !this.homeWelcomeMessage) {
+      return;
+    }
+    
+    // Check if user is signed in
+    const isSignedIn = this.authSignedIn && this.authSignedIn.style.display !== 'none';
+    
+    if (isSignedIn && this.currentUser) {
+      // Signed in: personalized welcome
+      this.homeWelcomeTitle.textContent = `🏠 Welcome back, ${this.currentUser.firstName || 'User'}!`;
+      this.homeWelcomeMessage.textContent = 'Choose a tool to continue your web development analysis';
+      
+      // Hide auth prompts when signed in
+      if (this.homeAuthPrompt) {
+        this.homeAuthPrompt.style.display = 'none';
+      }
+      if (this.homeAuthStatus) {
+        this.homeAuthStatus.style.display = 'none';
+      }
+    } else {
+      // Signed out: show auth prompts
+      this.homeWelcomeTitle.textContent = '🏠 CSS Picker Extension';
+      this.homeWelcomeMessage.textContent = 'Choose a tool to get started with web development analysis';
+      
+      // Show auth prompts when signed out (only on home screen)
+      if (this.currentSection === 'home') {
+        if (this.homeAuthPrompt) {
+          this.homeAuthPrompt.style.display = 'block';
+        }
+        if (this.homeAuthStatus) {
+          this.homeAuthStatus.style.display = 'block';
+        }
+      }
+    }
   }
   
   // CSS 정보 영역을 초기화하는 함수입니다
@@ -2260,163 +2427,141 @@ class SidePanel {
       return;
     }
     // 닫기 버튼 이벤트 리스너 설정
-    this.closeCssInfo.addEventListener('click', () => {
-      this.hideCssInfo();
-    });
+    if (this.closeCssInfo) {
+      this.closeCssInfo.addEventListener('click', () => {
+        this.hideCssInfo();
+      });
+    }
     
     // 리셋 버튼 이벤트 리스너 설정
-    this.resetStyles.addEventListener('click', () => {
-      this.resetAllStyles();
-    });
+    if (this.resetStyles) {
+      this.resetStyles.addEventListener('click', () => {
+        this.resetAllStyles();
+      });
+    }
     
     // Copy CSS 드롭다운 메뉴 아이템들은 이벤트 위임으로 처리됨 (2027-2037줄 참조)
     
     // 새로운 UI 요소들의 이벤트 리스너
-    this.copySelectorBtn.addEventListener('click', () => {
-      this.copySelectorToClipboard();
-    });
-    
-    this.selectAllCheckbox.addEventListener('change', () => {
-      if (this.selectAllCheckbox.checked) {
-        this.selectAllProperties();
-      } else {
-        this.selectNoneProperties();
-      }
-    });
-    
-    // Tailwind 변환 관련 이벤트 리스너
-    this.convertToTailwindBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      
-      // Premium 기능 권한 체크
-      if (!(await this.checkFeatureAccess('tailwind_conversion'))) {
-        return; // 권한 없으면 모달 표시 후 종료
-      }
-      
-      this.convertToTailwindView();
-    });
-    
-    this.backToCssBtn.addEventListener('click', () => {
-      this.backToCssView();
-    });
-    
-    // 드롭다운 메뉴 아이템들 이벤트 리스너
-    // CSS Picker 메뉴 아이템
-    this.cssPickerMenuItem = document.getElementById("cssPickerMenuItem");
-    this.cssPickerMenuItem.addEventListener('click', (e) => {
-      e.preventDefault();
-      
-      // CSS Picker 토글
-      this.togglePicker();
-    });
-    
-    // Asset Manager 메뉴 아이템
-    this.assetManagerMenuItem = document.getElementById("assetManagerMenuItem");
-    this.assetManagerMenuItem.addEventListener('click', async (e) => {
-      e.preventDefault();
-      
-      // Premium 기능 권한 체크
-      if (!(await this.checkFeatureAccess('asset_management'))) {
-        return; // 권한 없으면 모달 표시 후 종료
-      }
-      
-      // 모든 다른 기능들 종료
-      this.deactivateAllFeatures();
-      
-      this.toggleAssetManager();
-    });
-    
-    // Color Palette 메뉴 아이템
-    this.colorPaletteMenuItem.addEventListener('click', async (e) => {
-      e.preventDefault();
-      
-      // Premium 기능 권한 체크
-      if (!(await this.checkFeatureAccess('color_sampling'))) {
-        return; // 권한 없으면 모달 표시 후 종료
-      }
-      
-      // 모든 다른 기능들 종료
-      this.deactivateAllFeatures();
-      
-      this.toggleColorPaletteMode();
-    });
-    
-    this.exitColorModeBtn.addEventListener('click', () => {
-      this.exitColorPaletteMode();
-    });
-    
-    this.clearPaletteBtn.addEventListener('click', () => {
-      this.clearColorPalette();
-    });
-    
-    this.exportPaletteBtn.addEventListener('click', () => {
-      this.exportColorPalette();
-    });
-    
-    this.toggleSamplingBtn.addEventListener('click', () => {
-      this.toggleColorSampling();
-    });
-    
-    this.deleteColorBtn.addEventListener('click', () => {
-      this.deleteSelectedColor();
-    });
-    
-    this.generateHarmonyBtn.addEventListener('click', () => {
-      this.generateColorHarmony();
-    });
-    
-    // Console 메뉴 아이템
-    this.consoleMenuItem.addEventListener('click', async (e) => {
-      e.preventDefault();
-      
-      // Premium 기능 권한 체크
-      if (!(await this.checkFeatureAccess('console_monitoring'))) {
-        return; // 권한 없으면 모달 표시 후 종료
-      }
-      
-      // 모든 다른 기능들 종료
-      this.deactivateAllFeatures();
-      
-      this.toggleConsoleMode();
-    });
-    
-    // Asset Manager 닫기 버튼
-    this.closeAssetManagerBtn = document.getElementById("closeAssetManagerBtn");
-    if (this.closeAssetManagerBtn) {
-      this.closeAssetManagerBtn.addEventListener('click', () => {
-        this.closeAssetManager();
+    if (this.copySelectorBtn) {
+      this.copySelectorBtn.addEventListener('click', () => {
+        this.copySelectorToClipboard();
       });
     }
     
-    this.toggleConsoleBtn.addEventListener('click', () => {
-      this.toggleConsoleMonitoring();
-    });
+    if (this.selectAllCheckbox) {
+      this.selectAllCheckbox.addEventListener('change', () => {
+        if (this.selectAllCheckbox.checked) {
+          this.selectAllProperties();
+        } else {
+          this.selectNoneProperties();
+        }
+      });
+    }
     
-    this.clearConsoleBtn.addEventListener('click', () => {
-      this.clearConsoleMessages();
-    });
+    // Tailwind 변환 관련 이벤트 리스너
+    if (this.convertToTailwindBtn) {
+      this.convertToTailwindBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        
+        // Premium 기능 권한 체크
+        if (!(await this.checkFeatureAccess('tailwind_conversion'))) {
+          return; // 권한 없으면 모달 표시 후 종료
+        }
+        
+        this.convertToTailwindView();
+      });
+    }
     
-    this.exportConsoleBtn.addEventListener('click', () => {
-      this.exportConsoleMessages();
-    });
+    if (this.backToCssBtn) {
+      this.backToCssBtn.addEventListener('click', () => {
+        this.backToCssView();
+      });
+    }
     
-    this.closeConsoleBtn.addEventListener('click', () => {
-      this.exitConsoleMode();
-    });
+    // 드롭다운 메뉴 아이템들은 제거되었음 - 홈 기반 네비게이션으로 대체됨
     
-    this.consoleSearchBtn.addEventListener('click', () => {
-      this.searchConsoleMessages();
-    });
+    // Exit Color Mode 버튼 이벤트 리스너
+    if (this.exitColorModeBtn) {
+      this.exitColorModeBtn.addEventListener('click', () => {
+        this.exitColorPaletteMode();
+      });
+    }
     
-    this.consoleSearchInput.addEventListener('keyup', (e) => {
-      if (e.key === 'Enter') {
+    if (this.clearPaletteBtn) {
+      this.clearPaletteBtn.addEventListener('click', () => {
+        this.clearColorPalette();
+      });
+    }
+    
+    if (this.exportPaletteBtn) {
+      this.exportPaletteBtn.addEventListener('click', () => {
+        this.exportColorPalette();
+      });
+    }
+    
+    if (this.toggleSamplingBtn) {
+      this.toggleSamplingBtn.addEventListener('click', () => {
+        this.toggleColorSampling();
+      });
+    }
+    
+    if (this.deleteColorBtn) {
+      this.deleteColorBtn.addEventListener('click', () => {
+        this.deleteSelectedColor();
+      });
+    }
+    
+    if (this.generateHarmonyBtn) {
+      this.generateHarmonyBtn.addEventListener('click', () => {
+        this.generateColorHarmony();
+      });
+    }
+    
+    // Console 메뉴 아이템은 제거되었음 - 홈 기반 네비게이션으로 대체됨
+    
+    // Console 관련 버튼들
+    if (this.toggleConsoleBtn) {
+      this.toggleConsoleBtn.addEventListener('click', () => {
+        this.toggleConsoleMonitoring();
+      });
+    }
+    
+    if (this.clearConsoleBtn) {
+      this.clearConsoleBtn.addEventListener('click', () => {
+        this.clearConsoleMessages();
+      });
+    }
+    
+    if (this.exportConsoleBtn) {
+      this.exportConsoleBtn.addEventListener('click', () => {
+        this.exportConsoleMessages();
+      });
+    }
+    
+    if (this.closeConsoleBtn) {
+      this.closeConsoleBtn.addEventListener('click', () => {
+        this.exitConsoleMode();
+      });
+    }
+    
+    if (this.consoleSearchBtn) {
+      this.consoleSearchBtn.addEventListener('click', () => {
         this.searchConsoleMessages();
-      }
-    });
+      });
+    }
     
-    this.consoleSearchInput.addEventListener('input', (e) => {
-      this.searchConsoleMessages();
-    });
+    if (this.consoleSearchInput) {
+      this.consoleSearchInput.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') {
+          this.searchConsoleMessages();
+        }
+      });
+      
+      this.consoleSearchInput.addEventListener('input', (e) => {
+        this.searchConsoleMessages();
+      });
+    }
     
     // 필터 버튼 이벤트 리스너 (이벤트 위임 사용)
     document.addEventListener('click', (e) => {
@@ -5330,6 +5475,9 @@ class SidePanel {
         }
         break;
     }
+    
+    // Update home welcome message when auth state changes
+    this.updateHomeWelcomeMessage();
   }
   
   // 사용자 정보 업데이트
