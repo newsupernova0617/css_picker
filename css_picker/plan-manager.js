@@ -160,66 +160,68 @@ class PlanManager {
       currentPlan: this.currentPlan
     };
   }
-  
+  //미구현 
   // Track feature usage for analytics
-  async trackUsage(featureName) {
-    try {
-      // Update local usage for analytics
-      if (!this.usageData.feature_usage[featureName]) {
-        this.usageData.feature_usage[featureName] = 0;
-      }
-      this.usageData.feature_usage[featureName]++;
-      await this.saveUsageData();
+  // async trackUsage(featureName) {
+  //   try {
+  //     // Update local usage for analytics
+  //     if (!this.usageData.feature_usage[featureName]) {
+  //       this.usageData.feature_usage[featureName] = 0;
+  //     }
+  //     this.usageData.feature_usage[featureName]++;
+  //     await this.saveUsageData();
       
-      // Send to backend for analytics tracking
-      if (this.userId) {
-        await this.trackUsageOnServer(featureName);
-      }
+  //     // Send to backend for analytics tracking
+  //     if (this.userId) {
+  //       await this.trackUsageOnServer(featureName);
+  //     }
       
-      return true;
-    } catch (error) {
-      console.error('Failed to track usage:', error);
-      return false;
-    }
-  }
+  //     return true;
+  //   } catch (error) {
+  //     console.error('Failed to track usage:', error);
+  //     return false;
+  //   }
+  // }
+  //미구현 
+  // // Send usage tracking to backend
+  // async trackUsageOnServer(featureName) {
+  //   try {
+  //     if (!clerkClient.sessionToken) return;
+      
+  //     await fetch(`${this.backendUrl}/api/usage/track`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Authorization': `Bearer ${clerkClient.sessionToken}`,
+  //         'Content-Type': 'application/json'
+  //       },
+  //       body: JSON.stringify({
+  //         feature: featureName,
+  //         timestamp: new Date().toISOString()
+  //       })
+  //     });
+  //   } catch (error) {
+  //     console.error('Failed to track usage on server:', error);
+  //   }
+  // }
   
-  // Send usage tracking to backend
-  async trackUsageOnServer(featureName) {
-    try {
-      if (!clerkClient.sessionToken) return;
-      
-      await fetch(`${this.backendUrl}/api/usage/track`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${clerkClient.sessionToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          feature: featureName,
-          timestamp: new Date().toISOString()
-        })
-      });
-    } catch (error) {
-      console.error('Failed to track usage on server:', error);
-    }
-  }
-  
+  //usage미구현
   // Get current plan info
-  getCurrentPlan() {
-    return {
-      name: this.currentPlan,
-      ...this.plans[this.currentPlan]
-    };
-  }
+  // getCurrentPlan() {
+  //   return {
+  //     name: this.currentPlan,
+  //     ...this.plans[this.currentPlan]
+  //   };
+  // }
   
-  // Get usage statistics for analytics
-  getUsageStats() {
-    return {
-      plan: this.currentPlan,
-      usage: this.usageData.feature_usage,
-      features: this.plans[this.currentPlan].features
-    };
-  }
+  //usage미구현
+  // // Get usage statistics for analytics
+  // getUsageStats() {
+  //   return {
+  //     plan: this.currentPlan,
+  //     usage: this.usageData.feature_usage,
+  //     features: this.plans[this.currentPlan].features
+  //   };
+  // }
   
   // Check if upgrade is needed
   needsUpgrade() {

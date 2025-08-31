@@ -89,17 +89,18 @@ class DatabaseManager:
                 )
             """)
             
+            # 현재 미구현
             # 사용량 로그 테이블 - 기능별 일일 사용량 추적
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS usage_logs (
-                    id TEXT PRIMARY KEY,                        -- 고유 로그 ID
-                    user_id TEXT REFERENCES users(id),          -- 사용자 ID (외래키)
-                    feature TEXT,                               -- 사용한 기능명
-                    usage_date DATE,                            -- 사용 날짜
-                    count INTEGER DEFAULT 1,                    -- 사용 횟수
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP -- 로그 생성 시간
-                )
-            """)
+            # cursor.execute("""
+            #     CREATE TABLE IF NOT EXISTS usage_logs (
+            #         id TEXT PRIMARY KEY,                        -- 고유 로그 ID
+            #         user_id TEXT REFERENCES users(id),          -- 사용자 ID (외래키)
+            #         feature TEXT,                               -- 사용한 기능명
+            #         usage_date DATE,                            -- 사용 날짜
+            #         count INTEGER DEFAULT 1,                    -- 사용 횟수
+            #         created_at DATETIME DEFAULT CURRENT_TIMESTAMP -- 로그 생성 시간
+            #     )
+            # """)
             
             self.db.commit()
             print("데이터베이스 테이블 생성/검증 완료")
@@ -345,6 +346,7 @@ def health():
 @verify_clerk_token
 def handle_user_profile():
     """사용자 프로필 GET/POST 요청 처리"""
+
     try:
         if request.method == 'POST':
             # 랜딩 페이지에서 프로필 생성/업데이트 처리
@@ -380,70 +382,73 @@ def handle_user_profile():
         print(f"스택 트레이스: {traceback.format_exc()}")
         return jsonify({'error': '내부 서버 오류'}), 500
 
-@app.route('/api/user/usage', methods=['GET'])
-@verify_clerk_token
-def get_user_usage():
-    """사용자 사용량 통계 조회"""
-    try:
-        user = get_or_create_user(request.user_id, request.user_email)
-        cursor = db_manager.db.cursor()
+# 현재 사용량 구현 안됨
+# @app.route('/api/user/usage', methods=['GET'])
+# # @verify_clerk_token
+# def get_user_usage():
+#     """사용자 사용량 통계 조회"""
+#     request.user_id = "user_31xtWCLHNKEgoBmGFnieLSbKlTv"
+#     request.user_email = "yj43773@gmail.com"
+#     try:
+#         user = get_or_create_user(request.user_id, request.user_email)
+#         cursor = db_manager.db.cursor()
         
-        # 오늘의 사용량 조회
-        today = datetime.now().date()
-        cursor.execute("""
-            SELECT feature, SUM(count) as total_count
-            FROM usage_logs 
-            WHERE user_id = ? AND usage_date = ?
-            GROUP BY feature
-        """, (user['id'], today))
+#         # 오늘의 사용량 조회
+#         today = datetime.now().date()
+#         cursor.execute("""
+#             SELECT feature, SUM(count) as total_count
+#             FROM usage_logs 
+#             WHERE user_id = ? AND usage_date = ?
+#             GROUP BY feature
+#         """, (user['id'], today))
         
-        usage_data = {}
-        for row in cursor.fetchall():
-            usage_data[row['feature']] = row['total_count']
+#         usage_data = {}
+#         for row in cursor.fetchall():
+#             usage_data[row['feature']] = row['total_count']
         
-        return jsonify({
-            'user_id': user['id'],
-            'plan': user['plan'],
-            'usage_date': today.isoformat(),
-            'usage': usage_data
-        })
+#         return jsonify({
+#             'user_id': user['id'],
+#             'plan': user['plan'],
+#             'usage_date': today.isoformat(),
+#             'usage': usage_data
+#         })
         
-    except Exception as e:
-        print(f"사용자 사용량 조회 오류: {e}")
-        return jsonify({'error': '내부 서버 오류'}), 500
+#     except Exception as e:
+#         print(f"사용자 사용량 조회 오류: {e}")
+#         return jsonify({'error': '내부 서버 오류'}), 500
 
-# 사용량 추적 API 엔드포인트
 
-@app.route('/api/usage/track', methods=['POST'])
-@verify_clerk_token  
-def track_usage():
-    """기능 사용량 추적"""
-    try:
-        data = request.get_json()
-        feature = data.get('feature')
+# 사용량 추적 API 엔드포인트(아직 구현 안됨)
+# @app.route('/api/usage/track', methods=['POST'])
+# @verify_clerk_token  
+# def track_usage():
+#     """기능 사용량 추적"""
+#     try:
+#         data = request.get_json()
+#         feature = data.get('feature')
         
-        if not feature:
-            return jsonify({'error': '기능 이름이 필요합니다'}), 400
+#         if not feature:
+#             return jsonify({'error': '기능 이름이 필요합니다'}), 400
         
-        user = get_or_create_user(request.user_id, request.user_email)
-        cursor = db_manager.db.cursor()
+#         user = get_or_create_user(request.user_id, request.user_email)
+#         cursor = db_manager.db.cursor()
         
-        # 사용량 로그 삽입
-        usage_id = f"usage_{hashlib.md5(f'{user['id']}{feature}{datetime.now()}'.encode()).hexdigest()[:12]}"
-        today = datetime.now().date()
+#         # 사용량 로그 삽입
+#         usage_id = f"usage_{hashlib.md5(f'{user['id']}{feature}{datetime.now()}'.encode()).hexdigest()[:12]}"
+#         today = datetime.now().date()
         
-        cursor.execute("""
-            INSERT INTO usage_logs (id, user_id, feature, usage_date, count)
-            VALUES (?, ?, ?, ?, 1)
-        """, (usage_id, user['id'], feature, today))
+#         cursor.execute("""
+#             INSERT INTO usage_logs (id, user_id, feature, usage_date, count)
+#             VALUES (?, ?, ?, ?, 1)
+#         """, (usage_id, user['id'], feature, today))
         
-        db_manager.db.commit()
+#         db_manager.db.commit()
         
-        return jsonify({'success': True, 'feature': feature, 'timestamp': datetime.now().isoformat()})
+#         return jsonify({'success': True, 'feature': feature, 'timestamp': datetime.now().isoformat()})
         
-    except Exception as e:
-        print(f"사용량 추적 오류: {e}")
-        return jsonify({'error': '내부 서버 오류'}), 500
+#     except Exception as e:
+#         print(f"사용량 추적 오류: {e}")
+#         return jsonify({'error': '내부 서버 오류'}), 500
 
 # 결제 처리 API 엔드포인트
 
@@ -497,6 +502,8 @@ def create_checkout():
 @verify_clerk_token
 def create_billing_portal():
     """Stripe 청구 포털 세션 생성"""
+    # request.user_id = "user_31xtWCLHNKEgoBmGFnieLSbKlTv"
+    # request.user_email = "yj43773@gmail.com"
     try:
         user = get_or_create_user(request.user_id, request.user_email)
         
@@ -584,5 +591,5 @@ if __name__ == '__main__':
     print("Stripe 모드:", "라이브" if stripe.api_key.startswith('sk_live') else "테스트")
     
     port = int(os.getenv('PORT', 4242))  # 기본 포트 4242
-    debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'  # 디버그 모드 설정
+    debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'  # 디버그 모드 설정, 출시전에 false로 바꾸자
     app.run(debug=debug, host='0.0.0.0', port=port)  # 모든 IP에서 접근 허용

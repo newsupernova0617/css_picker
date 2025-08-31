@@ -5,7 +5,7 @@ console.log('Auth content script loaded on:', window.location.href);
 
 // Listen for messages from the web page
 window.addEventListener('message', async (event) => {
-    // Make sure the message is from our backend
+    // 출시전에 http://localhost:4242 > URL로 
     if (event.origin !== 'http://localhost:4242') {
         return;
     }
