@@ -1,7 +1,7 @@
 // Plan Management System for Chrome Extension
 // Handles user plans, usage limits, and feature restrictions
 
-console.log('📋 plan-manager.js is loading...');
+console.log('=� plan-manager.js is loading...');
 
 class PlanManager {
   constructor() {
@@ -67,14 +67,14 @@ class PlanManager {
   
   async _performInit() {
     try {
-      console.log('🔄 Initializing Plan Manager...');
+      console.log('= Initializing Plan Manager...');
       await this.loadUserPlan();
       await this.loadUsageData();
       this.resetDailyUsageIfNeeded();
       this.isReady = true;
-      console.log('✅ Plan Manager initialized successfully');
+      console.log(' Plan Manager initialized successfully');
     } catch (error) {
-      console.error('❌ Failed to initialize plan manager:', error);
+      console.error('L Failed to initialize plan manager:', error);
       // Even if init fails, mark as ready with safe defaults
       this.currentPlan = 'free';
       this.isReady = true;
@@ -253,7 +253,7 @@ class PlanManager {
       };
     }
   }
-  //미구현 
+  //�l 
   // Track feature usage for analytics
   // async trackUsage(featureName) {
   //   try {
@@ -275,7 +275,7 @@ class PlanManager {
   //     return false;
   //   }
   // }
-  //미구현 
+  //�l 
   // // Send usage tracking to backend
   // async trackUsageOnServer(featureName) {
   //   try {
@@ -297,7 +297,7 @@ class PlanManager {
   //   }
   // }
   
-  //usage미구현
+  //usage�l
   // Get current plan info
   // getCurrentPlan() {
   //   return {
@@ -306,7 +306,7 @@ class PlanManager {
   //   };
   // }
   
-  //usage미구현
+  //usage�l
   // // Get usage statistics for analytics
   // getUsageStats() {
   //   return {
@@ -338,16 +338,16 @@ class PlanManager {
     };
     
     return {
-      title: '🚀 Premium Feature',
+      title: '=� Premium Feature',
       message: `${featureNames[featureName] || featureName} is available in Premium plan only.`,
       upgradeUrl: this.getUpgradeUrl(),
       benefits: [
-        '🎨 Unlimited color sampling & palettes',
-        '📦 Asset collection & download',
-        '🎯 CSS to Tailwind conversion',
-        '🖥️ Advanced console monitoring',
-        '📤 Export functionality (CSS, colors, etc.)',
-        '⚡ Priority support'
+        '<� Unlimited color sampling & palettes',
+        '=� Asset collection & download',
+        '<� CSS to Tailwind conversion',
+        '=� Advanced console monitoring',
+        '=� Export functionality (CSS, colors, etc.)',
+        '� Priority support'
       ]
     };
   }

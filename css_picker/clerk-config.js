@@ -96,8 +96,7 @@ class ClerkExtensionClient {
       const response = await fetch(`${this.config.frontendApi}/v1/client/sign_ins`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.publishableKey}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           strategy: 'password',
