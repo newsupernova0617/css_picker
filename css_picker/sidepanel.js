@@ -5526,8 +5526,6 @@ class SidePanel {
         ['assetManagerMenuItem', 'asset_management', 'Asset Manager'],
         ['consoleMenuItem', 'console_monitoring', 'Console Monitor'],
         ['convertToTailwindBtn', 'tailwind_conversion', 'Tailwind Conversion'],
-        ['copyCssBtn', 'export_features', 'Copy CSS'],
-        ['copyTailwindBtn', 'export_features', 'Copy Tailwind'],
         ['exportPaletteBtn', 'export_features', 'Export Features'],
         ['exportConsoleBtn', 'export_features', 'Export Features']
       ];

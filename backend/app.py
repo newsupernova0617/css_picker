@@ -37,7 +37,7 @@ STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', 'whsec_your_webhook_s
 STRIPE_PRICE_ID = os.getenv('STRIPE_PRICE_ID', 'price_your_premium_price_id')  # 프리미엄 플랜 가격 ID
 
 # Clerk 인증 시스템 설정 (사용자 인증 및 세션 관리)
-CLERK_SECRET_KEY = os.getenv('CLERK_SECRET_KEY', 'sk_test_bUVmZhWdWNK8rNEWVMWNCYjq6ZEhfQVpHCsrVcQYFr')
+CLERK_SECRET_KEY = os.getenv('CLERK_SECRET_KEY')
 
 class DatabaseManager:
     """데이터베이스 연결 및 테이블 관리를 담당하는 클래스"""
