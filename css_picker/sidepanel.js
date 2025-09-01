@@ -1528,8 +1528,7 @@ class SidePanel {
     // 드롭다운 메뉴 아이템으로 변경
     this.colorPaletteMenuItem = document.getElementById("colorPaletteMenuItem");
     this.colorPaletteSection = document.getElementById("colorPaletteSection");
-    this.samplingStatus = document.getElementById("samplingStatus");
-    this.exitColorModeBtn = document.getElementById("exitColorModeBtn");
+    this.samplingMessage = document.getElementById("samplingMessage");
     this.clearPaletteBtn = document.getElementById("clearPaletteBtn");
     this.exportPaletteBtn = document.getElementById("exportPaletteBtn");
     this.toggleSamplingBtn = document.getElementById("toggleSamplingBtn");
@@ -2356,12 +2355,6 @@ class SidePanel {
     
     // 드롭다운 메뉴 아이템들은 제거되었음 - 홈 기반 네비게이션으로 대체됨
     
-    // Exit Color Mode 버튼 이벤트 리스너
-    if (this.exitColorModeBtn) {
-      this.exitColorModeBtn.addEventListener('click', () => {
-        this.exitColorPaletteMode();
-      });
-    }
     
     if (this.clearPaletteBtn) {
       this.clearPaletteBtn.addEventListener('click', () => {
@@ -2460,9 +2453,15 @@ class SidePanel {
   initializeCopyButtons() {
     // Copy CSS 버튼 이벤트 리스너
     if (this.copyCssDropdown) {
-      this.copyCssDropdown.addEventListener('click', (e) => {
+      this.copyCssDropdown.addEventListener('click', async (e) => {
         e.preventDefault();
         console.log('Copy CSS button clicked'); // 디버깅용
+        
+        // Premium 기능 체크
+        const canUse = await this.checkFeatureAccess('export_features');
+        if (!canUse) {
+          return; // checkFeatureAccess에서 이미 모달을 표시함
+        }
         
         // CSS Rule 형태로 복사
         this.copyCssToClipboard('css');
@@ -2472,9 +2471,15 @@ class SidePanel {
     // Copy Tailwind 버튼 이벤트 리스너
     const copyTailwindBtn = document.getElementById('copyTailwindBtn');
     if (copyTailwindBtn) {
-      copyTailwindBtn.addEventListener('click', (e) => {
+      copyTailwindBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         console.log('Copy Tailwind button clicked'); // 디버깅용
+        
+        // Premium 기능 체크
+        const canUse = await this.checkFeatureAccess('export_features');
+        if (!canUse) {
+          return; // checkFeatureAccess에서 이미 모달을 표시함
+        }
         
         // Tailwind Classes 형태로 복사
         this.copyTailwindToClipboard('tailwind-classes');
@@ -4262,15 +4267,13 @@ class SidePanel {
     }
   }
   
-  // 샘플링 상태 텍스트 업데이트
-  updateSamplingStatus(message) {
-    if (this.samplingStatus) {
-      this.samplingStatus.textContent = message;
-      
-      if (this.isSamplingActive) {
-        this.samplingStatus.classList.add('sampling-mode-active');
+  // 샘플링 상태 메시지 업데이트
+  updateSamplingStatus(isActive) {
+    if (this.samplingMessage) {
+      if (isActive) {
+        this.samplingMessage.style.display = 'block';
       } else {
-        this.samplingStatus.classList.remove('sampling-mode-active');
+        this.samplingMessage.style.display = 'none';
       }
     }
   }
@@ -4430,12 +4433,14 @@ class SidePanel {
     
     if (this.isSamplingActive) {
       this.activateColorSampling();
-      this.toggleSamplingBtn.innerHTML = '⏸️ Pause Sampling';
-      this.updateSamplingStatus('📸 Sampling Active - Click anywhere to sample colors');
+      this.toggleSamplingBtn.innerHTML = '🔴 Stop Sampling';
+      this.toggleSamplingBtn.className = 'btn btn-danger btn-sm';
+      this.updateSamplingStatus(true);
     } else {
       this.deactivateColorSampling();
-      this.toggleSamplingBtn.innerHTML = '▶️ Resume Sampling';
-      this.updateSamplingStatus('⏸️ Sampling Paused - Click Resume to continue');
+      this.toggleSamplingBtn.innerHTML = '🎯 Start Sampling';
+      this.toggleSamplingBtn.className = 'btn btn-primary btn-sm';
+      this.updateSamplingStatus(false);
     }
   }
   
@@ -5521,6 +5526,8 @@ class SidePanel {
         ['assetManagerMenuItem', 'asset_management', 'Asset Manager'],
         ['consoleMenuItem', 'console_monitoring', 'Console Monitor'],
         ['convertToTailwindBtn', 'tailwind_conversion', 'Tailwind Conversion'],
+        ['copyCssBtn', 'export_features', 'Copy CSS'],
+        ['copyTailwindBtn', 'export_features', 'Copy Tailwind'],
         ['exportPaletteBtn', 'export_features', 'Export Features'],
         ['exportConsoleBtn', 'export_features', 'Export Features']
       ];
@@ -5538,6 +5545,9 @@ class SidePanel {
       }
       
       console.log(`Premium locks setup completed (${results.length - failed.length}/${results.length} successful)`);
+      
+      // Setup premium card overlays for home screen
+      await this.setupPremiumCardOverlays();
     } catch (error) {
       console.error(`Failed to setup premium locks (attempt ${retryCount + 1}):`, error);
       
@@ -5733,6 +5743,108 @@ class SidePanel {
     }
   }
   
+  // Premium card overlays 설정
+  async setupPremiumCardOverlays() {
+    try {
+      const premiumCards = [
+        {
+          id: 'homeToColorPaletteCard',
+          feature: 'color_sampling',
+          title: 'Premium',
+          description: 'Unlock advanced color tools',
+          icon: '⭐'
+        },
+        {
+          id: 'homeToConsoleCard', 
+          feature: 'console_monitoring',
+          title: 'Premium',
+          description: 'Monitor console & network',
+          icon: '⭐'
+        },
+        {
+          id: 'homeToAssetManagerCard',
+          feature: 'asset_management', 
+          title: 'Premium',
+          description: 'Collect & download assets',
+          icon: '⭐'
+        }
+      ];
+
+      for (const card of premiumCards) {
+        await this.setupPremiumCardOverlay(card);
+      }
+      
+      console.log('Premium card overlays setup completed');
+    } catch (error) {
+      console.error('Failed to setup premium card overlays:', error);
+    }
+  }
+
+  // 개별 premium card overlay 설정
+  async setupPremiumCardOverlay(cardConfig) {
+    try {
+      const cardElement = document.getElementById(cardConfig.id);
+      if (!cardElement) {
+        console.warn(`Card element not found: ${cardConfig.id}`);
+        return;
+      }
+
+      // 기존 overlay 제거
+      const existingOverlay = cardElement.querySelector('.premium-card-overlay');
+      if (existingOverlay) {
+        existingOverlay.remove();
+      }
+
+      // 사용자 권한 체크
+      let planManager_instance;
+      if (window.planManager) {
+        planManager_instance = window.planManager;
+      } else if (typeof planManager !== 'undefined') {
+        planManager_instance = planManager;
+      } else {
+        console.warn('planManager not available');
+        return;
+      }
+
+      const canUse = await planManager_instance.canUseFeature(cardConfig.feature);
+      
+      if (canUse.allowed) {
+        // Premium 사용자 - overlay 제거 및 정상 동작
+        cardElement.classList.remove('premium-locked');
+        return;
+      }
+
+      // 무료/비로그인 사용자 - overlay 추가
+      cardElement.classList.add('premium-locked');
+      
+      const overlay = document.createElement('div');
+      overlay.className = 'premium-card-overlay';
+      overlay.innerHTML = `
+        <div class="premium-card-content">
+          <div class="premium-card-icon">${cardConfig.icon}</div>
+          <div class="premium-card-title">${cardConfig.title}</div>
+          <div class="premium-card-description">${cardConfig.description}</div>
+          <button class="premium-card-cta">
+            <span>🚀</span>
+            Upgrade Now
+          </button>
+        </div>
+      `;
+
+      // Overlay 클릭 이벤트
+      overlay.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.showUpgradeModal(cardConfig.feature, cardConfig.title);
+      });
+
+      cardElement.appendChild(overlay);
+      
+    } catch (error) {
+      console.error(`Failed to setup overlay for ${cardConfig.id}:`, error);
+    }
+  }
+
   // Plan 상태 동기화
   async syncPlanStatus() {
     try {

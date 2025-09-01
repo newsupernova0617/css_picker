@@ -243,27 +243,28 @@
       
       <!-- Color Palette 섹션 -->
       <div class="color-palette-section" id="colorPaletteSection" style="display: none;">
-        <div class="palette-header">
-          <div class="section-header">
-            <h3>🎨 Color Palette</h3>
-            <div class="section-nav">
-              <button class="btn btn-outline-secondary btn-sm" id="colorPaletteHomeBtn" title="Return to Home">
-                🏠 Home
-              </button>
-              <button class="btn btn-outline-info btn-sm" id="colorPaletteHelpBtn" title="Color Palette Help">
-                ?
-              </button>
-            </div>
-          </div>
-          <div class="palette-status">
-            <span id="samplingStatus" class="sampling-status">🎯 Click anywhere to open native color picker</span>
-            <button id="exitColorModeBtn" class="btn btn-outline-secondary btn-sm">
-              ← Back to CSS
+        <div class="section-header">
+          <h3>🎨 Color Palette</h3>
+          <div class="section-nav">
+            <button id="toggleSamplingBtn" class="btn btn-primary btn-sm">
+              🎯 Start Sampling
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" id="colorPaletteHomeBtn" title="Return to Home">
+              🏠 Home
+            </button>
+            <button class="btn btn-outline-info btn-sm" id="colorPaletteHelpBtn" title="Color Palette Help">
+              ?
             </button>
           </div>
         </div>
         
-        <!-- 실시간 색상 프리뷰 제거됨 (EyeDropper 기본 사용) -->
+        <!-- Sampling 안내 메시지 -->
+        <div class="sampling-message" id="samplingMessage" style="display: none;">
+          <div class="message-content">
+            <span class="message-icon">🎨</span>
+            <span class="message-text">Color sampling is active! Click anywhere on the webpage to sample colors.</span>
+          </div>
+        </div>
         
         <div class="palette-controls">
           <button id="clearPaletteBtn" class="btn btn-outline-danger btn-sm">
@@ -271,9 +272,6 @@
           </button>
           <button id="exportPaletteBtn" class="btn btn-outline-info btn-sm">
             📤 Export
-          </button>
-          <button id="toggleSamplingBtn" class="btn btn-warning btn-sm">
-            ⏸️ Pause Sampling
           </button>
         </div>
         
