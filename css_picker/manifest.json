@@ -1,0 +1,58 @@
+{
+  "manifest_version": 3,
+  "name": "CSS Element Picker",
+  "description": "A Chrome extension for highlighting page elements on hover",
+  "version": "1.0",
+  "permissions": [
+    "tabs",
+    "sidePanel",
+    "scripting",
+    "downloads",
+    "activeTab",
+    "storage",
+    "identity"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "https://*.clerk.accounts.dev/*", 
+    "https://clerk.com/*",
+    "http://localhost:4242/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; connect-src 'self' http://localhost:4242 https://*.clerk.accounts.dev; object-src 'self'"
+  },
+  "action": {
+    "default_title": "Open CSS Picker"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    },
+    {
+      "matches": ["http://localhost:4242/*"],
+      "js": ["auth-content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "lib/html2canvas.min.js", 
+        "lib/jszip.min.js",
+        "lib/bootstrap.bundle.min.js",
+        "clerk-config.js",
+        "plan-manager.js",
+        "sidepanel.js",
+        "sidepanel.css"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

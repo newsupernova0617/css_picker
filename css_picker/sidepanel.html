@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<!-- HTML5 문서 타입 선언 - 브라우저에게 이것이 HTML5 문서임을 알려줍니다 -->
+
+<html lang="en">
+<!-- HTML 문서의 시작 태그, lang="en"은 이 문서가 영어로 작성되었음을 나타냅니다 -->
+
+<head>
+  <!-- head 섹션: 웹페이지의 메타데이터(정보)를 담는 부분입니다. 사용자에게는 보이지 않습니다 -->
+  
+  <!-- 문자 인코딩을 UTF-8로 설정 - 한글, 영어, 특수문자 등을 제대로 표시할 수 있게 합니다 -->
+  <meta charset="UTF-8">
+  
+  <!-- 반응형 디자인을 위한 viewport 설정 - 모바일에서도 제대로 보이게 합니다 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- 브라우저 탭에 표시될 페이지 제목입니다 -->
+  <title>CSS Element Picker</title>
+  
+  <!-- Bootstrap CSS 프레임워크를 CDN에서 가져와서 사용합니다 -->
+  <!-- Bootstrap은 미리 만들어진 디자인 스타일들을 제공하는 라이브러리입니다 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- 우리가 직접 만든 CSS 스타일 파일을 연결합니다 -->
+  <link rel="stylesheet" href="sidepanel.css">
+  
+
+  
+  
+  <!-- JavaScript 파일들이 sidepanel.js에 인라인으로 포함됨 -->
+  
+</head>
+
+<body>
+  <!-- body 섹션: 사용자에게 실제로 보이는 내용들이 들어가는 부분입니다 -->
+  
+  <!-- 전체 컨텐츠를 감싸는 컨테이너 div -->
+  <div class="container">
+    
+    <!-- header 섹션: 페이지의 상단 부분을 나타냅니다 -->
+    <header class="header">
+      <!-- Dynamic welcome header that changes based on current section -->
+      <div class="home-welcome" id="headerWelcome">
+        <div class="welcome-content">
+          <h3 id="homeWelcomeTitle">🏠 CSS Picker Extension</h3>
+          <p id="homeWelcomeMessage">Choose a tool to get started with web development analysis</p>
+          <!-- <div class="home-auth-prompt" id="homeAuthPrompt" style="display: none;"> -->
+          
+            <!-- <button class="btn btn-primary btn-sm upgrade-btn" id="upgradeBtn" style="display: none;">
+              Upgrade to Premium
+            </button> -->
+          <!-- </div> -->
+        </div>
+        <!-- <button class="btn btn-outline-light btn-sm help-btn" id="generalHelpBtn" title="How to Use This Extension">
+          ?
+        </button> -->
+      </div>
+    </header>
+    
+    <!-- Authentication Section -->
+    <div class="auth-section" id="authSection">
+      <!-- Sign In State -->
+      <div class="auth-signed-out" id="authSignedOut">
+        <div class="auth-card">
+          <div class="auth-header">
+            <h4>🔐 Sign In Required</h4>
+            <p>Sign in to access advanced features</p>
+          </div>
+          <div class="auth-actions">
+            <button id="signInBtn" class="btn btn-primary btn-sm w-100">
+              Sign In with Clerk
+            </button>
+            <div class="auth-loading" id="authLoading" style="display: none;">
+              <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+              Signing in...
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sign In State -->
+      <div class="auth-signed-in" id="authSignedIn" style="display: none;">
+        <div class="user-info">
+          <div class="user-avatar">
+            <div class="avatar-circle" id="userAvatar">👤</div>
+          </div>
+          <div class="user-details">
+            <div class="user-name" id="userName">Loading...</div>
+            <div class="user-email" id="userEmail">Loading...</div>
+          </div>
+          <div class="user-actions">
+            <button id="signOutBtn" class="btn btn-outline-secondary btn-sm">
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Premium Feature Modal -->
+    <div class="modal fade" id="upgradeModal" tabindex="-1" aria-labelledby="upgradeModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="upgradeModalLabel">🚀 Premium Feature</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="upgrade-content">
+              <p class="upgrade-message" id="upgradeMessage">This feature requires Premium plan.</p>
+              <div class="premium-benefits">
+                <h6>Premium includes:</h6>
+                <ul class="benefits-list" id="benefitsList">
+                  <li>🎨 Unlimited color sampling & palettes</li>
+                  <li>📦 Asset collection & download</li>
+                  <li>🎯 CSS to Tailwind conversion</li>
+                  <li>🖥️ Advanced console monitoring</li>
+                  <li>📤 Export functionality</li>
+                  <li>⚡ Priority support</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Maybe Later</button>
+            <button type="button" class="btn btn-primary" id="upgradeNowBtn">Upgrade Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- main 섹션: 페이지의 주요 내용이 들어가는 부분입니다 -->
+    <main class="main-content">
+      
+      <!-- Home Screen (New Default) -->
+      <div class="home-section" id="homeSection">
+        <div class="feature-cards">
+          <div class="feature-card" id="homeToCSSSelectorCard">
+            <div class="feature-icon">🎯</div>
+            <div class="feature-content">
+              <h4>CSS Picker</h4>
+              <p>Select and analyze CSS properties of any element</p>
+            </div>
+            <button class="btn btn-outline-primary btn-sm">Start →</button>
+          </div>
+          
+          <div class="feature-card" id="homeToColorPaletteCard">
+            <div class="feature-icon">🎨</div>
+            <div class="feature-content">
+              <h4>Color Palette</h4>
+              <p>Sample colors and create beautiful palettes</p>
+            </div>
+            <button class="btn btn-outline-primary btn-sm">Start →</button>
+          </div>
+          
+          <div class="feature-card" id="homeToConsoleCard">
+            <div class="feature-icon">🖥️</div>
+            <div class="feature-content">
+              <h4>Console Monitor</h4>
+              <p>Track console messages and network errors</p>
+            </div>
+            <button class="btn btn-outline-primary btn-sm">Start →</button>
+          </div>
+          
+          <div class="feature-card" id="homeToAssetManagerCard">
+            <div class="feature-icon">📦</div>
+            <div class="feature-content">
+              <h4>Asset Manager</h4>
+              <p>Collect and download page assets</p>
+            </div>
+            <button class="btn btn-outline-primary btn-sm">Start →</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- CSS 정보 표시 섹션 -->
+      <div class="css-info-section" id="cssInfoSection" style="display: none;">
+        <div class="section-header">
+          <h3>🎯 CSS Picker</h3>
+          <div class="section-nav">
+            <button id="toggleBtn" class="btn btn-primary btn-sm">
+              🟢 Active Picker
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" id="cssHomeBtn" title="Return to Home">
+              🏠 Home
+            </button>
+            <button class="btn btn-outline-info btn-sm" id="cssHelpBtn" title="CSS Picker Help">
+              ?
+            </button>
+          </div>
+        </div>
+        
+        <!-- Active Picker 안내 메시지 -->
+        <div class="picker-message" id="pickerMessage" style="display: none;">
+          <div class="message-content">
+            <span class="message-icon">✨</span>
+            <span class="message-text">CSS Picker is now active! Click on any element on the webpage to inspect its CSS properties.</span>
+          </div>
+        </div>
+        
+        <!-- 압축된 요소 정보 -->
+        <div class="element-info-compact">
+          <span class="element-selector" id="elementSelector">-</span>
+          <button class="btn btn-outline-secondary btn-sm copy-selector-btn" id="copySelectorBtn" title="Copy Selector">
+            📋
+          </button>
+        </div>
+        
+        <!-- CSS 속성 목록 -->
+        <div class="css-properties">
+          <div class="properties-header">
+            <h4 id="propertiesTitle">CSS Properties</h4>
+            <div class="properties-controls">
+              <button class="btn btn-info btn-sm" id="convertToTailwindBtn">
+                🎨 Convert to Tailwind
+              </button>
+              <button class="btn btn-outline-secondary btn-sm" id="backToCssBtn" style="display: none;">
+                ← Back to CSS
+              </button>
+              <div class="copy-buttons">
+                <button class="btn btn-primary btn-sm" type="button" id="copyCssBtn">
+                  📋 Copy CSS
+                </button>
+                <div class="select-all-header">
+                  <input class="category-checkbox" type="checkbox" id="selectAllCheckbox">
+                  <label class="category-title" for="selectAllCheckbox">Select All</label>
+                </div>
+                <button class="btn btn-success btn-sm" id="copyTailwindBtn" style="display: none;">
+                  🎨 Copy Tailwind
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Accordion 형태의 분류별 속성 목록 -->
+          <div class="properties-accordion" id="propertiesAccordion">
+            <!-- 카테고리들이 동적으로 추가됩니다 -->
+          </div>
+        </div>
+        
+        <!-- 컨트롤 버튼들 -->
+        
+      </div>
+      
+      <!-- Color Palette 섹션 -->
+      <div class="color-palette-section" id="colorPaletteSection" style="display: none;">
+        <div class="palette-header">
+          <div class="section-header">
+            <h3>🎨 Color Palette</h3>
+            <div class="section-nav">
+              <button class="btn btn-outline-secondary btn-sm" id="colorPaletteHomeBtn" title="Return to Home">
+                🏠 Home
+              </button>
+              <button class="btn btn-outline-info btn-sm" id="colorPaletteHelpBtn" title="Color Palette Help">
+                ?
+              </button>
+            </div>
+          </div>
+          <div class="palette-status">
+            <span id="samplingStatus" class="sampling-status">🎯 Click anywhere to open native color picker</span>
+            <button id="exitColorModeBtn" class="btn btn-outline-secondary btn-sm">
+              ← Back to CSS
+            </button>
+          </div>
+        </div>
+        
+        <!-- 실시간 색상 프리뷰 제거됨 (EyeDropper 기본 사용) -->
+        
+        <div class="palette-controls">
+          <button id="clearPaletteBtn" class="btn btn-outline-danger btn-sm">
+            🗑️ Clear All
+          </button>
+          <button id="exportPaletteBtn" class="btn btn-outline-info btn-sm">
+            📤 Export
+          </button>
+          <button id="toggleSamplingBtn" class="btn btn-warning btn-sm">
+            ⏸️ Pause Sampling
+          </button>
+        </div>
+        
+        <!-- 색상 팔레트 표시 영역 -->
+        <div class="color-swatches" id="colorSwatches">
+          <div class="swatches-container">
+            <!-- 색상 스워치들이 동적으로 추가됩니다 -->
+            <div class="empty-palette-message">
+              <p>🎨 No colors sampled yet</p>
+              <small>Click anywhere on the webpage to start sampling colors!</small>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 선택된 색상 정보 -->
+        <div class="selected-color-info" id="selectedColorInfo" style="display: none;">
+          <div class="color-preview">
+            <div class="color-preview-swatch" id="selectedColorSwatch"></div>
+            <div class="color-details">
+              <div class="color-name" id="selectedColorName">#FF5722</div>
+              <div class="color-formats">
+                <small id="selectedColorFormats">RGB(255, 87, 34) | HSL(14°, 100%, 57%)</small>
+              </div>
+            </div>
+          </div>
+          <div class="color-actions">
+            <button class="btn btn-outline-primary btn-sm" data-copy="hex">Copy HEX</button>
+            <button class="btn btn-outline-primary btn-sm" data-copy="rgb">Copy RGB</button>
+            <button class="btn btn-outline-primary btn-sm" data-copy="hsl">Copy HSL</button>
+            <button class="btn btn-outline-danger btn-sm" id="deleteColorBtn">🗑️</button>
+          </div>
+        </div>
+        
+        <!-- 색상 하모니 제안 (고급 기능) -->
+        <div class="color-harmony" id="colorHarmony" style="display: none;">
+          <h4>🎭 Color Harmony</h4>
+          <div class="harmony-controls">
+            <select id="harmonyType" class="form-select form-select-sm">
+              <option value="complementary">Complementary</option>
+              <option value="analogous">Analogous</option>
+              <option value="triadic">Triadic</option>
+            </select>
+            <button id="generateHarmonyBtn" class="btn btn-outline-secondary btn-sm">Generate</button>
+          </div>
+          <div class="harmony-swatches" id="harmonySwatches">
+            <!-- 하모니 색상들이 동적으로 추가됩니다 -->
+          </div>
+        </div>
+      </div>
+      
+      <!-- Console Monitor 섹션 -->
+      <div class="console-section" id="consoleSection" style="display: none;">
+        <div class="console-header">
+          <div class="section-title-row">
+            <h3>🖥️ Console Monitor</h3>
+            <div class="section-nav">
+              <button class="btn btn-outline-secondary btn-sm" id="consoleHomeBtn" title="Return to Home">
+                🏠 Home
+              </button>
+              <button class="btn btn-outline-info btn-sm" id="consoleHelpBtn" title="Console Monitor Help">
+                ?
+              </button>
+            </div>
+          </div>
+          <div class="console-controls">
+            <button id="toggleConsoleBtn" class="btn btn-info btn-sm">
+              🔍 Start Monitor
+            </button>
+            <button id="clearConsoleBtn" class="btn btn-outline-secondary btn-sm">
+              🗑️ Clear
+            </button>
+            <button id="exportConsoleBtn" class="btn btn-outline-info btn-sm">
+              📤 Export
+            </button>
+          </div>
+        </div>
+        
+        <div class="console-filters">
+          <div class="filter-controls">
+            <label>🔍 Filter:</label>
+            <div class="filter-buttons">
+              <button class="btn btn-outline-primary btn-sm filter-btn active" data-filter="all">
+                All
+              </button>
+              <button class="btn btn-outline-danger btn-sm filter-btn" data-filter="error">
+                ❌ Errors
+              </button>
+              <button class="btn btn-outline-warning btn-sm filter-btn" data-filter="warn">
+                ⚠️ Warnings
+              </button>
+              <button class="btn btn-outline-info btn-sm filter-btn" data-filter="info">
+                ℹ️ Info
+              </button>
+              <button class="btn btn-outline-secondary btn-sm filter-btn" data-filter="debug">
+                🐛 Debug
+              </button>
+              <button class="btn btn-outline-dark btn-sm filter-btn" data-filter="failed-fetch">
+                🌐 Failed Fetch
+              </button>
+            </div>
+          </div>
+          
+          <div class="search-controls">
+            <input type="text" id="consoleSearchInput" class="form-control form-control-sm" placeholder="Search messages...">
+            <button id="consoleSearchBtn" class="btn btn-outline-secondary btn-sm">🔍</button>
+          </div>
+        </div>
+        
+        <div class="console-status">
+          <div class="status-info">
+            <span id="consoleMessageCount">0 messages</span>
+            <span id="consoleStatus" class="console-status-indicator">🔴 Stopped</span>
+          </div>
+          <div class="console-performance">
+            <small id="consolePerformanceInfo">Memory: 0KB | Rate: 0/sec</small>
+          </div>
+        </div>
+        
+        <div class="console-output" id="consoleOutput">
+          <div class="console-welcome">
+            <div class="welcome-icon">🖥️</div>
+            <h4>Console Monitor Ready</h4>
+            <p>Click "Start Monitor" to begin capturing console messages from the current webpage.</p>
+            <div class="feature-list">
+              <div class="feature-item">✅ Real-time console capture</div>
+              <div class="feature-item">✅ Network error detection</div>
+              <div class="feature-item">✅ Smart filtering system</div>
+              <div class="feature-item">✅ Search and export</div>
+            </div>
+          </div>
+          
+          <!-- Console messages will be dynamically added here -->
+        </div>
+      </div>
+      
+      <!-- Asset Manager 섹션 (기본 숨김) -->
+      <div class="asset-manager" id="assetManager" style="display: none;">
+        <div class="asset-header">
+          <div class="section-title-row">
+            <h3>📦 Asset Manager</h3>
+            <div class="section-nav">
+              <button class="btn btn-outline-secondary btn-sm" id="assetManagerHomeBtn" title="Return to Home">
+                🏠 Home
+              </button>
+              <button class="btn btn-outline-info btn-sm" id="assetManagerHelpBtn" title="Asset Manager Help">
+                ?
+              </button>
+            </div>
+          </div>
+          <div class="asset-summary">
+            <span id="assetSummary">Loading assets...</span>
+            <button id="refreshAssetsBtn" class="btn btn-outline-secondary btn-sm ms-2" title="Refresh Assets">
+              🔄
+            </button>
+          </div>
+        </div>
+        
+        <div class="asset-controls">
+          <button id="downloadSelectedBtn" class="btn btn-success btn-sm" disabled>
+            📥 Download Selected
+          </button>
+          <button id="downloadZipBtn" class="btn btn-primary btn-sm" disabled>
+            🗜️ Download as ZIP
+          </button>
+          <button id="selectAllAssetsBtn" class="btn btn-outline-primary btn-sm">
+            Select All
+          </button>
+          <button id="selectNoneAssetsBtn" class="btn btn-outline-secondary btn-sm">
+            Clear All
+          </button>
+        </div>
+        
+        <!-- Asset 카테고리들 -->
+        <div class="asset-categories" id="assetCategories">
+          <!-- JavaScript로 동적 생성됩니다 -->
+        </div>
+      </div>
+
+      <!-- Help modals for each feature -->
+      <div class="modal fade" id="featureHelpModal" tabindex="-1" aria-labelledby="featureHelpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="featureHelpModalLabel">Feature Help</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="featureHelpContent">
+              <!-- Help content will be dynamically loaded here -->
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </main>
+    <!-- main 섹션 끝 -->
+    
+  </div>
+  <!-- container div 끝 -->
+    <!-- JSZip 라이브러리를 로컬에서 로드합니다 - 여러 파일을 ZIP으로 압축하기 위해 사용 -->
+  <script src="lib/jszip.min.js"></script>
+  
+  <!-- HTML2Canvas 라이브러리를 로컬에서 로드합니다 - 픽셀 단위 색상 추출을 위해 사용 -->
+  <script src="lib/html2canvas.min.js"></script>
+  
+  <!-- Bootstrap JS를 로컬에서 로드합니다 (드롭다운 기능을 위해 필요) -->
+  <script src="lib/bootstrap.bundle.min.js"></script>
+  <!-- Main sidepanel logic (마지막에 로드) -->
+  <script src="sidepanel.js"></script>
+  
+</body>
+<!-- body 섹션 끝 -->
+
+</html>
+<!-- HTML 문서 끝 -->

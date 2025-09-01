@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Premium - CSS Picker Pro</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        
+        .success-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .success-icon {
+            font-size: 4rem;
+            color: #28a745;
+        }
+        
+        .btn-gradient {
+            background: linear-gradient(45deg, #007bff, #6f42c1);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-card p-5">
+            <div class="text-center">
+                <div class="success-icon mb-4">🎉</div>
+                
+                <h1 class="display-6 fw-bold mb-3">Welcome to Lifetime Premium!</h1>
+                
+                <p class="lead mb-4">
+                    🎉 Your one-time payment was successful! You now have <strong>lifetime access</strong> to all Premium features.
+                </p>
+                
+                <div class="alert alert-success mb-4">
+                    <strong>🔥 You saved $10!</strong> Regular price $39 → You paid only $29
+                </div>
+                
+                <div class="row text-start mb-4">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-2">Now you can:</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-1">✅ Unlimited color sampling</li>
+                            <li class="mb-1">✅ Asset management & download</li>
+                            <li class="mb-1">✅ Tailwind CSS conversion</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-2">Plus:</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-1">✅ Export functionality</li>
+                            <li class="mb-1">✅ Console monitoring</li>
+                            <li class="mb-1">✅ Priority support</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="https://chrome.google.com/webstore" class="btn btn-gradient btn-lg">
+                        🚀 Use Extension Now
+                    </a>
+                    <a href="/" class="btn btn-outline-secondary btn-lg">
+                        ← Back to Home
+                    </a>
+                </div>
+                
+                <div class="mt-4">
+                    <small class="text-muted">
+                        💡 Tip: Refresh your extension or reopen the side panel to see Premium features<br>
+                        🎁 No monthly bills ever again - you own this forever!
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
