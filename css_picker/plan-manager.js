@@ -1,7 +1,7 @@
 // Plan Management System for Chrome Extension
 // Handles user plans, usage limits, and feature restrictions
 
-console.log('=Ë plan-manager.js is loading...');
+console.log('=ï¿½ plan-manager.js is loading...');
 
 class PlanManager {
   constructor() {
@@ -253,7 +253,7 @@ class PlanManager {
       };
     }
   }
-  //øl 
+  //ï¿½l 
   // Track feature usage for analytics
   // async trackUsage(featureName) {
   //   try {
@@ -275,7 +275,7 @@ class PlanManager {
   //     return false;
   //   }
   // }
-  //øl 
+  //ï¿½l 
   // // Send usage tracking to backend
   // async trackUsageOnServer(featureName) {
   //   try {
@@ -297,16 +297,16 @@ class PlanManager {
   //   }
   // }
   
-  //usageøl
+  //usageï¿½l
   // Get current plan info
-  // getCurrentPlan() {
-  //   return {
-  //     name: this.currentPlan,
-  //     ...this.plans[this.currentPlan]
-  //   };
-  // }
+  getCurrentPlan() {
+    return {
+      name: this.currentPlan,
+      ...this.plans[this.currentPlan]
+    };
+  }
   
-  //usageøl
+  //usageï¿½l
   // // Get usage statistics for analytics
   // getUsageStats() {
   //   return {
@@ -338,16 +338,16 @@ class PlanManager {
     };
     
     return {
-      title: '=€ Premium Feature',
+      title: '=ï¿½ Premium Feature',
       message: `${featureNames[featureName] || featureName} is available in Premium plan only.`,
       upgradeUrl: this.getUpgradeUrl(),
       benefits: [
-        '<¨ Unlimited color sampling & palettes',
-        '=æ Asset collection & download',
-        '<¯ CSS to Tailwind conversion',
-        '=¥ Advanced console monitoring',
-        '=ä Export functionality (CSS, colors, etc.)',
-        '¡ Priority support'
+        '<ï¿½ Unlimited color sampling & palettes',
+        '=ï¿½ Asset collection & download',
+        '<ï¿½ CSS to Tailwind conversion',
+        '=ï¿½ Advanced console monitoring',
+        '=ï¿½ Export functionality (CSS, colors, etc.)',
+        'ï¿½ Priority support'
       ]
     };
   }
