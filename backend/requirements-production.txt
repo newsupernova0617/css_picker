@@ -39,4 +39,4 @@ redis==5.0.1
 
 # Production utilities
 supervisor==4.2.5
-psutil==5.9.6
+psutil==5.9.6clerk-backend-api==3.0.0
