@@ -1,0 +1,78 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 메인 그라디언트 -->
+    <linearGradient id="mainBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb"/>
+      <stop offset="100%" style="stop-color:#7c3aed"/>
+    </linearGradient>
+    
+    <!-- 글로우 효과 -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- 그림자 -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="rgba(37, 99, 235, 0.4)"/>
+    </filter>
+  </defs>
+  
+  <!-- 배경 -->
+  <circle cx="64" cy="64" r="56" fill="url(#mainBg)" filter="url(#shadow)"/>
+  
+  <!-- 초간단 CSS 심볼 (중앙의 브레이스) -->
+  <g transform="translate(64, 64)">
+    <!-- 매우 추상화된 브레이스 -->
+    <path d="M-20 -20 Q-28 -20 -28 -12 L-28 -4 L-32 0 L-28 4 L-28 12 Q-28 20 -20 20" 
+          fill="#ffffff" opacity="0.95"/>
+    <path d="M20 -20 Q28 -20 28 -12 L28 -4 L32 0 L28 4 L28 12 Q28 20 20 20" 
+          fill="#ffffff" opacity="0.95"/>
+  </g>
+  
+  <!-- 극도로 추상화된 "추출" - 기하학적 패턴 -->
+  <g>
+    <!-- 방사형 패턴 (8방향으로 속성들이 퍼져나감) -->
+    <g transform="translate(64, 64)">
+      <!-- 상 -->
+      <rect x="-1" y="-45" width="2" height="8" rx="1" fill="#ef4444" opacity="0.8"/>
+      
+      <!-- 우상 -->
+      <rect x="28" y="-35" width="8" height="2" rx="1" fill="#f59e0b" opacity="0.7" 
+            transform="rotate(45 32 -34)"/>
+      
+      <!-- 우 -->
+      <rect x="35" y="-1" width="12" height="2" rx="1" fill="#10b981" opacity="0.9"/>
+      
+      <!-- 우하 -->
+      <rect x="28" y="32" width="6" height="2" rx="1" fill="#06b6d4" opacity="0.6" 
+            transform="rotate(-45 31 33)"/>
+      
+      <!-- 하 -->
+      <rect x="-1" y="38" width="2" height="6" rx="1" fill="#8b5cf6" opacity="0.7"/>
+      
+      <!-- 좌하 -->
+      <rect x="-32" y="28" width="4" height="2" rx="1" fill="#d946ef" opacity="0.5" 
+            transform="rotate(45 -30 29)"/>
+      
+      <!-- 좌 -->
+      <rect x="-42" y="-1" width="10" height="2" rx="1" fill="#84cc16" opacity="0.8"/>
+      
+      <!-- 좌상 -->
+      <rect x="-34" y="-32" width="6" height="2" rx="1" fill="#ec4899" opacity="0.6" 
+            transform="rotate(-45 -31 -31)"/>
+    </g>
+  </g>
+  
+  <!-- 중심에서 퍼지는 미세한 원들 -->
+  <g fill="rgba(255,255,255,0.3)">
+    <circle cx="64" cy="64" r="1"/>
+    <circle cx="70" cy="64" r="0.5"/>
+    <circle cx="58" cy="64" r="0.5"/>
+    <circle cx="64" cy="70" r="0.5"/>
+    <circle cx="64" cy="58" r="0.5"/>
+  </g>
+</svg>

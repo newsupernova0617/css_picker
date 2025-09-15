@@ -1,0 +1,38 @@
+[Unit]
+Description=CSS Picker Flask Application
+After=network.target
+Wants=network.target
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/csspicker/backend
+Environment=PATH=/var/www/csspicker/backend/venv/bin
+Environment=FLASK_ENV=production
+ExecStart=/var/www/csspicker/backend/venv/bin/gunicorn --config gunicorn_config.py wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+RestartSec=10
+KillMode=mixed
+TimeoutStopSec=30
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/csspicker
+ReadWritePaths=/var/log/csspicker
+ReadWritePaths=/var/run/csspicker
+
+# Security settings
+NoNewPrivileges=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=32768
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,57 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- 배경 그라디언트 정의 -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea"/>
+      <stop offset="100%" style="stop-color:#764ba2"/>
+    </linearGradient>
+    
+    <linearGradient id="dropperGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b6b"/>
+      <stop offset="50%" style="stop-color:#4ecdc4"/>
+      <stop offset="100%" style="stop-color:#45b7d1"/>
+    </linearGradient>
+    
+    <!-- 아이콘 그림자 -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.3)"/>
+    </filter>
+  </defs>
+  
+  <!-- 메인 배경 (rounded rectangle) -->
+  <rect width="128" height="128" rx="28" ry="28" fill="url(#bgGradient)" filter="url(#shadow)"/>
+  
+  <!-- CSS 여는 브레이스 { -->
+  <path d="M32 38 C26 38 22 42 22 48 L22 52 C22 54 20 56 18 56 L18 58 C20 58 22 60 22 62 L22 66 C22 72 26 76 32 76" 
+        stroke="#ffffff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- CSS 닫는 브레이스 } -->
+  <path d="M96 38 C102 38 106 42 106 48 L106 52 C106 54 108 56 110 56 L110 58 C108 58 106 60 106 62 L106 66 C106 72 102 76 96 76" 
+        stroke="#ffffff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- 컬러 피커 드롭퍼 메인 -->
+  <circle cx="64" cy="48" r="10" fill="url(#dropperGradient)" stroke="#ffffff" stroke-width="2"/>
+  
+  <!-- 드롭퍼 핸들 -->
+  <path d="M64 38 L68 34 L71 37 L67 41 Z" fill="#ffffff" stroke="none"/>
+  
+  <!-- 드롭퍼 스틱 -->
+  <rect x="62" y="58" width="4" height="12" rx="2" fill="#ffffff"/>
+  
+  <!-- 컬러 팔레트 도트들 -->
+  <g>
+    <!-- 왼쪽 빨간색 -->
+    <circle cx="42" cy="88" r="8" fill="#ff6b6b" stroke="#ffffff" stroke-width="2"/>
+    
+    <!-- 중앙 청록색 -->
+    <circle cx="64" cy="88" r="8" fill="#4ecdc4" stroke="#ffffff" stroke-width="2"/>
+    
+    <!-- 오른쪽 파란색 -->
+    <circle cx="86" cy="88" r="8" fill="#45b7d1" stroke="#ffffff" stroke-width="2"/>
+  </g>
+  
+  <!-- PRO 뱃지 -->
+  <rect x="48" y="102" width="32" height="16" rx="8" fill="rgba(255,255,255,0.2)" stroke="#ffffff" stroke-width="1"/>
+  <text x="64" y="112" font-family="Arial, sans-serif" font-size="10" font-weight="bold" 
+        text-anchor="middle" fill="#ffffff">PRO</text>
+</svg>
