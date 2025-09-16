@@ -8,3 +8,4 @@ python-dotenv==1.0.0
 gunicorn==21.2.0
 requests==2.31.0
 clerk-backend-api==3.3.0
+sentry-sdk[flask]==2.37.1

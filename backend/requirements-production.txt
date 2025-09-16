@@ -41,3 +41,4 @@ redis==5.0.1
 # Production utilities
 supervisor==4.2.5
 psutil==5.9.6
+sentry-sdk[flask]==2.37.1
