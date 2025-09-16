@@ -3,7 +3,10 @@
     "allow": [
       "Bash(cat:*)",
       "Bash(find:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Read(//c/**)",
+      "mcp__github__get_file_contents",
+      "mcp__github__create_or_update_file"
     ],
     "deny": [],
     "ask": []
