@@ -71,50 +71,68 @@ class PlanManager {
     return this.initializationPromise;
   }
   
-  // Wait for Clerk client to be available AND fully loaded
+  // Wait for Clerk client to be available AND fully loaded with Promise coordination
   async waitForClerkClient() {
-    const maxWait = 10000; // 10 seconds max wait (increased)
+    const maxWait = 15000; // 15 seconds max wait (increased for reliability)
     const checkInterval = 100; // Check every 100ms
     let waited = 0;
-    
-    console.log('Waiting for Clerk client to be available and loaded...');
-    
-    while (waited < maxWait) {
-      if (typeof clerkClient !== 'undefined') {
-        console.log('Clerk client is defined, checking if loaded...');
-        
-        // CRITICAL: Also wait for Clerk to be fully loaded, not just defined
-        if (clerkClient.isLoaded) {
-          console.log('Clerk client is fully loaded');
-          
-          // Additional validation - check if authentication state is consistent
-          const isSignedIn = clerkClient.isSignedIn;
-          const hasUser = !!clerkClient.user;
-          const hasSessionToken = !!clerkClient.sessionToken;
-          
-          console.log(`Authentication state - SignedIn: ${isSignedIn}, HasUser: ${hasUser}, HasToken: ${hasSessionToken}`);
-          
-          // If signed in, verify we have the necessary data for backend calls
-          if (isSignedIn && (!hasUser || !hasSessionToken)) {
-            console.warn('User appears signed in but missing user data or session token, waiting...');
-            await new Promise(resolve => setTimeout(resolve, 500));
-            continue;
+
+    console.log('🔄 Waiting for Clerk client to be available and loaded...');
+
+    // Create a promise that resolves when clerk is ready
+    const clerkReadyPromise = new Promise((resolve, reject) => {
+      const checkClerkReady = async () => {
+        try {
+          if (typeof clerkClient !== 'undefined' && clerkClient.isLoaded) {
+            console.log('✅ Clerk client is fully loaded');
+
+            // Additional validation - check if authentication state is consistent
+            const isSignedIn = clerkClient.isSignedIn;
+            const hasUser = !!clerkClient.user;
+            const hasSessionToken = !!clerkClient.sessionToken;
+
+            console.log(`🔍 Authentication state - SignedIn: ${isSignedIn}, HasUser: ${hasUser}, HasToken: ${hasSessionToken}`);
+
+            // If signed in, verify we have the necessary data for backend calls
+            if (isSignedIn && (!hasUser || !hasSessionToken)) {
+              console.warn('⚠️ User appears signed in but missing user data or session token, retrying...');
+              // Add exponential backoff for auth data loading
+              await new Promise(resolve => setTimeout(resolve, Math.min(500 + waited, 2000)));
+              if (waited < maxWait) {
+                setTimeout(checkClerkReady, checkInterval);
+                return;
+              }
+            }
+
+            console.log('✅ Clerk client ready for authentication operations');
+            resolve();
+            return;
           }
-          
-          console.log('Clerk client ready for authentication operations');
-          return;
-        } else {
-          console.log('Clerk client defined but not yet loaded, waiting...');
+
+          // Log current state for debugging
+          if (typeof clerkClient === 'undefined') {
+            console.log('⏳ Clerk client not yet defined, waiting...');
+          } else if (!clerkClient.isLoaded) {
+            console.log('⏳ Clerk client defined but not yet loaded, waiting...');
+          }
+
+        } catch (error) {
+          console.error('❌ Error checking Clerk client state:', error);
         }
-      } else {
-        console.log('Clerk client not yet defined, waiting...');
-      }
-      
-      await new Promise(resolve => setTimeout(resolve, checkInterval));
-      waited += checkInterval;
-    }
-    
-    console.warn('Clerk client not fully ready within timeout, continuing with free plan fallback');
+
+        waited += checkInterval;
+        if (waited >= maxWait) {
+          console.warn('⚠️ Clerk client not fully ready within timeout, continuing with fallback');
+          resolve(); // Don't reject, just continue with fallback
+        } else {
+          setTimeout(checkClerkReady, checkInterval);
+        }
+      };
+
+      checkClerkReady();
+    });
+
+    return clerkReadyPromise;
   }
 
   async _performInit() {
@@ -469,26 +487,57 @@ class PlanManager {
     checkForClerkClient();
   }
 
-  // Handle authentication state changes
+  // Handle authentication state changes with enhanced coordination
   async handleAuthenticationChange(event, client) {
     try {
-      console.log('Plan Manager: Authentication event:', event);
-      
+      console.log('🔄 Plan Manager: Authentication event:', event);
+
       if (event === 'signIn' || event === 'signOut') {
-        console.log('Plan Manager: Refreshing plan due to auth change');
-        
+        console.log('🔄 Plan Manager: Refreshing plan due to auth change');
+
         // Reset initialization state to force reload
         this.isReady = false;
         this.initializationPromise = null;
-        
-        // Reinitialize plan manager
-        await this.refreshPlanAndNotify();
-        
+
+        // Add delay to ensure auth data is fully processed
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Reinitialize plan manager with retry logic
+        let retryCount = 0;
+        const maxRetries = 3;
+
+        while (retryCount < maxRetries) {
+          try {
+            await this.refreshPlanAndNotify();
+            console.log('✅ Plan Manager: Successfully refreshed plan after auth change');
+            break;
+          } catch (error) {
+            retryCount++;
+            console.warn(`⚠️ Plan Manager: Plan refresh attempt ${retryCount} failed:`, error);
+            if (retryCount < maxRetries) {
+              await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Exponential backoff
+            } else {
+              console.error('❌ Plan Manager: All plan refresh attempts failed');
+            }
+          }
+        }
+
         // Notify callbacks about plan update
         this.notifyPlanUpdateCallbacks(event);
+
+        // Trigger UI refresh for sidepanel if available
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+          chrome.runtime.sendMessage({
+            type: 'PLAN_UPDATED',
+            plan: this.currentPlan,
+            event: event
+          }).catch(() => {
+            console.log('Sidepanel not available for plan update notification');
+          });
+        }
       }
     } catch (error) {
-      console.error('Plan Manager: Error handling auth change:', error);
+      console.error('❌ Plan Manager: Error handling auth change:', error);
     }
   }
 

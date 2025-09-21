@@ -96,43 +96,153 @@ class ClerkExtensionClient {
   async handleAuthSuccess(authData) {
     try {
       console.log('🎉 Processing authentication success...');
-      
-      // Validate auth data
-      if (!authData.user || !authData.sessionToken) {
-        throw new Error('Invalid auth data: missing user or sessionToken');
+
+      // Enhanced validation of auth data
+      if (!authData || typeof authData !== 'object') {
+        throw new Error('Invalid auth data: data is null or not an object');
       }
-      
+
+      if (!authData.user || typeof authData.user !== 'object' || !authData.user.id) {
+        throw new Error('Invalid auth data: missing or invalid user object');
+      }
+
+      if (!authData.sessionToken || typeof authData.sessionToken !== 'string') {
+        throw new Error('Invalid auth data: missing or invalid sessionToken');
+      }
+
       this.user = authData.user;
       this.sessionToken = authData.sessionToken;
       this.isSignedIn = true;
-      
+
       console.log('💾 Storing session data to chrome.storage.local...');
-      
-      // Store in chrome storage with validation
-      await chrome.storage.local.set({
-        clerk_session: this.sessionToken,
-        clerk_user: this.user
-      });
-      
-      // Verify storage was successful
-      const verification = await chrome.storage.local.get(['clerk_session', 'clerk_user']);
-      if (verification.clerk_session && verification.clerk_user) {
-        console.log('✅ Session data successfully persisted to storage');
-      } else {
-        console.error('❌ Failed to verify session data storage');
+
+      // Store in chrome storage with enhanced error handling
+      let storageAttempts = 0;
+      const maxStorageAttempts = 3;
+      let storageSuccess = false;
+
+      while (storageAttempts < maxStorageAttempts && !storageSuccess) {
+        try {
+          storageAttempts++;
+
+          await chrome.storage.local.set({
+            clerk_session: this.sessionToken,
+            clerk_user: this.user,
+            auth_timestamp: Date.now() // Add timestamp for debugging
+          });
+
+          // Verify storage was successful
+          const verification = await chrome.storage.local.get(['clerk_session', 'clerk_user']);
+          if (verification.clerk_session && verification.clerk_user) {
+            console.log('✅ Session data successfully persisted to storage');
+            storageSuccess = true;
+          } else {
+            throw new Error('Storage verification failed - data not found after save');
+          }
+
+        } catch (storageError) {
+          console.warn(`⚠️ Storage attempt ${storageAttempts} failed:`, storageError);
+          if (storageAttempts < maxStorageAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 500 * storageAttempts));
+          } else {
+            console.error('❌ All storage attempts failed, continuing without persistence');
+          }
+        }
       }
-      
+
       console.log('🔔 Notifying auth listeners of sign in...');
       this.notifyListeners('signIn');
+
+      // Trigger plan synchronization if plan manager is available
+      if (typeof planManager !== 'undefined') {
+        console.log('🔄 CLERK CONFIG: Triggering plan sync after auth success...');
+        try {
+          // Add small delay to ensure all components are ready
+          setTimeout(async () => {
+            try {
+              await planManager.handleAuthenticationChange('signIn', this);
+              console.log('✅ CLERK CONFIG: Plan sync triggered successfully');
+            } catch (planError) {
+              console.error('❌ CLERK CONFIG: Plan sync trigger failed:', planError);
+            }
+          }, 300);
+        } catch (error) {
+          console.error('❌ CLERK CONFIG: Failed to trigger plan sync:', error);
+        }
+      }
+
     } catch (error) {
       console.error('❌ Failed to handle auth success:', error);
-      // Don't clear session on storage errors - just log them
+
+      // Enhanced error recovery
+      this.handleAuthError(error.message);
+
+      // Don't clear session on validation/storage errors unless critical
+      if (error.message.includes('Invalid auth data')) {
+        console.log('🧹 Clearing invalid session data due to validation failure');
+        await this.signOut();
+      }
     }
   }
   
   handleAuthError(error) {
-    console.error('Authentication error:', error);
+    console.error('❌ Authentication error:', error);
+
+    // Enhanced error handling and recovery
+    const errorMessage = typeof error === 'string' ? error : error?.message || 'Unknown authentication error';
+
+    // Log detailed error information for debugging
+    console.error('🔍 Auth Error Details:', {
+      error: errorMessage,
+      isSignedIn: this.isSignedIn,
+      hasUser: !!this.user,
+      hasSessionToken: !!this.sessionToken,
+      timestamp: new Date().toISOString()
+    });
+
+    // Attempt recovery for specific error types
+    if (errorMessage.includes('Invalid auth data') || errorMessage.includes('session')) {
+      console.log('🔄 Attempting auth error recovery...');
+      this.attemptAuthRecovery();
+    }
+
     this.notifyListeners('authError');
+  }
+
+  // Attempt to recover from authentication errors
+  async attemptAuthRecovery() {
+    try {
+      console.log('🔄 Starting authentication recovery...');
+
+      // Check if we have valid data in storage
+      const stored = await chrome.storage.local.get(['clerk_session', 'clerk_user']);
+
+      if (stored.clerk_session && stored.clerk_user) {
+        console.log('🔍 Found stored auth data, attempting validation...');
+
+        // Validate the stored session
+        const isValid = await this.checkExistingSession();
+        if (isValid) {
+          console.log('✅ Recovery successful - session is valid');
+          this.sessionToken = stored.clerk_session;
+          this.user = stored.clerk_user;
+          this.isSignedIn = true;
+          this.notifyListeners('signIn');
+          return true;
+        } else {
+          console.log('❌ Stored session is invalid, clearing...');
+          await this.signOut();
+        }
+      } else {
+        console.log('ℹ️ No stored auth data found for recovery');
+      }
+
+      return false;
+
+    } catch (recoveryError) {
+      console.error('❌ Auth recovery failed:', recoveryError);
+      return false;
+    }
   }
   
   // Redirect to landing page for Clerk authentication

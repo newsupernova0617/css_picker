@@ -52,16 +52,186 @@ class ClerkExtensionClient {
     }
   }
   
-  // 백그라운드 스크립트로부터 인증 업데이트 메시지를 수신하기 위한 리스너 설정
+  // Enhanced message listener for reactive UI updates
   setupMessageListener() {
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      // Clerk 인증 업데이트 메시지를 받았을 때
-      if (message.type === 'CLERK_AUTH_UPDATE' && message.data) {
-        console.log('Received auth update from background:', message.data);
-        this.handleAuthSuccess(message.data); // 인증 성공 처리
-        sendResponse({ success: true });
+    chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+      try {
+        console.log('🔔 SIDEPANEL CLERK: Received message:', message.type);
+
+        switch (message.type) {
+          case 'CLERK_AUTH_UPDATE':
+            if (message.data) {
+              console.log('🔐 SIDEPANEL CLERK: Processing auth update:', message.data);
+
+              // Handle immediate updates faster
+              if (message.immediate) {
+                console.log('⚡ SIDEPANEL CLERK: Processing immediate auth update');
+
+                // Update auth UI instantly without waiting for plan sync
+                if (typeof window !== 'undefined' && window.cssSidepanel) {
+                  window.cssSidepanel.updateAuthUI('signed-in');
+
+                  // Update home message immediately if on home
+                  if (window.cssSidepanel.currentSection === 'home') {
+                    window.cssSidepanel.updateHomeWelcomeMessage();
+                  }
+                }
+
+                // Process full auth success in background
+                this.handleAuthSuccess(message.data);
+              } else {
+                await this.handleAuthSuccess(message.data);
+              }
+
+              sendResponse({ success: true });
+            }
+            break;
+
+          case 'PLAN_UPDATED':
+            console.log('📋 SIDEPANEL CLERK: Plan updated:', message.plan);
+            await this.handlePlanUpdate(message.plan, message.event);
+            sendResponse({ success: true });
+            break;
+
+          case 'UI_REFRESH_REQUIRED':
+            console.log('🎨 SIDEPANEL CLERK: UI refresh required:', message.reason);
+            await this.handleUIRefresh(message);
+            sendResponse({ success: true });
+            break;
+
+          default:
+            sendResponse({ success: false, message: 'Unknown message type' });
+        }
+      } catch (error) {
+        console.error('❌ SIDEPANEL CLERK: Message handling error:', error);
+        sendResponse({ success: false, error: error.message });
       }
     });
+
+    // Add Chrome storage listener for real-time updates
+    this.setupStorageListener();
+  }
+
+  // Setup Chrome storage listener for authentication state changes
+  setupStorageListener() {
+    if (chrome.storage && chrome.storage.onChanged) {
+      chrome.storage.onChanged.addListener(async (changes, areaName) => {
+        if (areaName === 'local') {
+          // Watch for authentication-related storage changes
+          if (changes.clerk_session || changes.clerk_user || changes.auth_update_timestamp) {
+            console.log('🔄 SIDEPANEL CLERK: Storage auth changes detected:', Object.keys(changes));
+            await this.handleStorageAuthChange(changes);
+          }
+
+          // Watch for plan-related storage changes
+          if (changes.user_plan) {
+            console.log('📋 SIDEPANEL CLERK: Plan change detected in storage:', changes.user_plan);
+            await this.handleStoragePlanChange(changes.user_plan);
+          }
+        }
+      });
+    }
+  }
+
+  // Handle storage-based authentication changes
+  async handleStorageAuthChange(changes) {
+    try {
+      // Check if we have valid auth data in storage
+      const result = await chrome.storage.local.get(['clerk_session', 'clerk_user', 'last_plan_sync_success']);
+
+      if (result.clerk_session && result.clerk_user) {
+        console.log('✅ SIDEPANEL CLERK: Valid auth data found in storage, triggering update');
+
+        // Update clerk client state
+        if (this.sessionToken !== result.clerk_session) {
+          this.sessionToken = result.clerk_session;
+          this.user = result.clerk_user;
+          this.isSignedIn = true;
+
+          // Trigger auth success processing
+          await this.handleAuthSuccess({
+            user: result.clerk_user,
+            sessionToken: result.clerk_session
+          });
+
+          // Immediate update home message if on home section
+          if (typeof window !== 'undefined' && window.cssSidepanel && window.cssSidepanel.currentSection === 'home') {
+            window.cssSidepanel.updateHomeWelcomeMessage();
+          }
+        }
+      } else {
+        console.log('🔓 SIDEPANEL CLERK: Auth data cleared from storage');
+        this.sessionToken = null;
+        this.user = null;
+        this.isSignedIn = false;
+        this.notifyListeners('signOut');
+      }
+    } catch (error) {
+      console.error('❌ SIDEPANEL CLERK: Storage auth change handling failed:', error);
+    }
+  }
+
+  // Handle storage-based plan changes
+  async handleStoragePlanChange(planChange) {
+    try {
+      if (planChange.newValue && planChange.newValue !== planChange.oldValue) {
+        console.log('📋 SIDEPANEL CLERK: Plan changed from', planChange.oldValue, 'to', planChange.newValue);
+
+        // Trigger UI updates if sidepanel is available
+        if (typeof window !== 'undefined' && window.cssSidepanel) {
+          await window.cssSidepanel.updatePlanUI();
+          await window.cssSidepanel.setupPremiumLocks();
+
+          // Update home message if we're on home section
+          if (window.cssSidepanel.currentSection === 'home') {
+            window.cssSidepanel.updateHomeWelcomeMessage();
+          }
+
+          console.log('✅ SIDEPANEL CLERK: UI updated for plan change');
+        }
+      }
+    } catch (error) {
+      console.error('❌ SIDEPANEL CLERK: Storage plan change handling failed:', error);
+    }
+  }
+
+  // Handle plan update messages
+  async handlePlanUpdate(newPlan, event) {
+    try {
+      console.log('📋 SIDEPANEL CLERK: Processing plan update:', newPlan, 'event:', event);
+
+      // Trigger UI updates if sidepanel is available
+      if (typeof window !== 'undefined' && window.cssSidepanel) {
+        await window.cssSidepanel.updatePlanUI();
+        await window.cssSidepanel.setupPremiumLocks();
+        console.log('✅ SIDEPANEL CLERK: UI updated for plan update message');
+      }
+    } catch (error) {
+      console.error('❌ SIDEPANEL CLERK: Plan update handling failed:', error);
+    }
+  }
+
+  // Handle UI refresh requirements
+  async handleUIRefresh(refreshMessage) {
+    try {
+      console.log('🎨 SIDEPANEL CLERK: Processing UI refresh:', refreshMessage.reason);
+
+      // Trigger comprehensive UI refresh if sidepanel is available
+      if (typeof window !== 'undefined' && window.cssSidepanel) {
+        // Force refresh authentication state
+        await window.cssSidepanel.initializeAuthentication();
+
+        // Update plan UI
+        await window.cssSidepanel.updatePlanUI();
+
+        // Setup premium locks
+        await window.cssSidepanel.setupPremiumLocks();
+
+        console.log('✅ SIDEPANEL CLERK: Comprehensive UI refresh completed');
+      }
+    } catch (error) {
+      console.error('❌ SIDEPANEL CLERK: UI refresh handling failed:', error);
+    }
   }
   
   // 로그인 성공 시 실행되는 함수
@@ -79,21 +249,88 @@ class ClerkExtensionClient {
       });
       
       this.notifyListeners('signIn'); // 로그인 이벤트 알림
-      
-      // 로그인 성공 후 구독 플랜 동기화 및 UI 업데이트
-      if (typeof planManager !== 'undefined') {
-        console.log('Syncing plan after login...');
-        await planManager.refreshPlanAndNotify();  // 백엔드에서 플랜 상태 가져오기
-        console.log('Plan synced:', planManager.currentPlan);
-        
-        // UI 업데이트 (사이드패널이 있는 경우)
-        if (typeof window !== 'undefined' && window.cssSidepanel) {
-          await window.cssSidepanel.updatePlanUI();         // 플랜에 맞는 UI 업데이트
-          await window.cssSidepanel.setupPremiumLocks();    // 프리미엄 기능 잠금 설정
+
+      // 🚀 IMMEDIATE AUTH UI UPDATE - Don't wait for plan sync
+      if (typeof window !== 'undefined' && window.cssSidepanel) {
+        console.log('⚡ SIDEPANEL CLERK: Immediate auth UI update');
+
+        // Update auth UI instantly
+        window.cssSidepanel.updateAuthUI('signed-in');
+
+        // Update home message immediately if on home section
+        if (window.cssSidepanel.currentSection === 'home') {
+          window.cssSidepanel.updateHomeWelcomeMessage();
         }
+
+        console.log('✅ SIDEPANEL CLERK: Immediate auth UI updated');
+      }
+
+      // 🔄 BACKGROUND PLAN SYNC - Don't block UI updates
+      if (typeof planManager !== 'undefined') {
+        // Run plan sync in background without blocking UI
+        this.performBackgroundPlanSync().catch(error => {
+          console.error('❌ SIDEPANEL CLERK: Background plan sync failed:', error);
+        });
       }
     } catch (error) {
       console.error('Failed to handle auth success:', error);
+    }
+  }
+
+  // Background plan synchronization without blocking UI updates
+  async performBackgroundPlanSync() {
+    console.log('🔄 SIDEPANEL CLERK: Starting background plan sync...');
+
+    try {
+      // Wait for plan manager to be ready
+      await planManager.waitForReady();
+
+      // Force refresh plan from backend with retry
+      let syncAttempts = 0;
+      const maxSyncAttempts = 3;
+      let syncSuccess = false;
+
+      while (syncAttempts < maxSyncAttempts && !syncSuccess) {
+        try {
+          syncAttempts++;
+          await planManager.refreshPlanAndNotify();
+          syncSuccess = true;
+          console.log('✅ SIDEPANEL CLERK: Background plan synced successfully:', planManager.currentPlan);
+        } catch (syncError) {
+          console.warn(`⚠️ SIDEPANEL CLERK: Background plan sync attempt ${syncAttempts} failed:`, syncError);
+          if (syncAttempts < maxSyncAttempts) {
+            // Reduced delay for faster retries
+            await new Promise(resolve => setTimeout(resolve, 500 * syncAttempts));
+          }
+        }
+      }
+
+      // Update plan-related UI after successful sync
+      if (typeof window !== 'undefined' && window.cssSidepanel) {
+        console.log('🎨 SIDEPANEL CLERK: Updating plan UI after background sync...');
+
+        try {
+          await window.cssSidepanel.updatePlanUI();
+          await window.cssSidepanel.setupPremiumLocks();
+
+          console.log('✅ SIDEPANEL CLERK: Plan UI updated after background sync');
+        } catch (uiError) {
+          console.error('❌ SIDEPANEL CLERK: Plan UI update failed:', uiError);
+          // Single retry without excessive delays
+          setTimeout(async () => {
+            try {
+              await window.cssSidepanel.updatePlanUI();
+              await window.cssSidepanel.setupPremiumLocks();
+              console.log('✅ SIDEPANEL CLERK: Plan UI retry successful');
+            } catch (retryError) {
+              console.error('❌ SIDEPANEL CLERK: Plan UI retry failed:', retryError);
+            }
+          }, 1000);
+        }
+      }
+
+    } catch (error) {
+      console.error('❌ SIDEPANEL CLERK: Background plan sync failed:', error);
     }
   }
   
@@ -3213,30 +3450,102 @@ class SidePanel {
     if (!this.homeWelcomeTitle || !this.homeWelcomeMessage) {
       return;
     }
-    
-    // Check if user is signed in
-    const isSignedIn = this.authSignedIn && this.authSignedIn.style.display !== 'none';
-    
-    if (isSignedIn && this.currentUser) {
+
+    // Get comprehensive authentication state
+    const authState = this.getAuthenticationState();
+
+    console.log('🔍 HOME: Updating welcome message with auth state:', authState);
+
+    if (authState.isAuthenticated && authState.user) {
       // Signed in: personalized welcome
-      this.homeWelcomeTitle.textContent = `🏠 Welcome back, ${this.currentUser.firstName || 'User'}!`;
+      const userName = authState.user.firstName || authState.user.email?.split('@')[0] || 'User';
+      this.homeWelcomeTitle.textContent = `🏠 Welcome back, ${userName}!`;
       this.homeWelcomeMessage.textContent = 'Choose a tool to continue your web development analysis';
-      
+
       // Hide auth prompts when signed in
       if (this.homeAuthPrompt) {
         this.homeAuthPrompt.style.display = 'none';
+        console.log('✅ HOME: Hidden auth prompt for authenticated user');
       }
     } else {
       // Signed out: show auth prompts
       this.homeWelcomeTitle.textContent = '🏠 CSS Picker Extension';
       this.homeWelcomeMessage.textContent = 'Choose a tool to get started with web development analysis';
-      
+
       // Show auth prompt when signed out (only on home screen)
       if (this.currentSection === 'home') {
         if (this.homeAuthPrompt) {
           this.homeAuthPrompt.style.display = 'block';
+          console.log('👁️ HOME: Showing auth prompt for unauthenticated user');
         }
       }
+    }
+  }
+
+  // Get comprehensive authentication state from multiple sources
+  getAuthenticationState() {
+    try {
+      // Primary: Check clerkClient state
+      if (typeof clerkClient !== 'undefined' && clerkClient.isLoaded) {
+        const clerkAuthenticated = clerkClient.isSignedIn;
+        const clerkUser = clerkClient.user;
+        const clerkToken = clerkClient.sessionToken;
+
+        if (clerkAuthenticated && clerkUser && clerkToken) {
+          // Update local state if out of sync
+          if (!this.isSignedIn || !this.currentUser) {
+            console.log('🔄 HOME: Syncing local auth state with Clerk client');
+            this.isSignedIn = true;
+            this.currentUser = clerkUser;
+          }
+
+          return {
+            isAuthenticated: true,
+            user: clerkUser,
+            sessionToken: clerkToken,
+            source: 'clerkClient'
+          };
+        }
+      }
+
+      // Fallback: Check local state
+      if (this.isSignedIn && this.currentUser) {
+        return {
+          isAuthenticated: true,
+          user: this.currentUser,
+          sessionToken: this.sessionToken,
+          source: 'localState'
+        };
+      }
+
+      // Fallback: Check storage
+      chrome.storage.local.get(['clerk_session', 'clerk_user'], (result) => {
+        if (result.clerk_session && result.clerk_user) {
+          console.log('🔄 HOME: Found auth data in storage, updating local state');
+          this.isSignedIn = true;
+          this.currentUser = result.clerk_user;
+          this.sessionToken = result.clerk_session;
+
+          // Refresh UI after storage sync
+          setTimeout(() => this.updateHomeWelcomeMessage(), 100);
+        }
+      });
+
+      return {
+        isAuthenticated: false,
+        user: null,
+        sessionToken: null,
+        source: 'none'
+      };
+
+    } catch (error) {
+      console.error('❌ HOME: Error getting authentication state:', error);
+      return {
+        isAuthenticated: false,
+        user: null,
+        sessionToken: null,
+        source: 'error'
+      };
     }
   }
   
@@ -6122,6 +6431,9 @@ class SidePanel {
         this.authSignedOut.style.display = 'none';
         this.authSignedIn.style.display = 'block';
         this.updateUserInfo();
+
+        // Immediate update of home welcome message - no delay needed
+        this.updateHomeWelcomeMessage();
         break;
         
       case 'error':

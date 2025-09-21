@@ -380,42 +380,156 @@ class BackgroundService {
     });
   }
 
-  // Clerk 인증 성공을 처리하는 함수입니다
-  // background.js
-async handleClerkAuthSuccess(authData) {
-  try {
-    console.log('🔐 BACKGROUND: Processing Clerk auth success:', authData);
+  // Enhanced Clerk authentication success handler with comprehensive coordination
+  async handleClerkAuthSuccess(authData) {
+    try {
+      console.log('🔐 BACKGROUND: Processing Clerk auth success:', authData);
 
-    // Chrome storage에 인증 정보를 저장
-    await chrome.storage.local.set({
-      clerk_session: authData.sessionToken,
-      clerk_user: authData.user
-    });
+      // Validate auth data
+      if (!authData || !authData.sessionToken || !authData.user) {
+        throw new Error('Invalid authentication data received');
+      }
 
-    console.log('🔐 BACKGROUND: Auth data saved to Chrome storage');
+      // Chrome storage에 인증 정보를 저장
+      await chrome.storage.local.set({
+        clerk_session: authData.sessionToken,
+        clerk_user: authData.user
+      });
 
-    // 🔑 플랜 동기화
-    if (typeof planManager !== 'undefined') {
-      console.log('🔄 BACKGROUND: Syncing plan after login...');
-      await planManager.refreshPlanAndNotify();
-      console.log('✅ BACKGROUND: Plan synced:', planManager.currentPlan);
+      console.log('🔐 BACKGROUND: Auth data saved to Chrome storage');
+
+      // 🔑 Enhanced plan synchronization with retry logic
+      let planSyncSuccess = false;
+      let planSyncAttempts = 0;
+      const maxPlanSyncAttempts = 3;
+
+      while (!planSyncSuccess && planSyncAttempts < maxPlanSyncAttempts) {
+        try {
+          planSyncAttempts++;
+          console.log(`🔄 BACKGROUND: Plan sync attempt ${planSyncAttempts}/${maxPlanSyncAttempts}`);
+
+          if (typeof planManager !== 'undefined') {
+            // Wait for plan manager to be ready
+            await planManager.waitForReady();
+
+            // Force refresh plan from backend
+            await planManager.refreshPlanAndNotify();
+
+            console.log('✅ BACKGROUND: Plan synced successfully:', planManager.currentPlan);
+            planSyncSuccess = true;
+
+            // Trigger immediate UI refresh
+            await this.triggerUIRefresh(planManager.currentPlan, authData);
+
+          } else {
+            console.warn('⚠️ BACKGROUND: Plan manager not available');
+            await new Promise(resolve => setTimeout(resolve, 500)); // Wait and retry
+          }
+
+        } catch (syncError) {
+          console.warn(`⚠️ BACKGROUND: Plan sync attempt ${planSyncAttempts} failed:`, syncError);
+          if (planSyncAttempts < maxPlanSyncAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * planSyncAttempts)); // Exponential backoff
+          } else {
+            console.error('❌ BACKGROUND: All plan sync attempts failed');
+          }
+        }
+      }
+
+      // Always notify sidepanel regardless of plan sync status
+      await this.notifySidepanel(authData, planSyncSuccess);
+
+      // Broadcast auth update to all extension contexts
+      await this.broadcastAuthUpdate(authData, planSyncSuccess);
+
+      return {
+        success: true,
+        message: 'Auth data processed successfully',
+        planSyncSuccess: planSyncSuccess
+      };
+
+    } catch (error) {
+      console.error('❌ BACKGROUND: Failed to handle auth success:', error);
+      return { success: false, error: error.message };
     }
-
-    // 사이드패널에 알림
-    chrome.runtime.sendMessage({
-      type: 'CLERK_AUTH_UPDATE',
-      data: authData
-    }).catch(() => {
-      console.log('Sidepanel not open, auth data saved to storage');
-    });
-
-    return { success: true, message: 'Auth data processed successfully' };
-
-  } catch (error) {
-    console.error('Background: Failed to handle auth success:', error);
-    return { success: false, error: error.message };
   }
-}
+
+  // Trigger immediate UI refresh after authentication
+  async triggerUIRefresh(currentPlan, authData) {
+    try {
+      console.log('🎨 BACKGROUND: Triggering immediate UI refresh for plan:', currentPlan);
+
+      // Send immediate auth update first (highest priority)
+      chrome.runtime.sendMessage({
+        type: 'CLERK_AUTH_UPDATE',
+        data: authData,
+        immediate: true
+      }).catch(() => {
+        console.log('Sidepanel not available for immediate auth update');
+      });
+
+      // Send other updates with slight stagger to avoid overwhelming
+      setTimeout(() => {
+        chrome.runtime.sendMessage({
+          type: 'PLAN_UPDATED',
+          plan: currentPlan,
+          event: 'signIn'
+        }).catch(() => {
+          console.log('Sidepanel not available for plan update');
+        });
+      }, 50);
+
+      setTimeout(() => {
+        chrome.runtime.sendMessage({
+          type: 'UI_REFRESH_REQUIRED',
+          reason: 'auth_success',
+          plan: currentPlan
+        }).catch(() => {
+          console.log('Sidepanel not available for UI refresh');
+        });
+      }, 100);
+
+      console.log('✅ BACKGROUND: Immediate UI refresh triggers sent');
+
+    } catch (error) {
+      console.error('❌ BACKGROUND: Failed to trigger UI refresh:', error);
+    }
+  }
+
+  // Enhanced sidepanel notification
+  async notifySidepanel(authData, planSyncSuccess) {
+    try {
+      const notificationMessage = {
+        type: 'CLERK_AUTH_UPDATE',
+        data: authData,
+        planSyncSuccess: planSyncSuccess,
+        timestamp: Date.now()
+      };
+
+      chrome.runtime.sendMessage(notificationMessage).catch(() => {
+        console.log('Sidepanel not open, auth data saved to storage');
+      });
+
+    } catch (error) {
+      console.error('❌ BACKGROUND: Failed to notify sidepanel:', error);
+    }
+  }
+
+  // Broadcast authentication update to all contexts
+  async broadcastAuthUpdate(authData, planSyncSuccess) {
+    try {
+      // Store success flag for components that check storage
+      await chrome.storage.local.set({
+        auth_update_timestamp: Date.now(),
+        last_plan_sync_success: planSyncSuccess
+      });
+
+      console.log('✅ BACKGROUND: Auth update broadcasted to all contexts');
+
+    } catch (error) {
+      console.error('❌ BACKGROUND: Failed to broadcast auth update:', error);
+    }
+  }
 
 
   // 리소스를 정리하는 함수입니다 (메모리 누수 방지)
