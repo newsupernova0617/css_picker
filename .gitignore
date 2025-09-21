@@ -4,10 +4,18 @@ node_modules/
 
 # Environment files
 .env
+.env.*
+*.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.railway
+backend/.env
+backend/.env.*
+backend/*.env
+css_picker/.env
+css_picker/.env.*
 
 # Python cache
 __pycache__/
@@ -36,3 +44,33 @@ logs/
 
 # Claude settings
 .claude/settings.local.json
+
+# API Keys and Secrets
+*.key
+*.pem
+*.cert
+*.crt
+*.p12
+*_secret*
+*_api_key*
+secrets/
+credentials/
+
+# Stripe specific
+stripe_*.json
+.stripe/
+
+# Clerk specific
+.clerk/
+clerk_*.json
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+turso_*.json
+
+# Sensitive configuration
+config.local.js
+config.local.json
+settings.local.json
