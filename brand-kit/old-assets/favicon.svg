@@ -1,0 +1,24 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Favicon 최적화 버전 - 랜딩페이지용 -->
+  <defs>
+    <linearGradient id="faviconBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea"/>
+      <stop offset="100%" style="stop-color:#764ba2"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- 배경 -->
+  <rect width="32" height="32" rx="6" fill="url(#faviconBg)"/>
+  
+  <!-- 중앙 CSS 심볼 -->
+  <text x="16" y="12" font-family="monospace" font-size="8" font-weight="bold" 
+        text-anchor="middle" fill="#ffffff">{ }</text>
+  
+  <!-- 컬러 드롭 -->
+  <circle cx="16" cy="18" r="3" fill="#4ecdc4" stroke="#ffffff" stroke-width="1"/>
+  
+  <!-- 하단 컬러 바 -->
+  <rect x="6" y="26" width="6" height="2" fill="#ff6b6b"/>
+  <rect x="13" y="26" width="6" height="2" fill="#4ecdc4"/>
+  <rect x="20" y="26" width="6" height="2" fill="#45b7d1"/>
+</svg>

@@ -1,0 +1,71 @@
+# CSS Picker Backend - Development Docker Compose
+version: '3.8'
+
+services:
+  # Flask Application for Development
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: development
+    container_name: csspicker-app-dev
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - GUNICORN_WORKERS=1
+      - LOG_LEVEL=debug
+    env_file:
+      - ../.env
+    volumes:
+      - ..:/app:rw  # Mount source code for hot reloading
+      - ../logs:/var/log/csspicker:rw
+    ports:
+      - "5000:5000"  # Direct access for development
+    networks:
+      - csspicker-dev-network
+    command: ["python", "-m", "flask", "run", "--host=0.0.0.0", "--port=5000", "--debug"]
+    depends_on:
+      - redis-dev
+
+  # Development Nginx (optional)
+  nginx-dev:
+    image: nginx:alpine
+    container_name: csspicker-nginx-dev
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ../nginx/dev.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../static:/var/www/static:ro
+    networks:
+      - csspicker-dev-network
+    depends_on:
+      - app
+
+  # Redis for Development
+  redis-dev:
+    image: redis:7-alpine
+    container_name: csspicker-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"  # Expose for external access
+    command: redis-server --appendonly no
+    networks:
+      - csspicker-dev-network
+
+  # Database GUI (optional - for development)
+  adminer:
+    image: adminer
+    container_name: csspicker-adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    networks:
+      - csspicker-dev-network
+    environment:
+      - ADMINER_DEFAULT_SERVER=database
+
+networks:
+  csspicker-dev-network:
+    driver: bridge

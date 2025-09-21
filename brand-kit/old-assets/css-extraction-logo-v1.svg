@@ -1,0 +1,107 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 메인 브랜드 그라디언트 -->
+    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb"/>
+      <stop offset="100%" style="stop-color:#7c3aed"/>
+    </linearGradient>
+    
+    <!-- 속성 그라디언트들 -->
+    <linearGradient id="colorProp" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ef4444"/>
+      <stop offset="100%" style="stop-color:#f97316"/>
+    </linearGradient>
+    
+    <linearGradient id="sizeProp" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#10b981"/>
+      <stop offset="100%" style="stop-color:#06b6d4"/>
+    </linearGradient>
+    
+    <linearGradient id="spaceProp" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8b5cf6"/>
+      <stop offset="100%" style="stop-color:#d946ef"/>
+    </linearGradient>
+    
+    <!-- 그림자 필터 -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="rgba(37, 99, 235, 0.3)"/>
+    </filter>
+    
+    <!-- 글로우 효과 -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- 메인 배경 원 -->
+  <circle cx="64" cy="64" r="56" fill="url(#brandGradient)" filter="url(#shadow)"/>
+  
+  <!-- CSS 브레이스 컨테이너 -->
+  <g transform="translate(64, 64)">
+    <!-- 왼쪽 브레이스 { -->
+    <path d="M-25 -20 C-35 -20 -40 -15 -40 -10 L-40 -5 C-40 -2 -42 0 -45 0 C-42 0 -40 2 -40 5 L-40 10 C-40 15 -35 20 -25 20" 
+          stroke="#ffffff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- 오른쪽 브레이스 } -->
+    <path d="M25 -20 C35 -20 40 -15 40 -10 L40 -5 C40 -2 42 0 45 0 C42 0 40 2 40 5 L40 10 C40 15 35 20 25 20" 
+          stroke="#ffffff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  
+  <!-- 추출되는 CSS 속성들 -->
+  <g>
+    <!-- color 속성 (빨간색 계열) -->
+    <g transform="translate(85, 45)">
+      <rect x="0" y="0" width="32" height="8" rx="4" fill="url(#colorProp)" filter="url(#glow)"/>
+      <text x="16" y="6" font-family="Monaco, Consolas, monospace" font-size="6" font-weight="bold" 
+            text-anchor="middle" fill="#ffffff">color</text>
+    </g>
+    
+    <!-- font-size 속성 (초록색 계열) -->
+    <g transform="translate(90, 60)">
+      <rect x="0" y="0" width="28" height="8" rx="4" fill="url(#sizeProp)" filter="url(#glow)"/>
+      <text x="14" y="6" font-family="Monaco, Consolas, monospace" font-size="6" font-weight="bold" 
+            text-anchor="middle" fill="#ffffff">size</text>
+    </g>
+    
+    <!-- margin 속성 (보라색 계열) -->
+    <g transform="translate(88, 75)">
+      <rect x="0" y="0" width="30" height="8" rx="4" fill="url(#spaceProp)" filter="url(#glow)"/>
+      <text x="15" y="6" font-family="Monaco, Consolas, monospace" font-size="6" font-weight="bold" 
+            text-anchor="middle" fill="#ffffff">space</text>
+    </g>
+    
+    <!-- 더 작은 속성들 (왼쪽으로도 일부 흘러나옴) -->
+    <g transform="translate(10, 50)">
+      <circle cx="0" cy="0" r="6" fill="url(#colorProp)" opacity="0.8"/>
+      <text x="0" y="2" font-family="Monaco, Consolas, monospace" font-size="4" font-weight="bold" 
+            text-anchor="middle" fill="#ffffff">C</text>
+    </g>
+    
+    <g transform="translate(15, 70)">
+      <circle cx="0" cy="0" r="5" fill="url(#sizeProp)" opacity="0.8"/>
+      <text x="0" y="2" font-family="Monaco, Consolas, monospace" font-size="4" font-weight="bold" 
+            text-anchor="middle" fill="#ffffff">S</text>
+    </g>
+    
+    <g transform="translate(8, 85)">
+      <circle cx="0" cy="0" r="4" fill="url(#spaceProp)" opacity="0.6"/>
+      <text x="0" y="2" font-family="Monaco, Consolas, monospace" font-size="3" font-weight="bold" 
+            text-anchor="middle" fill="#ffffff">M</text>
+    </g>
+  </g>
+  
+  <!-- 추출 방향을 나타내는 화살표들 -->
+  <g stroke="#ffffff" stroke-width="2" fill="none" opacity="0.7">
+    <path d="M75 50 L82 47" stroke-linecap="round"/>
+    <path d="M80 65 L87 62" stroke-linecap="round"/>
+    <path d="M78 80 L85 77" stroke-linecap="round"/>
+  </g>
+  
+  <!-- CSS 라벨 -->
+  <text x="64" y="20" font-family="Inter, -apple-system, sans-serif" font-size="11" font-weight="700" 
+        text-anchor="middle" fill="#ffffff" opacity="0.9">CSS PICKER</text>
+</svg>

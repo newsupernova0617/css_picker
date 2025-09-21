@@ -1,0 +1,53 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 메인 그라디언트 -->
+    <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#6366f1"/>
+    </linearGradient>
+    
+    <!-- 그림자 -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="rgba(59, 130, 246, 0.3)"/>
+    </filter>
+  </defs>
+  
+  <!-- 배경 -->
+  <circle cx="64" cy="64" r="56" fill="url(#mainGrad)" filter="url(#shadow)"/>
+  
+  <!-- 추상적인 CSS 브레이스 (중앙 정렬) -->
+  <g transform="translate(64, 64)" stroke="#ffffff" stroke-width="4" fill="none" stroke-linecap="round">
+    <!-- 왼쪽 브레이스 { -->
+    <path d="M-18 -20 Q-25 -20 -25 -13 L-25 -6 Q-25 -3 -28 -3 Q-25 -3 -25 0 Q-25 3 -28 3 Q-25 3 -25 6 L-25 13 Q-25 20 -18 20"/>
+    
+    <!-- 오른쪽 브레이스 } -->
+    <path d="M18 -20 Q25 -20 25 -13 L25 -6 Q25 -3 28 -3 Q25 -3 25 0 Q25 3 28 3 Q25 3 25 6 L25 13 Q25 20 18 20"/>
+  </g>
+  
+  <!-- 추출되는 속성들 (기하학적 도형들) -->
+  <g>
+    <!-- 오른쪽 속성들 -->
+    <rect x="98" y="45" width="20" height="4" rx="2" fill="#ef4444" opacity="0.9"/>
+    <rect x="102" y="58" width="16" height="3" rx="1.5" fill="#10b981" opacity="0.8"/>
+    <rect x="105" y="70" width="12" height="3" rx="1.5" fill="#f59e0b" opacity="0.7"/>
+    <rect x="107" y="81" width="10" height="2" rx="1" fill="#8b5cf6" opacity="0.6"/>
+    
+    <!-- 왼쪽 속성들 -->
+    <circle cx="18" cy="48" r="3" fill="#ef4444" opacity="0.7"/>
+    <circle cx="14" cy="65" r="2.5" fill="#10b981" opacity="0.6"/>
+    <circle cx="20" cy="78" r="2" fill="#f59e0b" opacity="0.5"/>
+    
+    <!-- 상단 속성들 -->
+    <rect x="58" y="18" width="12" height="2" rx="1" fill="#06b6d4" opacity="0.6"/>
+    
+    <!-- 하단 속성들 -->
+    <rect x="60" y="106" width="8" height="2" rx="1" fill="#d946ef" opacity="0.5"/>
+  </g>
+  
+  <!-- 연결선들 (추상적 흐름) -->
+  <g stroke="rgba(255,255,255,0.3)" stroke-width="1" fill="none">
+    <path d="M82 48 Q90 47 98 46"/>
+    <path d="M84 60 Q93 59 102 58"/>
+    <path d="M86 72 Q95 71 105 70"/>
+  </g>
+</svg>

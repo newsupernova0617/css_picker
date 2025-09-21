@@ -1,0 +1,41 @@
+# CSS Picker Backend - Production Dependencies
+# Install with: pip install -r requirements-production.txt
+
+# Web Framework
+Flask==3.0.0
+Werkzeug==3.0.1
+
+# WSGI Server
+gunicorn==21.2.0
+
+# CORS Support
+Flask-CORS==4.0.0
+
+# Environment Variables
+python-dotenv==1.0.0
+
+# Database
+libsql-client==0.3.0
+
+# Authentication
+PyJWT>=2.9.0
+clerk-backend-api==3.3.0
+cryptography>=42.0.0
+requests==2.31.0
+
+# Payment Processing
+stripe==7.8.0
+
+# Logging and Monitoring
+python-json-logger==2.0.7
+sentry-sdk[flask]==1.38.0
+
+# Security
+bcrypt==4.0.1
+
+# Optional: Redis for caching
+redis==5.0.1
+
+# Production utilities
+supervisor==4.2.5
+psutil==5.9.6
