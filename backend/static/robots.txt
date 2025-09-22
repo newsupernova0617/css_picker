@@ -1,0 +1,46 @@
+# Robots.txt for CSS Picker Pro
+# https://csspicker.site/robots.txt
+
+User-agent: *
+Allow: /
+
+# Allow all major search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Disallow admin and sensitive areas
+Disallow: /api/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /billing/
+Disallow: /dashboard/
+Disallow: /webhook/
+
+# Allow static resources
+Allow: /static/
+Allow: /*.css
+Allow: /*.js
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.gif
+Allow: /*.svg
+Allow: /*.webp
+
+# Sitemap location
+Sitemap: https://csspicker.site/sitemap.xml
+
+# Crawl delay (be nice to servers)
+Crawl-delay: 1
+
+# Cache directive for faster indexing
+Cache-delay: 1
