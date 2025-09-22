@@ -289,6 +289,16 @@ def cancel():
     """결제 취소 페이지"""
     return render_template('cancel.html')
 
+@app.route('/privavy-policy')
+def cancel():
+    """privavy-policy"""
+    return render_template('privavy-policy.html')
+
+@app.route('/terms-of-service')
+def cancel():
+    """terms-of-service"""
+    return render_template('terms-of-service')
+
 @app.route('/health')
 def health():
     """서버 상태 확인 엔드포인트"""
