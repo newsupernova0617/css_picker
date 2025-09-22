@@ -297,7 +297,7 @@ def privavy_policy():
 @app.route('/terms-of-service')
 def terms_of_service():
     """terms-of-service"""
-    return render_template('terms-of-service')
+    return render_template('terms-of-service.html')
 
 @app.route('/health')
 def health():
