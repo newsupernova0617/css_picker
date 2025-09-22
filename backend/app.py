@@ -290,12 +290,12 @@ def cancel():
     return render_template('cancel.html')
 
 @app.route('/privavy-policy')
-def cancel():
+def privavy_policy():
     """privavy-policy"""
     return render_template('privavy-policy.html')
 
 @app.route('/terms-of-service')
-def cancel():
+def terms_of_service():
     """terms-of-service"""
     return render_template('terms-of-service')
 
