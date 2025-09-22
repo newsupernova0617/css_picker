@@ -289,10 +289,10 @@ def cancel():
     """결제 취소 페이지"""
     return render_template('cancel.html')
 
-@app.route('/privavy-policy')
+@app.route('/privacy-policy')
 def privavy_policy():
     """privavy-policy"""
-    return render_template('privavy-policy.html')
+    return render_template('privacy-policy.html')
 
 @app.route('/terms-of-service')
 def terms_of_service():
