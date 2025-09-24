@@ -6,7 +6,7 @@ import stripe
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from .database import get_db, User, Payment
+from .database import  User, Payment
 from .auth import verify_clerk_token
 from .config import Config
 
