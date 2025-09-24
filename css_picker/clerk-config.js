@@ -7,10 +7,10 @@ const CLERK_CONFIG = {
   publishableKey: 'pk_test_bWVldC13YXJ0aG9nLTgyLmNsZXJrLmFjY291bnRzLmRldiQ',
   // Replace with your Clerk frontend API URL  
   frontendApi: 'https://meet-warthog-82.clerk.accounts.dev',
-  // Development backend URL - change to https://csspickerpro.com for production
-  syncHost: 'http://localhost:4242',
+  // Development backend URL - change to https://www.csspicker.site for production
+  syncHost: 'https://www.csspicker.site',
   // Landing page URL for authentication
-  landingPageUrl: 'http://localhost:4242'
+  landingPageUrl: 'https://www.csspicker.site'
 };
 
 // Simple Clerk client implementation for Chrome Extension

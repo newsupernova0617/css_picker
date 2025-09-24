@@ -16,8 +16,8 @@ console.log('🔧 Inline clerk config loading...');
 const CLERK_CONFIG = {
   publishableKey: 'pk_test_bWVldC13YXJ0aG9nLTgyLmNsZXJrLmFjY291bnRzLmRldiQ', // Clerk 공개 키
   frontendApi: 'https://meet-warthog-82.clerk.accounts.dev',                // Clerk API 엔드포인트
-  syncHost: 'http://localhost:4242',                                      // 백엔드 서버 주소 (개발용)
-  landingPageUrl: 'http://localhost:4242'                                // 로그인 페이지 URL
+  syncHost: 'https://www.csspicker.site',                                      // 백엔드 서버 주소 (개발용)
+  landingPageUrl: 'https://www.csspicker.site'                                // 로그인 페이지 URL
 };
 
 // Chrome 확장 프로그램용 Clerk 클라이언트 구현
