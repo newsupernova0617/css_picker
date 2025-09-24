@@ -48,6 +48,9 @@ def get_or_create_user(db: Session, clerk_user_id: str, email: str) -> User:
 def index():
     return render_template("index.html")
 
+def init_app(app):
+    app.register_blueprint(bp)
+    
 
 @bp.route("/health")
 def health():
