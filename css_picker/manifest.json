@@ -66,6 +66,7 @@
         "lib/html2canvas.min.js", 
         "lib/jszip.min.js",
         "lib/bootstrap.bundle.min.js",
+        "lib/petite-vue.iife.min.js",
         "clerk-config.js",
         "plan-manager.js",
         "sidepanel.js",
