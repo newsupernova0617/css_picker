@@ -15,4 +15,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Railway는 PORT 환경변수를 자동으로 설정해줌
-CMD ["sh", "-c", "gunicorn -w 4 -b 0.0.0.0:${PORT:-8000} app:app"]
+CMD ["sh", "-c", "gunicorn -w 4 -b 0.0.0.0:${PORT:-8000} 'app:create_app()'"]
