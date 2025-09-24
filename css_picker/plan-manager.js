@@ -53,7 +53,7 @@ class PlanManager {
       }
     };
     
-    this.backendUrl = 'http://localhost:4242/'; // For development - will update when deployed
+    this.backendUrl = 'https://www.csspicker.site'; // For development - will update when deployed
     
     // Event listeners and callbacks
     this.planUpdateCallbacks = [];

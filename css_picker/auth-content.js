@@ -9,8 +9,8 @@ console.log('🔐 AUTH CONTENT SCRIPT: Current origin:', window.location.origin)
 window.addEventListener('message', async (event) => {
     // Allow both localhost (development) and production domain
     const allowedOrigins = [
-        'http://localhost:4242',
-        'https://csspickerpro.com'
+        
+        'https://www.csspicker.site'
     ];
     
     if (!allowedOrigins.includes(event.origin)) {
