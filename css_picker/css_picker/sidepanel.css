@@ -1,3 +1,4 @@
+
 /* CSS Color System & Design Variables */
 :root {
   /* Brand Colors from Logo - 4-Quadrant System */
@@ -2302,6 +2303,7 @@ body::-webkit-scrollbar {
   margin-bottom: var(--space-6);
 }
 
+
 /* Container queries for responsive grid - 2 columns only at 770px+ */
 @container sidebar (min-width: 770px) {
   .feature-cards {
@@ -4139,4 +4141,3 @@ a:focus {
   border-color: rgba(123, 121, 255, 0.3);
   border-top-color: var(--dm-primary-500);
 }
-

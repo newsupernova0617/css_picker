@@ -1,7 +1,12 @@
 # Dependencies
 node_modules/
 */node_modules/
+app.db
+app.db-*
 
+__pycache__/
+venv/
+backend/venv/
 # Environment files
 .env
 .env.*
