@@ -2141,36 +2141,69 @@ class SidePanel {
     // clerk 통합 코드 비활성화 상태
     return;
   }
+
+  // GDPR 동의 상태를 확인하고, 필요 시 모달을 표시하는 함수
+  async initializeGDPRConsent() {
+    return new Promise(resolve => {
+      chrome.storage.local.get('gdpr_consent', (result) => {
+        if (result.gdpr_consent) {
+          console.log('GDPR consent already given.');
+          resolve(true);
+        } else {
+          console.log('GDPR consent not found, showing modal.');
+          const modalElement = document.getElementById('gdprConsentModal');
+          if (!modalElement) {
+            console.error('GDPR modal element not found!');
+            resolve(false); // 모달이 없으면 진행 불가
+            return;
+          }
+          
+          const modal = new bootstrap.Modal(modalElement);
+          modal.show();
+
+          // 모달이 닫힐 때 동의 상태를 다시 확인
+          modalElement.addEventListener('hidden.bs.modal', () => {
+            chrome.storage.local.get('gdpr_consent', (recheckResult) => {
+              if (recheckResult.gdpr_consent) {
+                console.log('GDPR consent given after modal interaction.');
+                // 메인 콘텐츠를 여기서 표시
+                if (this.mainContent) this.mainContent.style.display = 'block';
+                if (this.homeSection) this.homeSection.style.display = 'block';
+                resolve(true);
+              } else {
+                console.log('GDPR consent was not given.');
+                resolve(false);
+              }
+            });
+          }, { once: true });
+        }
+      });
+    });
+  }
   
   async initializeAfterDOM() {
-    // Wait for all scripts to load
-    await this.waitForScriptsToLoad();
-    
-    // GDPR 동의 시스템 먼저 초기화
-    const hasConsent = await this.initializeGDPRConsent();
-    
-    // HTML 요소들을 찾아서 변수에 저장합니다
+    // HTML 요소들을 먼저 설정하여 다른 초기화 함수에서 사용 가능하게 함
     this.setupElements();
     
-    // 버튼 클릭 등의 이벤트 리스너를 설정합니다
+    // GDPR 동의 시스템 먼저 초기화. 결과에 따라 UI 표시가 결정됨.
+    const hasConsent = await this.initializeGDPRConsent();
+    
+    if (hasConsent) {
+      // 이미 동의한 경우, 즉시 메인 콘텐츠 표시
+      if (this.mainContent) this.mainContent.style.display = 'block';
+      if (this.homeSection) this.homeSection.style.display = 'block';
+    }
+    // 동의하지 않은 경우, initializeGDPRConsent 내부에서 모달을 띄우고,
+    // 동의 후 콜백에서 콘텐츠를 표시하므로 여기서는 아무것도 하지 않음.
+    
+    // 나머지 초기화 함수들 호출
     this.setupEventListeners();
-    
-    // CSS 정보 영역을 초기화합니다
     this.initializeCssInfoSection();
-    
-    // Asset Manager 초기화
     this.initializeAssetManager();
-    
-    // Authentication 초기화
     this.initializeAuthentication();
-    
-    
-    
-    // Plan Management 초기화
     this.initializePlanManagement();
     
     // 백그라운드 스크립트에게 "사이드패널이 열렸다"고 알려줍니다
-    // Add slight delay to ensure proper initialization
     setTimeout(() => {
       this.notifyOpened();
     }, 100);
@@ -2178,6 +2211,7 @@ class SidePanel {
   
   // HTML에서 필요한 요소들을 찾아서 변수에 저장하는 함수입니다
   setupElements() {
+    this.mainContent = document.querySelector('.main-content');
     // vanilla JavaScript의 getElementById는 특정 id를 가진 요소를 찾는 함수입니다
     // statusIndicator는 이제 사용하지 않음 (버튼에 통합됨)
     
