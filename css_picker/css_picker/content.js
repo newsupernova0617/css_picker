@@ -14,7 +14,7 @@ class ElementHighlighter {
     
     // 요소의 원래 outline 스타일을 저장하는 변수 (나중에 복원하기 위해)
     this.originalOutline = '';
-    this.originalOutlineOffset = '';
+    this.originalOutlineOffset = '';
     
     // 하이라이트할 때 사용할 테두리 색깔
     this.hoverColor = '#0066ff'; // 파란색 (hover 시)
@@ -25,16 +25,13 @@ class ElementHighlighter {
     
     // CSS 편집과 관련된 변수들
     this.selectedElement = null; // 현재 선택된 요소
-    this.selectedElementOriginalOutline = '';
-    this.selectedElementOriginalOutlineOffset = '';
+    this.selectedElementOriginalOutline = '';
+    this.selectedElementOriginalOutlineOffset = '';
     this.selectedElementSelector = null; // 선택된 요소의 CSS 선택자
     this.modifiedStyles = new Map(); // 변경된 스타일 기록
     this.isEditingMode = false; // 편집 모드 상태
     
-    // 컬러 샘플링과 관련된 변수들
-    this.colorSamplingMode = false; // 컬러 샘플링 모드 상태
-    this.colorSamplingCanvas = null; // 색상 샘플링용 캔버스
-    this.colorSamplingCursor = null; // 샘플링 커서 요소
+
     
     // CSS 추출 옵션
     this.optimizedExtraction = true; // 기본값으로 최적화된 추출을 사용
@@ -106,17 +103,7 @@ class ElementHighlighter {
           isAsyncResponse = true; // 비동기 응답 플래그 설정
           break;
 
-        case "prepare-color-sampling":
-          // 컬러 샘플링 준비 메시지를 받았을 때
-          this.enableColorSampling();
-          sendResponse({ success: true, action: "color_sampling_enabled" });
-          break;
 
-        case "stop-color-sampling":
-          // 컬러 샘플링 중지 메시지를 받았을 때
-          this.disableColorSampling();
-          sendResponse({ success: true, action: "color_sampling_disabled" });
-          break;
 
         case "get-page-screenshot":
           // 페이지 스크린샷 요청 메시지를 받았을 때
@@ -197,6 +184,8 @@ class ElementHighlighter {
     
     // 현재 하이라이트된 요소가 있다면 제거합니다
     this.clearHoverHighlight();
+
+
     
     // 성능 최적화: 메모리 정리
     this.cleanupPerformanceOptimizations();
@@ -230,7 +219,7 @@ class ElementHighlighter {
     
     // 변수 리셋
     this.lastMouseOverTime = 0;
-    this.clearSelectionHighlight();
+    this.clearSelectionHighlight();
     
     // 수정된 스타일 맵 정리
     if (this.modifiedStyles) {
@@ -286,12 +275,7 @@ class ElementHighlighter {
     // 하이라이터가 비활성화되어 있으면 함수를 종료합니다
     if (!this.isActive) return;
     
-    // 컬러 샘플링 모드인 경우 색상 샘플링을 실행
-    if (this.colorSamplingMode) {
-      event.preventDefault(); // 기본 클릭 동작을 방지
-      this.sampleColorAtPoint(event.clientX, event.clientY);
-      return;
-    }
+
     
     // 기본 클릭 동작을 방지합니다 (예: 링크 클릭 등)
     event.preventDefault();
@@ -313,72 +297,72 @@ class ElementHighlighter {
   }
   
   // 요소를 하이라이트하는 함수입니다
-  highlightElement(element, color) {
-    // Clear hover highlight so selection outline can persist
-    this.clearHoverHighlight();
-
-    if (this.selectedElement) {
-      this.restoreSelectedElementOutline();
-    }
-
-    this.selectedElementOriginalOutline = element.style.outline;
-    this.selectedElementOriginalOutlineOffset = element.style.outlineOffset;
-
-    element.style.outline = `${this.highlightWidth} solid ${color}`;
-    element.style.outlineOffset = '1px'; // keep outline slightly offset
-
-    this.selectedElement = element;
-    this.selectedElementSelector = this.generateSelector(element);
-  }
-
-  restoreSelectedElementOutline() {
-    if (this.selectedElement) {
-      const offset = this.selectedElementOriginalOutlineOffset;
-      this.selectedElement.style.outline = this.selectedElementOriginalOutline;
-      this.selectedElement.style.outlineOffset = offset || '';
-    }
-  }
-
+  highlightElement(element, color) {
+    // Clear hover highlight so selection outline can persist
+    this.clearHoverHighlight();
+
+    if (this.selectedElement) {
+      this.restoreSelectedElementOutline();
+    }
+
+    this.selectedElementOriginalOutline = element.style.outline;
+    this.selectedElementOriginalOutlineOffset = element.style.outlineOffset;
+
+    element.style.outline = `${this.highlightWidth} solid ${color}`;
+    element.style.outlineOffset = '1px'; // keep outline slightly offset
+
+    this.selectedElement = element;
+    this.selectedElementSelector = this.generateSelector(element);
+  }
+
+  restoreSelectedElementOutline() {
+    if (this.selectedElement) {
+      const offset = this.selectedElementOriginalOutlineOffset;
+      this.selectedElement.style.outline = this.selectedElementOriginalOutline;
+      this.selectedElement.style.outlineOffset = offset || '';
+    }
+  }
+
 
   // 최적화된 하이라이트 함수 (중복 작업 방지)
-  highlightElementOptimized(element, color) {
-    if (this.currentHighlighted === element) {
-      return;
-    }
-
-    this.clearHoverHighlight();
-
-    this.originalOutline = element.style.outline;
-    this.originalOutlineOffset = element.style.outlineOffset;
-
-    element.style.outline = `${this.highlightWidth} solid ${color}`;
-    element.style.outlineOffset = '1px';
-
-    this.currentHighlighted = element;
-  }
+  highlightElementOptimized(element, color) {
+    if (this.currentHighlighted === element) {
+      return;
+    }
+
+    this.clearHoverHighlight();
+
+    this.originalOutline = element.style.outline;
+    this.originalOutlineOffset = element.style.outlineOffset;
+
+    element.style.outline = `${this.highlightWidth} solid ${color}`;
+    element.style.outlineOffset = '1px';
+
+    this.currentHighlighted = element;
+  }
   
   // 하이라이트를 제거하는 함수입니다
-  clearHoverHighlight() {
-    if (this.currentHighlighted) {
-      const offset = this.originalOutlineOffset;
-      this.currentHighlighted.style.outline = this.originalOutline;
-      this.currentHighlighted.style.outlineOffset = offset || '';
-      this.currentHighlighted = null;
-      this.originalOutline = '';
-      this.originalOutlineOffset = '';
-    }
-  }
-
-  clearSelectionHighlight() {
-    if (this.selectedElement) {
-      this.restoreSelectedElementOutline();
-      this.selectedElement = null;
-      this.selectedElementSelector = null;
-      this.selectedElementOriginalOutline = '';
-      this.selectedElementOriginalOutlineOffset = '';
-    }
-  }
-
+  clearHoverHighlight() {
+    if (this.currentHighlighted) {
+      const offset = this.originalOutlineOffset;
+      this.currentHighlighted.style.outline = this.originalOutline;
+      this.currentHighlighted.style.outlineOffset = offset || '';
+      this.currentHighlighted = null;
+      this.originalOutline = '';
+      this.originalOutlineOffset = '';
+    }
+  }
+
+  clearSelectionHighlight() {
+    if (this.selectedElement) {
+      this.restoreSelectedElementOutline();
+      this.selectedElement = null;
+      this.selectedElementSelector = null;
+      this.selectedElementOriginalOutline = '';
+      this.selectedElementOriginalOutlineOffset = '';
+    }
+  }
+
 
   // CSS 선택자를 생성하는 함수
   generateSelector(element) {
@@ -590,7 +574,7 @@ class ElementHighlighter {
       warnings: [],
       errors: [],
       tests: [
-        `✓ CSS properties extracted: ${Object.keys(cssInfo.styles).length} critical properties`,
+        `✓ CSS properties extracted: ${Object.keys(cssInfo.styles || {}).length} critical properties`,
         `✓ Performance: Optimized extraction completed in ${extractionTime.toFixed(2)}ms`,
         `✓ CSS selector generated: ${cssInfo.selector}`
       ]
@@ -626,7 +610,7 @@ class ElementHighlighter {
     };
     
     // 테스트 1: 기본 CSS 속성 추출 검증
-    const styleCount = Object.keys(cssInfo.styles).length;
+    const styleCount = Object.keys(cssInfo.styles || {}).length;
     if (styleCount > 0) {
       validationResults.tests.push(`✓ CSS properties extracted: ${styleCount} properties`);
     } else {
@@ -688,71 +672,7 @@ class ElementHighlighter {
     }
   }
 
-  // 컬러 샘플링 기능들
-  enableColorSampling() {
-    this.colorSamplingMode = true;
-    this.disable(); // 일반 하이라이터 비활성화
-    
-    // 컬러 샘플링용 커서 스타일 추가
-    document.body.style.cursor = 'crosshair';
-    
-    // 컬러 샘플링용 이벤트 리스너 추가
-    document.addEventListener('click', this.boundHandleClick);
-    
-    console.log('🎨 Color sampling enabled');
-  }
-  
-  disableColorSampling() {
-    this.colorSamplingMode = false;
-    
-    // 커서 스타일 복원
-    document.body.style.cursor = '';
-    
-    // 이벤트 리스너 제거
-    document.removeEventListener('click', this.boundHandleClick);
-    
-    console.log('🎨 Color sampling disabled');
-  }
-  
-  async sampleColorAtPoint(x, y) {
-    try {
-      // html2canvas를 사용하여 페이지 스크린샷 캡처
-      const canvas = await html2canvas(document.body, {
-        useCORS: true,
-        scale: 1
-      });
-      
-      const ctx = canvas.getContext('2d');
-      const pixelData = ctx.getImageData(x, y, 1, 1).data;
-      
-      const color = {
-        r: pixelData[0],
-        g: pixelData[1],
-        b: pixelData[2],
-        a: pixelData[3] / 255,
-        hex: this.rgbToHex(pixelData[0], pixelData[1], pixelData[2]),
-        hsl: this.rgbToHsl(pixelData[0], pixelData[1], pixelData[2])
-      };
-      
-      // sidepanel로 색상 정보 전송
-      chrome.runtime.sendMessage({
-        action: "color-sampled",
-        color: color,
-        coordinates: { x, y },
-        timestamp: Date.now()
-      });
-      
-      console.log('🎨 Color sampled:', color);
-      
-    } catch (error) {
-      console.error('Color sampling failed:', error);
-      
-      chrome.runtime.sendMessage({
-        action: "color-sampling-error",
-        error: error.message
-      });
-    }
-  }
+
   
   // 색상 변환 유틸리티 함수들
   rgbToHex(r, g, b) {
@@ -1425,7 +1345,7 @@ try {
 
 // 전역 메시지 리스너 설정 (ElementHighlighter 인스턴스와 독립적으로 작동)
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('📨 Content script received message:', message.action);
+  console.log('📨 Content script received message:', message);
   
   // 핑 메시지는 항상 응답
   if (message.action === 'ping') {

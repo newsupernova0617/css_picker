@@ -11,3 +11,4 @@ PyJWT==2.8.0
 SQLAlchemy>=2.0.35
 Flask-Caching==1.11.1
 redis==5.0.1
+Authlib==1.6.4

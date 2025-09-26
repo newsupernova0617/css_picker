@@ -47,23 +47,25 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // 유저 표시 함수
-  function showUser(user) {
-    userName.textContent = user.name || "Unknown User";
-    userEmail.textContent = user.email || "";
-    authSignedOut.style.display = "none";
-    authSignedIn.style.display = "block";
-    if (user.plan === "premium") {
-      premiumSection.style.display = "block";
-    } else {
-      premiumSection.style.display = "none";
-    }
-  }
+
 
   // 초기 상태 동기화 (새로고침 시 유지)
   chrome.runtime.sendMessage({ type: "get_profile" }, (resp) => {
     if (resp?.success) {
-      showUser(resp.user);
+      // Ensure window.sidePanel exists before calling showUser
+      if (window.sidePanel && typeof window.sidePanel.showUser === 'function') {
+        window.sidePanel.showUser(resp.user);
+      } else {
+        console.warn('window.sidePanel or showUser function not available, delaying call');
+        // Delay the call until sidepanel is ready
+        setTimeout(() => {
+          if (window.sidePanel && typeof window.sidePanel.showUser === 'function') {
+            window.sidePanel.showUser(resp.user);
+          } else {
+            console.error('window.sidePanel or showUser function still not available after delay');
+          }
+        }, 100);
+      }
     }
   });
 });
@@ -74,6 +76,7 @@ async function handleLoginSuccess() {
     document.getElementById("authSignedIn").style.display = "block";
     document.getElementById("userName").textContent = result.user.name;
     document.getElementById("userEmail").textContent = result.user.email;
+    window.sidePanel.showUser(result.user);
   } else {
     // fallback: 여전히 signed-out 보여주기
     document.getElementById("authSignedOut").style.display = "block";
@@ -1117,358 +1120,7 @@ class TailwindConverter {
 
 // Tailwind 클래스 파싱 및 조작을 위한 유틸리티 클래스
 
-// 컬러 샘플링을 위한 유틸리티 클래스
-class ColorSampler {
-  constructor() {
-    this.canvas = null;
-    this.ctx = null;
-    this.isActive = false;
-    this.sampledColors = [];
-    this.currentPreviewColor = null;
-    // Bind the message handler once to maintain the same reference
-    this.boundMessageHandler = this.handleColorSampleMessage.bind(this);
-  }
 
-  // 캔버스 기반 색상 샘플링 활성화
-  activateSampling() {
-    this.isActive = true;
-    this.initializeCanvas();
-    this.addEventListeners();
-  }
-
-  // 색상 샘플링 비활성화
-  async deactivateSampling() {
-    this.isActive = false;
-    this.removeEventListeners();
-    this.clearCanvas();
-    
-    // Send message to content script to disable color sampling
-    try {
-      const response = await chrome.tabs.query({ active: true, currentWindow: true });
-      const activeTab = response[0];
-      
-      if (activeTab) {
-        chrome.tabs.sendMessage(activeTab.id, {
-          action: 'disable-color-sampling'
-        });
-      }
-    } catch (error) {
-      console.error('Failed to disable color sampling:', error);
-    }
-  }
-
-  // 캔버스 초기화 (웹페이지 스크린샷 캡처용)
-  async initializeCanvas() {
-    try {
-      // 현재 페이지의 스크린샷을 캡처하기 위해 content script와 통신
-      const response = await chrome.tabs.query({ active: true, currentWindow: true });
-      const activeTab = response[0];
-      
-      if (activeTab) {
-        // content script에 스크린샷 준비 요청
-        chrome.tabs.sendMessage(activeTab.id, {
-          action: 'prepare-color-sampling'
-        });
-      }
-    } catch (error) {
-      console.error('Failed to initialize color sampling:', error);
-    }
-  }
-
-  // 이벤트 리스너 추가
-  addEventListeners() {
-    // content script에서 오는 색상 샘플링 메시지 처리
-    chrome.runtime.onMessage.addListener(this.boundMessageHandler);
-  }
-
-  // 이벤트 리스너 제거
-  removeEventListeners() {
-    chrome.runtime.onMessage.removeListener(this.boundMessageHandler);
-  }
-
-  // content script에서 오는 모든 메시지 처리 (통합)
-  handleColorSampleMessage(message, sender, sendResponse) {
-    // 색상 샘플링 메시지 처리
-    if (message.action === 'color-sampled') {
-      this.processColorSample(message.colorData, message.coordinates);
-      sendResponse({ success: true });
-      return true;
-    }
-    
-    // 실시간 색상 호버 기능 제거됨 (EyeDropper 기본 사용)
-    
-    // 콘솔 메시지 처리
-    if (message.action === 'console-message') {
-      console.log('📨 SIDEPANEL: Received console message from background:', message.data);
-      this.consoleManager.addMessage(message.data);
-      sendResponse({ success: true });
-      return true;
-    }
-    
-    // 기타 메시지 처리 (기존 handleMessage 로직)
-    this.handleMessage(message, sender, sendResponse);
-    return true;
-  }
-
-  // 샘플링된 색상 처리
-  processColorSample(colorData, coordinates) {
-    if (!colorData) return;
-
-    const color = {
-      id: `color_${Date.now()}`,
-      hex: this.rgbToHex(colorData.r, colorData.g, colorData.b),
-      rgb: {
-        r: colorData.r,
-        g: colorData.g,
-        b: colorData.b,
-        a: colorData.a || 1
-      },
-      hsl: this.rgbToHsl(colorData.r, colorData.g, colorData.b),
-      timestamp: Date.now(),
-      source: {
-        x: coordinates.x,
-        y: coordinates.y,
-        url: window.location.href
-      },
-      category: 'sampled'
-    };
-
-    // 중복 색상 확인
-    const isDuplicate = this.sampledColors.some(existingColor => 
-      existingColor.hex === color.hex
-    );
-
-    if (!isDuplicate) {
-      this.sampledColors.push(color);
-      this.saveColorToStorage(color);
-      this.notifyColorAdded(color);
-    }
-  }
-
-  // RGB를 HEX로 변환
-  rgbToHex(r, g, b) {
-    const componentToHex = (c) => {
-      const hex = Math.round(c).toString(16);
-      return hex.length === 1 ? "0" + hex : hex;
-    };
-    return `#${componentToHex(r)}${componentToHex(g)}${componentToHex(b)}`.toUpperCase();
-  }
-
-  // RGB를 HSL로 변환
-  rgbToHsl(r, g, b) {
-    r /= 255;
-    g /= 255;
-    b /= 255;
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    const diff = max - min;
-    const sum = max + min;
-    
-    let h = 0;
-    let s = 0;
-    const l = sum / 2;
-
-    if (diff !== 0) {
-      s = l > 0.5 ? diff / (2 - sum) : diff / sum;
-      
-      switch (max) {
-        case r:
-          h = ((g - b) / diff) + (g < b ? 6 : 0);
-          break;
-        case g:
-          h = (b - r) / diff + 2;
-          break;
-        case b:
-          h = (r - g) / diff + 4;
-          break;
-      }
-      h /= 6;
-    }
-
-    return {
-      h: Math.round(h * 360),
-      s: Math.round(s * 100),
-      l: Math.round(l * 100),
-      a: 1
-    };
-  }
-
-  // HSL을 RGB로 변환
-  hslToRgb(h, s, l) {
-    h /= 360;
-    s /= 100;
-    l /= 100;
-
-    const hue2rgb = (p, q, t) => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1/6) return p + (q - p) * 6 * t;
-      if (t < 1/2) return q;
-      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-      return p;
-    };
-
-    let r, g, b;
-
-    if (s === 0) {
-      r = g = b = l;
-    } else {
-      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-      const p = 2 * l - q;
-      r = hue2rgb(p, q, h + 1/3);
-      g = hue2rgb(p, q, h);
-      b = hue2rgb(p, q, h - 1/3);
-    }
-
-    return {
-      r: Math.round(r * 255),
-      g: Math.round(g * 255),
-      b: Math.round(b * 255)
-    };
-  }
-
-  // 다양한 색상 포맷 생성
-  generateColorFormats(color) {
-    const { rgb, hsl } = color;
-    
-    return {
-      hex: color.hex,
-      rgb: `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`,
-      rgba: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${rgb.a})`,
-      hsl: `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`,
-      hsla: `hsla(${hsl.h}, ${hsl.s}%, ${hsl.l}%, ${hsl.a})`,
-      cssVar: `--color-${Date.now()}: ${color.hex};`
-    };
-  }
-
-  // 로컬 스토리지에 색상 저장
-  saveColorToStorage(color) {
-    try {
-      const existingColors = this.loadColorsFromStorage();
-      existingColors.push(color);
-      localStorage.setItem('css-picker-colors', JSON.stringify(existingColors));
-    } catch (error) {
-      console.error('Failed to save color to storage:', error);
-    }
-  }
-
-  // 로컬 스토리지에서 색상 로드
-  loadColorsFromStorage() {
-    try {
-      const stored = localStorage.getItem('css-picker-colors');
-      return stored ? JSON.parse(stored) : [];
-    } catch (error) {
-      console.error('Failed to load colors from storage:', error);
-      return [];
-    }
-  }
-
-  // 색상 팔레트 초기화 (전체 삭제)
-  clearColorPalette() {
-    this.sampledColors = [];
-    localStorage.removeItem('css-picker-colors');
-  }
-
-  // 특정 색상 삭제
-  removeColor(colorId) {
-    this.sampledColors = this.sampledColors.filter(color => color.id !== colorId);
-    const updatedColors = this.loadColorsFromStorage().filter(color => color.id !== colorId);
-    localStorage.setItem('css-picker-colors', JSON.stringify(updatedColors));
-  }
-
-  // 캔버스 정리
-  clearCanvas() {
-    if (this.canvas && this.canvas.parentNode) {
-      this.canvas.parentNode.removeChild(this.canvas);
-    }
-    this.canvas = null;
-    this.ctx = null;
-  }
-
-  // 색상 추가 알림
-  notifyColorAdded(color) {
-    // 메인 패널에 알림 (나중에 구현될 메서드 호출)
-    if (window.sidePanel && window.sidePanel.onColorAdded) {
-      window.sidePanel.onColorAdded(color);
-    }
-  }
-
-  // 색상 대비 계산 (접근성)
-  calculateContrast(color1, color2) {
-    const getLuminance = (r, g, b) => {
-      const [rs, gs, bs] = [r, g, b].map(c => {
-        c = c / 255;
-        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-      });
-      return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
-    };
-
-    const lum1 = getLuminance(color1.rgb.r, color1.rgb.g, color1.rgb.b);
-    const lum2 = getLuminance(color2.rgb.r, color2.rgb.g, color2.rgb.b);
-    
-    const contrast = (Math.max(lum1, lum2) + 0.05) / (Math.min(lum1, lum2) + 0.05);
-    
-    return {
-      ratio: Math.round(contrast * 100) / 100,
-      aa: contrast >= 4.5,
-      aaa: contrast >= 7,
-      aaLarge: contrast >= 3
-    };
-  }
-
-  // 색상 하모니 생성 (보색, 유사색 등)
-  generateColorHarmony(baseColor, type = 'complementary') {
-    const { h, s, l } = baseColor.hsl;
-    const harmonies = [];
-
-    switch (type) {
-      case 'complementary':
-        harmonies.push({
-          ...baseColor.hsl,
-          h: (h + 180) % 360
-        });
-        break;
-        
-      case 'analogous':
-        for (let i = 1; i <= 2; i++) {
-          harmonies.push({
-            ...baseColor.hsl,
-            h: (h + (30 * i)) % 360
-          });
-          harmonies.push({
-            ...baseColor.hsl,
-            h: (h - (30 * i) + 360) % 360
-          });
-        }
-        break;
-        
-      case 'triadic':
-        harmonies.push({
-          ...baseColor.hsl,
-          h: (h + 120) % 360
-        });
-        harmonies.push({
-          ...baseColor.hsl,
-          h: (h + 240) % 360
-        });
-        break;
-    }
-
-    // HSL을 RGB로 변환하고 전체 색상 객체 생성
-    return harmonies.map(hslColor => {
-      const rgb = this.hslToRgb(hslColor.h, hslColor.s, hslColor.l);
-      return {
-        id: `harmony_${Date.now()}_${Math.random()}`,
-        hex: this.rgbToHex(rgb.r, rgb.g, rgb.b),
-        rgb: { ...rgb, a: 1 },
-        hsl: hslColor,
-        timestamp: Date.now(),
-        category: 'harmony'
-      };
-    });
-  }
-}
 
 // Console Manager 클래스 - 콘솔 메시지를 관리하고 표시하는 클래스입니다
 class ConsoleManager {
@@ -1501,12 +1153,15 @@ class ConsoleManager {
     
     // Message type colors
     this.messageColors = {
-      'log': '#333',
+      'log': '#d1d5db',
       'info': '#0dcaf0',
       'warn': '#ffc107',
       'error': '#dc3545',
       'debug': '#6c757d',
-      'failed-fetch': '#fd7e14'
+      'failed-fetch': '#fd7e14',
+      'table': '#d1d5db',
+      'groupEnd': '#d1d5db',
+      'trace': '#d1d5db'
     };
     
     this.init();
@@ -1703,9 +1358,11 @@ class ConsoleManager {
   
   // 필터 적용
   applyFilters() {
+    console.log(`Applying filter: ${this.currentFilter}`);
     this.filteredMessages = this.messages.filter(message => {
       // 타입 필터
       const typeMatch = this.currentFilter === 'all' || message.type === this.currentFilter;
+      console.log(`Message type: ${message.type}, Current filter: ${this.currentFilter}, Match: ${typeMatch}`);
       
       // 검색 필터
       const searchMatch = !this.searchTerm || 
@@ -1871,8 +1528,8 @@ class ConsoleManager {
   
   // 메시지 복사
   copyMessage(message) {
-    if (!planManager.isPremium()) {
-      alert('콘솔 메시지 복사는 Premium 기능입니다. 플랜을 업그레이드해주세요.');
+    if (planManager.currentPlan !== 'premium') {
+      alert('Copying console messages is a Premium feature. Please upgrade your plan.');
       return;
     }
     const content = `[${message.displayTime}] ${message.type.toUpperCase()}: ${message.args.join(' ')}`;
@@ -2094,9 +1751,10 @@ class SidePanel {
     this.tailwindConverter = new TailwindConverter();
     this.isTailwindView = false; // CSS view vs Tailwind view 토글
     this.tailwindProperties = { converted: [], unconverted: [] }; // 변환된 속성들
+    this.lastCssInfo = null; // 마지막으로 선택된 요소의 CSS 정보
     
     // Color Palette 관련 변수들
-    this.colorSampler = new ColorSampler();
+
     this.isColorPaletteMode = false; // Color Palette 모드 상태
     this.isSamplingActive = false; // 샘플링 활성화 상태
     this.sampledColors = []; // 샘플링된 색상 목록
@@ -2118,6 +1776,32 @@ class SidePanel {
     
     // 초기화 함수를 호출합니다
     this.init();
+  }
+
+  // 유저 표시 함수
+  showUser(user) {
+    const userName = document.getElementById("userName");
+    const userEmail = document.getElementById("userEmail");
+    const authSignedOut = document.getElementById("authSignedOut");
+    const authSignedIn = document.getElementById("authSignedIn");
+    const premiumSection = document.getElementById("premiumSection");
+
+    userName.textContent = user.name || "Unknown User";
+    userEmail.textContent = user.email || "";
+    authSignedOut.style.display = "none";
+    authSignedIn.style.display = "block";
+    if (user.plan === "premium") {
+      if (premiumSection) premiumSection.style.display = "block";
+    } else {
+      if (premiumSection) premiumSection.style.display = "none";
+    }
+
+    // Show home section and feature cards
+    if (this.homeSection) this.homeSection.style.display = 'block';
+    if (this.homeToCSSSelectorCard) this.homeToCSSSelectorCard.style.display = 'block';
+    if (this.homeToColorPaletteCard) this.homeToColorPaletteCard.style.display = 'block';
+    if (this.homeToConsoleCard) this.homeToConsoleCard.style.display = 'block';
+    if (this.homeToAssetManagerCard) this.homeToAssetManagerCard.style.display = 'block';
   }
   
   // 사이드패널을 초기화하는 함수입니다
@@ -2343,23 +2027,19 @@ class SidePanel {
     window.addEventListener("pagehide", () => {
       // 사이드패널이 닫힐 때 백그라운드에게 알려줍니다 (단 한번만)
       if (!closedNotificationSent) {
-        closedNotificationSent = true;
-        this.notifyClosed();
+        // ... existing code ...
       }
     });
-    
-    // Also listen for visibility change as backup detection
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === 'hidden' && !closedNotificationSent) {
-        closedNotificationSent = true;
-        this.notifyClosed();
-      }
-    });
-    
 
-    // 메시지 리스너 등록 (element_clicked 메시지 처리를 위해)
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      return this.handleMessage(message, sender, sendResponse);
+    // Add event listener for color sampling clicks
+    document.addEventListener('click', async (e) => {
+      if (this.isColorPaletteMode && this.isSamplingActive) {
+        e.preventDefault();
+        e.stopPropagation();
+        await this.sampleColorWithEyeDropper();
+        this.isSamplingActive = false; // Reset sampling active state after picking
+        document.body.style.cursor = ''; // Restore cursor
+      }
     });
   }
   
@@ -2591,6 +2271,18 @@ class SidePanel {
       sendResponse({ success: true });
       return true;
     }
+
+    if (message.action === 'console-message') {
+      this.consoleManager.addMessage(message.data);
+      sendResponse({ success: true });
+      return true;
+    }
+
+    if (message.action === 'color-sampled') {
+      this.colorSampler.processColorSample(message.color, message.coordinates);
+      sendResponse({ success: true });
+      return true;
+    }
     
     // 실시간 색상 호버 기능 제거됨
   }
@@ -2686,8 +2378,8 @@ class SidePanel {
     // Check premium access for premium features
     const premiumFeatures = ['colorpalette', 'console', 'assetmanager'];
     if (premiumFeatures.includes(featureName)) {
-      if (!planManager.isPremium()) {
-        alert('이 기능은 Premium 플랜에서만 사용할 수 있습니다. 플랜을 업그레이드해주세요.');
+      if (planManager.currentPlan !== 'premium') {
+        alert('This feature is available on the Premium plan only. Please upgrade your plan.');
         return; // Access denied
       }
     }
@@ -2768,7 +2460,7 @@ class SidePanel {
     
     const featureHeaders = {
       css: {
-        title: '🎯 CSS Picker',
+        title: '🎯 CSS Selector',
         message: 'Select elements and analyze their CSS properties'
       },
       colorpalette: {
@@ -3114,7 +2806,7 @@ class SidePanel {
     
     // Reset toggle button to initial state (not active)
     if (this.toggleButton) {
-      this.updateStatus('비활성', 'inactive');
+      this.updateStatus('⭐ Click to Activate', 'inactive');
     }
     
     // Update home welcome message based on auth state
@@ -3280,6 +2972,8 @@ class SidePanel {
       });
     }
     
+
+
     if (this.backToCssBtn) {
       this.backToCssBtn.addEventListener('click', () => {
         this.backToCssView();
@@ -3388,8 +3082,8 @@ class SidePanel {
     if (this.copyCssDropdown) {
       this.copyCssDropdown.addEventListener('click', async (e) => {
         e.preventDefault();
-        if (!planManager.isPremium()) {
-          alert('CSS 코드 복사는 Premium 기능입니다. 플랜을 업그레이드해주세요.');
+        if (planManager.currentPlan !== 'premium') {
+          alert('Copying CSS code is a Premium feature. Please upgrade your plan.');
           return;
         }
         // CSS Rule 형태로 복사
@@ -3423,6 +3117,7 @@ class SidePanel {
   
   // CSS 요소 정보를 화면에 표시하는 함수입니다 (향상된 CSS-in-JS 지원)
   displayElementInfo(cssInfo) {
+    this.lastCssInfo = cssInfo; // Save the latest CSS info
     try {
       // Switch to CSS feature view to show extracted CSS
       const shouldPreservePicker = this.isActive;
@@ -3488,7 +3183,7 @@ class SidePanel {
       }
       
       // 원본 스타일 백업
-      this.backupOriginalStyles(cssInfo.properties);
+      this.backupOriginalStyles(cssInfo.properties || {});
       
       // 수정된 스타일 초기화
       this.modifiedStyles = {};
@@ -3497,7 +3192,7 @@ class SidePanel {
       this.showCssInfo();
       
       console.log('Advanced CSS info displayed:', {
-        properties: Object.keys(cssInfo.properties).length,
+        properties: Object.keys(cssInfo.properties || {}).length,
         customProperties: Object.keys(cssInfo.customProperties || {}).length,
         cssInJSLibraries: cssInfo.cssInJSLibraries,
         styledComponents: cssInfo.styledComponentsCSS?.length || 0,
@@ -3566,7 +3261,7 @@ class SidePanel {
     // CSS 변수 (커스텀 속성) 카테고리 추가
     if (cssInfo.customProperties && Object.keys(cssInfo.customProperties).length > 0) {
       categorized['custom'] = {
-        name: 'CSS 변수 (커스텀 속성)',
+        name: 'CSS Variables (Custom Properties)',
         properties: cssInfo.customProperties
       };
     }
@@ -3876,8 +3571,9 @@ class SidePanel {
       chrome.runtime.sendMessage({
         type: 'update_css',
         property: property,
-        value: value,
-        elementInfo: this.currentElement,
+                    value: this.modifiedStyles.hasOwnProperty(propName) 
+                      ? this.modifiedStyles[propName] 
+                      : this.categorizedProperties[category][propName],        elementInfo: this.currentElement,
         timestamp: Date.now()
       }, (response) => {
         if (chrome.runtime.lastError) {
@@ -4045,56 +3741,94 @@ class SidePanel {
     return elementInfo.tagName;
   }
   
-  // CSS를 클립보드로 복사하는 함수입니다
-  async copyCssToClipboard(format) {
-    try {
-      if (!this.currentElement || !this.currentSelector) {
-        this.showError('No element selected to copy CSS from.');
-        return;
-      }
-      
-      let cssCode = '';
-      
-      switch (format) {
-        case 'css':
-          cssCode = this.generateCssRule();
-          break;
-        case 'inline':
-          cssCode = this.generateInlineStyle();
-          break;
-        case 'js':
-          cssCode = this.generateJsObject();
-          break;
-        case 'tailwind':
-          cssCode = this.generateTailwindClasses();
-          break;
-        case 'modified':
-          cssCode = this.generateModifiedOnlyCss();
-          break;
-        default:
-          cssCode = this.generateCssRule();
-      }
-      
-      // 클립보드에 복사
-      await navigator.clipboard.writeText(cssCode);
-      
-      // 성공 피드백
-      this.showSuccessMessage(`CSS copied to clipboard! (${format.toUpperCase()})`);
-      
-      console.log('Copied CSS:', cssCode);
-    } catch (error) {
-      console.error('Failed to copy CSS:', error);
-      this.showError('Failed to copy CSS to clipboard.');
+  copyCssToClipboard(format) {
+    const stylesToCopy = this.getSelectedPropertiesAsArray();
+    if (stylesToCopy.length === 0) {
+      this.showError('No properties selected to copy.');
+      return;
     }
+
+    let cssText = '';
+    if (format === 'css') {
+      cssText = this.generateCssRule(stylesToCopy);
+    } else if (format === 'json') {
+      cssText = JSON.stringify(stylesToCopy, null, 2);
+    }
+
+    navigator.clipboard.writeText(cssText).then(() => {
+      this.showSuccessMessage('Copied to clipboard!');
+    }).catch(err => {
+      this.showError('Failed to copy.');
+      console.error('Copy failed:', err);
+    });
+  }
+
+  // This function was accidentally deleted, re-adding it.
+  getSelectedPropertiesAsArray() {
+    const selectedStyles = [];
+    for (const propName of this.selectedProperties) {
+      if (propName.startsWith('custom:')) {
+        const customPropName = propName.substring(7);
+        if (this.categorizedProperties.custom && this.categorizedProperties.custom.properties[customPropName]) {
+          const customPropValue = this.categorizedProperties.custom.properties[customPropName];
+          selectedStyles.push({ name: customPropName, value: customPropValue });
+        }
+        continue;
+      }
+
+      let originalValue = undefined;
+      let found = false;
+
+      // Find the original value from the categorized properties
+      for (const category in this.categorizedProperties) {
+        if (category === 'custom') continue;
+        if (this.categorizedProperties[category] && this.categorizedProperties[category].hasOwnProperty(propName)) {
+          originalValue = this.categorizedProperties[category][propName];
+          found = true;
+          break;
+        }
+      }
+
+      // If the property was found in the original list
+      if (found) {
+        // Use the modified value if it exists, otherwise use the original value
+        const currentValue = this.modifiedStyles.hasOwnProperty(propName)
+          ? this.modifiedStyles[propName]
+          : originalValue;
+        
+        selectedStyles.push({ name: propName, value: currentValue });
+      }
+    }
+    return selectedStyles;
+  }
+
+  getAllPropertiesAsArray() {
+    const allStyles = [];
+    for (const category in this.categorizedProperties) {
+      const properties = this.categorizedProperties[category];
+      if (category === 'custom') {
+        if (properties && properties.properties) {
+          for (const propName in properties.properties) {
+            allStyles.push({ name: propName, value: properties.properties[propName] });
+          }
+        }
+      } else {
+        if (properties) {
+          for (const propName in properties) {
+            allStyles.push({ name: propName, value: properties[propName] });
+          }
+        }
+      }
+    }
+    return allStyles;
   }
   
   // CSS Rule 형식 생성
-  generateCssRule() {
-    const styles = this.getCombinedStyles();
+  generateCssRule(styles) {
     let css = `${this.currentSelector} {\n`;
     
-    Object.entries(styles).forEach(([property, value]) => {
-      css += `  ${property}: ${value};\n`;
+    styles.forEach(style => {
+      css += `  ${style.name}: ${style.value};\n`;
     });
     
     css += '}';
@@ -4193,7 +3927,7 @@ class SidePanel {
   
   // 수정된 속성만 CSS 생성
   generateModifiedOnlyCss() {
-    if (Object.keys(this.modifiedStyles).length === 0) {
+    if (Object.keys(this.modifiedStyles || {}).length === 0) {
       return '/* No modifications made */';
     }
     
@@ -4241,62 +3975,117 @@ class SidePanel {
   
   // 카테고리 전체 선택/해제 함수
   toggleCategorySelection(categoryKey, isChecked) {
-    const categoryProperties = this.categorizedProperties[categoryKey];
-    
-    Object.keys(categoryProperties).forEach(property => {
-      if (isChecked) {
-        this.selectedProperties.add(property);
-      } else {
-        this.selectedProperties.delete(property);
-      }
-    });
+    if (this.isTailwindView) {
+      const propertiesToToggle = categoryKey === 'converted' ? this.tailwindProperties.converted : this.tailwindProperties.unconverted;
+      const isUnconverted = categoryKey === 'unconverted';
+      propertiesToToggle.forEach(prop => {
+        const propIdentifier = isUnconverted ? prop.name : prop.tailwindClass;
+        if (isChecked) {
+          this.selectedProperties.add(propIdentifier);
+        } else {
+          this.selectedProperties.delete(propIdentifier);
+        }
+      });
+    } else {
+      const categoryProperties = this.categorizedProperties[categoryKey];
+      Object.keys(categoryProperties).forEach(property => {
+        if (isChecked) {
+          this.selectedProperties.add(property);
+        } else {
+          this.selectedProperties.delete(property);
+        }
+      });
+    }
     
     this.updateUI();
   }
   
   // UI 업데이트 함수
   updateUI() {
-    // 각 카테고리의 체크박스 상태 업데이트
-    Object.keys(CSS_CATEGORIES).forEach(categoryKey => {
-      const categoryProperties = this.categorizedProperties[categoryKey];
-      if (!categoryProperties) return;
-      
-      const propertyCount = Object.keys(categoryProperties).length;
-      const selectedCount = Object.keys(categoryProperties).filter(prop => 
-        this.selectedProperties.has(prop)
-      ).length;
-      
-      const categoryItem = document.querySelector(`.category-item[data-category="${categoryKey}"]`);
-      if (!categoryItem) return;
-      
-      const categoryCheckbox = categoryItem.querySelector('.category-checkbox');
-      const categoryCount = categoryItem.querySelector('.category-count');
-      
-      // 체크박스 상태 설정
-      if (selectedCount === 0) {
-        categoryCheckbox.checked = false;
-        categoryCheckbox.indeterminate = false;
-      } else if (selectedCount === propertyCount) {
-        categoryCheckbox.checked = true;
-        categoryCheckbox.indeterminate = false;
-      } else {
-        categoryCheckbox.checked = false;
-        categoryCheckbox.indeterminate = true;
-      }
-      
-      // 카운트 업데이트
-      categoryCount.textContent = `${selectedCount}/${propertyCount}`;
-      
-      // 개별 속성 체크박스 업데이트
-      const propertyItems = categoryItem.querySelectorAll('.property-item-accordion');
-      propertyItems.forEach(element => {
-        const property = element.getAttribute('data-property');
-        const propertyCheckbox = element.querySelector('.property-checkbox');
-        if (propertyCheckbox) {
-          propertyCheckbox.checked = this.selectedProperties.has(property);
+    if (this.isTailwindView) {
+      // Update category checkboxes
+      const convertedCheckbox = document.querySelector('.category-checkbox[data-category="converted"]');
+      if (convertedCheckbox) {
+        const convertedProperties = this.tailwindProperties.converted.map(p => p.tailwindClass);
+        const selectedConverted = convertedProperties.filter(p => this.selectedProperties.has(p));
+        if (selectedConverted.length === 0) {
+          convertedCheckbox.checked = false;
+          convertedCheckbox.indeterminate = false;
+        } else if (selectedConverted.length === convertedProperties.length) {
+          convertedCheckbox.checked = true;
+          convertedCheckbox.indeterminate = false;
+        } else {
+          convertedCheckbox.checked = false;
+          convertedCheckbox.indeterminate = true;
         }
+      }
+
+      const unconvertedCheckbox = document.querySelector('.category-checkbox[data-category="unconverted"]');
+      if (unconvertedCheckbox) {
+        const unconvertedProperties = this.tailwindProperties.unconverted.map(p => p.name);
+        const selectedUnconverted = unconvertedProperties.filter(p => this.selectedProperties.has(p));
+        if (selectedUnconverted.length === 0) {
+          unconvertedCheckbox.checked = false;
+          unconvertedCheckbox.indeterminate = false;
+        } else if (selectedUnconverted.length === unconvertedProperties.length) {
+          unconvertedCheckbox.checked = true;
+          unconvertedCheckbox.indeterminate = false;
+        } else {
+          unconvertedCheckbox.checked = false;
+          unconvertedCheckbox.indeterminate = true;
+        }
+      }
+
+      // Update individual property checkboxes
+      const propertyCheckboxes = document.querySelectorAll('.property-checkbox');
+      propertyCheckboxes.forEach(checkbox => {
+        const propIdentifier = checkbox.getAttribute('data-property');
+        checkbox.checked = this.selectedProperties.has(propIdentifier);
       });
-    });
+
+    } else {
+      // 각 카테고리의 체크박스 상태 업데이트
+      Object.keys(CSS_CATEGORIES).forEach(categoryKey => {
+        const categoryProperties = this.categorizedProperties[categoryKey];
+        if (!categoryProperties) return;
+        
+        const propertyCount = Object.keys(categoryProperties).length;
+        const selectedCount = Object.keys(categoryProperties).filter(prop => 
+          this.selectedProperties.has(prop)
+        ).length;
+        
+        const categoryItem = document.querySelector(`.category-item[data-category="${categoryKey}"]`);
+        if (!categoryItem) return;
+        
+        const categoryCheckbox = categoryItem.querySelector('.category-checkbox');
+        const categoryCount = categoryItem.querySelector('.category-count');
+        
+        // 체크박스 상태 설정
+        if (selectedCount === 0) {
+          categoryCheckbox.checked = false;
+          categoryCheckbox.indeterminate = false;
+        } else if (selectedCount === propertyCount) {
+          categoryCheckbox.checked = true;
+          categoryCheckbox.indeterminate = false;
+        } else {
+          categoryCheckbox.checked = false;
+          categoryCheckbox.indeterminate = true;
+        }
+        
+        // 카운트 업데이트
+        categoryCount.textContent = `${selectedCount}/${propertyCount}`;
+        
+        // 개별 속성 체크박스 업데이트
+        const propertyItems = categoryItem.querySelectorAll('.property-item-accordion');
+        propertyItems.forEach(element => {
+          const property = element.getAttribute('data-property');
+          const propertyCheckbox = element.querySelector('.property-checkbox');
+          if (propertyCheckbox) {
+            propertyCheckbox.checked = this.selectedProperties.has(property);
+          }
+        });
+      });
+    }
     
     // Select All 체크박스 상태 업데이트
     this.updateSelectAllCheckbox();
@@ -4329,7 +4118,7 @@ class SidePanel {
     if (this.isTailwindView && this.tailwindProperties) {
       // Tailwind view: select all converted and unconverted properties
       this.tailwindProperties.converted.forEach(prop => {
-        this.selectedProperties.add(prop.name);
+        this.selectedProperties.add(prop.tailwindClass);
       });
       this.tailwindProperties.unconverted.forEach(prop => {
         this.selectedProperties.add(prop.name);
@@ -4566,69 +4355,124 @@ class SidePanel {
 
   // ========== Tailwind 변환 관련 메서드들 ==========
   
-  // CSS 뷰를 Tailwind 뷰로 변환
-  async convertToTailwindView() {
-    if (!this.currentElement || Object.keys(this.categorizedProperties).length === 0) {
-      this.showError('No CSS properties to convert. Please select an element first.');
-      return;
-    }
+  displayTailwindResults(results) {
+    const accordion = this.propertiesAccordion;
+    accordion.innerHTML = ''; // Clear existing content
 
-    try {
-      // 현재 속성들을 평면화하여 변환용 배열로 만들기
-      const allProperties = [];
-      Object.entries(this.categorizedProperties).forEach(([categoryName, categoryProps]) => {
-        // categoryProps는 객체이므로 Object.entries를 사용
-        Object.entries(categoryProps).forEach(([propertyName, propertyValue]) => {
-          allProperties.push({
-            name: propertyName,
-            value: propertyValue,
-            category: categoryName
-          });
+    const createCategoryItem = (id, title, properties, isUnconverted = false) => {
+      const allSelected = properties.every(prop => this.selectedProperties.has(isUnconverted ? prop.name : prop.tailwindClass));
+      const item = document.createElement('div');
+      item.className = 'category-item';
+      item.innerHTML = `
+        <button class="category-header expanded" type="button">
+          <input type="checkbox" class="category-checkbox" data-category="${id}" ${allSelected ? 'checked' : ''}>
+          <span class="category-title">${title}</span>
+        </button>
+        <div class="category-content expanded">
+          ${properties.map(prop => {
+            const propIdentifier = isUnconverted ? prop.name : prop.tailwindClass;
+            const isSelected = this.selectedProperties.has(propIdentifier);
+            return `
+              <div class="property-item-accordion ${isUnconverted ? 'css-unconverted' : 'tailwind-converted'}" data-property="${propIdentifier}">
+                <input type="checkbox" class="property-checkbox" data-property="${propIdentifier}" ${isSelected ? 'checked' : ''}>
+                <span class="property-name-accordion">${isUnconverted ? `${prop.name}: ${prop.value}` : prop.tailwindClass}</span>
+                ${isUnconverted ? `<span class="property-value-accordion">(${prop.reason})</span>` : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+
+      const categoryCheckbox = item.querySelector('.category-checkbox');
+      categoryCheckbox.addEventListener('change', (e) => {
+        this.toggleCategorySelection(id, e.target.checked);
+      });
+
+      const propertyCheckboxes = item.querySelectorAll('.property-checkbox');
+      propertyCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+          const propIdentifier = e.target.getAttribute('data-property');
+          if (e.target.checked) {
+            this.selectedProperties.add(propIdentifier);
+          } else {
+            this.selectedProperties.delete(propIdentifier);
+          }
+          this.updateUI();
         });
       });
 
-      // Tailwind 변환 실행
-      this.tailwindProperties = this.tailwindConverter.convertProperties(allProperties);
-      
-      // 변환 통계 얻기
-      const stats = this.tailwindConverter.getConversionStats();
-      
-      // 변환 불가능한 속성들이 있을 경우 경고 표시
-      if (stats.unconverted > 0) {
-        this.showWarningAlert(`Warning: ${stats.unconverted} properties could not be converted to Tailwind CSS. They will remain as regular CSS properties.`);
-      }
+      return item;
+    };
 
-      // UI를 Tailwind 뷰로 전환
-      this.switchToTailwindUI();
-      
-      // Tailwind 속성들을 기본 선택 상태로 설정
-      this.initializeTailwindSelection();
-      
-      // Tailwind 속성들을 UI에 렌더링
-      this.renderTailwindProperties();
-      
-      // Select All 체크박스를 기본적으로 체크 상태로 설정
-      if (this.selectAllCheckbox) {
-        this.selectAllCheckbox.checked = true;
-        this.selectAllCheckbox.indeterminate = false;
-      }
-      
-      // 성공 메시지 표시
-      this.showSuccessMessage(`Converted ${stats.converted} properties to Tailwind CSS (${stats.conversionRate}% success rate)`);
-      
-    } catch (error) {
-      console.error('Tailwind conversion failed:', error);
-      this.showError('Failed to convert properties to Tailwind CSS.');
+    if (results.converted.length > 0) {
+      accordion.appendChild(createCategoryItem('converted', 'Converted Classes', results.converted));
+    }
+
+    if (results.unconverted.length > 0) {
+      accordion.appendChild(createCategoryItem('unconverted', 'Unconverted Properties', results.unconverted, true));
     }
   }
 
+  createAccordionItem(id, title, content) {
+    const item = document.createElement('div');
+    item.className = 'accordion-item';
+    item.innerHTML = `
+      <h2 class="accordion-header" id="heading-${id}">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${id}" aria-expanded="true" aria-controls="collapse-${id}">
+          ${title}
+        </button>
+      </h2>
+      <div id="collapse-${id}" class="accordion-collapse collapse show" aria-labelledby="heading-${id}">
+        <div class="accordion-body">
+          ${content}
+        </div>
+      </div>
+    `;
+    return item;
+  }
+
+  convertToTailwindView() {
+    console.log('[Debug] 1. Starting Tailwind conversion process.');
+    
+    // 1. 변환 실행
+    const allStyles = this.getAllPropertiesAsArray(); // Changed here
+    console.log('[Debug] 2. All styles to convert:', allStyles);
+
+    if (allStyles.length === 0) {
+      console.warn('[Debug] No styles to convert. Aborting conversion.');
+      alert('No CSS properties found for this element.');
+      return;
+    }
+
+    this.tailwindProperties = this.tailwindConverter.convertProperties(allStyles);
+    console.log('[Debug] 3. Conversion result:', this.tailwindProperties);
+    
+    // 2. UI 업데이트
+    this.isTailwindView = true;
+    this.displayTailwindResults(this.tailwindProperties);
+    
+    // 3. 버튼 상태 변경
+    console.log('[Debug] 5. Updating button visibility and title.');
+    this.convertToTailwindBtn.style.display = 'none';
+    this.backToCssBtn.style.display = 'inline-block';
+    this.copyCssDropdown.style.display = 'none';
+    this.copyTailwindBtn.style.display = 'inline-block';
+    this.propertiesTitle.textContent = 'Tailwind Classes';
+    console.log('[Debug] 6. Tailwind conversion process finished.');
+  }
+
+
+
   // Tailwind 뷰를 CSS 뷰로 되돌리기
   backToCssView() {
+    if (this.lastCssInfo) {
+      this.displayElementInfo(this.lastCssInfo);
+    }
     // UI를 CSS 뷰로 전환
     this.switchToCssUI();
     
     // 기존 CSS 속성들을 다시 렌더링
-    this.renderCssProperties();
+    this.buildAccordionUI();
     
     // Tailwind 상태 초기화
     this.isTailwindView = false;
@@ -4945,12 +4789,12 @@ class SidePanel {
     
     // 선택된 속성들만 필터링
     this.tailwindProperties.converted.forEach(prop => {
-      if (prop.tailwindClass && this.selectedProperties.has(prop.name)) {
+      if (prop.tailwindClass && this.selectedProperties.has(prop.tailwindClass)) {
         selectedClasses.push(prop.tailwindClass);
       }
     });
     
-    // 선택된 변환되지 않은 속성들도 포함
+    // 선택된 변환되지 않은 속성들도 포함 (주석으로)
     this.tailwindProperties.unconverted.forEach(prop => {
       if (this.selectedProperties.has(prop.name)) {
         selectedClasses.push(`/* ${prop.name}: ${prop.value}; */`);
@@ -4961,16 +4805,187 @@ class SidePanel {
   }
 
   // ========== Color Palette 관련 메서드들 ==========
-  
-  // Color Palette 모드 토글
-  toggleColorPaletteMode() {
-    if (this.isColorPaletteMode) {
-      this.exitColorPaletteMode();
-    } else {
-      this.enterColorPaletteMode();
+
+  // EyeDropper API를 사용하여 색상 샘플링
+  async sampleColorWithEyeDropper() {
+    if (!window.EyeDropper) {
+      this.showError("EyeDropper API not supported in this browser.");
+      return;
+    }
+
+    try {
+      const eyeDropper = new EyeDropper();
+      const result = await eyeDropper.open();
+      
+      // sRGBHex to r,g,b
+      const hex = result.sRGBHex;
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      
+      const colorData = { r, g, b, a: 1 };
+      
+      this.processColorSample(colorData, {x:0, y:0});
+
+    } catch (e) {
+      this.showSuccessMessage("Color sampling cancelled.");
     }
   }
-  
+
+  // 샘플링된 색상 처리
+  processColorSample(colorData, coordinates) {
+    if (!colorData) return;
+
+    const color = {
+      id: `color_${Date.now()}`,
+      hex: this.rgbToHex(colorData.r, colorData.g, colorData.b),
+      rgb: {
+        r: colorData.r,
+        g: colorData.g,
+        b: colorData.b,
+        a: colorData.a || 1
+      },
+      hsl: this.rgbToHsl(colorData.r, colorData.g, colorData.b),
+      timestamp: Date.now(),
+      source: {
+        x: coordinates.x,
+        y: coordinates.y,
+        url: window.location.href
+      },
+      category: 'sampled'
+    };
+
+    // 중복 색상 확인
+    const isDuplicate = this.sampledColors.some(existingColor => 
+      existingColor.hex === color.hex
+    );
+
+    if (!isDuplicate) {
+      this.sampledColors.push(color);
+      this.saveColorToStorage(color);
+      this.onColorAdded(color);
+    }
+  }
+
+  // RGB를 HEX로 변환
+  rgbToHex(r, g, b) {
+    const componentToHex = (c) => {
+      const hex = Math.round(c).toString(16);
+      return hex.length === 1 ? "0" + hex : hex;
+    };
+    return `#${componentToHex(r)}${componentToHex(g)}${componentToHex(b)}`.toUpperCase();
+  }
+
+  // RGB를 HSL로 변환
+  rgbToHsl(r, g, b) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const diff = max - min;
+    const sum = max + min;
+    
+    let h = 0;
+    let s = 0;
+    const l = sum / 2;
+
+    if (diff !== 0) {
+      s = l > 0.5 ? diff / (2 - sum) : diff / sum;
+      
+      switch (max) {
+        case r:
+          h = ((g - b) / diff) + (g < b ? 6 : 0);
+          break;
+        case g:
+          h = (b - r) / diff + 2;
+          break;
+        case b:
+          h = (r - g) / diff + 4;
+          break;
+      }
+      h /= 6;
+    }
+
+    return {
+      h: Math.round(h * 360),
+      s: Math.round(s * 100),
+      l: Math.round(l * 100),
+      a: 1
+    };
+  }
+
+  // HSL을 RGB로 변환
+  hslToRgb(h, s, l) {
+    h /= 360;
+    s /= 100;
+    l /= 100;
+
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+
+    let r, g, b;
+
+    if (s === 0) {
+      r = g = b = l;
+    } else {
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+      r = hue2rgb(p, q, h + 1/3);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 1/3);
+    }
+
+    return {
+      r: Math.round(r * 255),
+      g: Math.round(g * 255),
+      b: Math.round(b * 255)
+    };
+  }
+
+  // 다양한 색상 포맷 생성
+  generateColorFormats(color) {
+    const { rgb, hsl } = color;
+    
+    return {
+      hex: color.hex,
+      rgb: `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`,
+      rgba: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${rgb.a})`,
+      hsl: `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`,
+      hsla: `hsla(${hsl.h}, ${hsl.s}%, ${hsl.l}%, ${hsl.a})`,
+      cssVar: `--color-${Date.now()}: ${color.hex};`
+    };
+  }
+
+  // 로컬 스토리지에 색상 저장
+  saveColorToStorage(color) {
+    try {
+      const existingColors = this.loadColorsFromStorage();
+      existingColors.push(color);
+      localStorage.setItem('css-picker-colors', JSON.stringify(existingColors));
+    } catch (error) {
+      console.error('Failed to save color to storage:', error);
+    }
+  }
+
+  // 로컬 스토리지에서 색상 로드
+  loadColorsFromStorage() {
+    try {
+      const stored = localStorage.getItem('css-picker-colors');
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error('Failed to load colors from storage:', error);
+      return [];
+    }
+  }
+
   // Color Palette 모드 진입
   async enterColorPaletteMode() {
     this.isColorPaletteMode = true;
@@ -4981,16 +4996,16 @@ class SidePanel {
     this.hideOtherSections();
     this.updateColorPaletteButtonState(true);
     
-    // 색상 샘플링 활성화
-    await this.activateColorSampling();
-    
     // 저장된 색상들 로드
     this.loadSavedColors();
     
     // UI 업데이트
     this.renderColorSwatches();
-    this.updateSamplingStatus('📸 Sampling Active - Click anywhere to sample colors');
+    this.updateSamplingStatus('📸 Sampling Active - Click anywhere on the webpage to sample colors');
     
+    // 커서 스타일 변경
+    document.body.style.cursor = 'crosshair';
+
     console.log("Color Palette mode activated");
   }
   
@@ -4999,9 +5014,9 @@ class SidePanel {
     this.isColorPaletteMode = false;
     this.isSamplingActive = false;
     
-    // 색상 샘플링 비활성화
-    await this.deactivateColorSampling();
-    
+    // 커서 스타일 복원
+    document.body.style.cursor = '';
+
     // UI 상태 업데이트
     this.hideColorPaletteSection();
     this.showInstructionsSection();  // showOtherSections 대신 showInstructionsSection 사용
@@ -5015,23 +5030,7 @@ class SidePanel {
 
   // EyeDropper는 이제 기본 클릭 동작으로 통합됨
   
-  // 색상 샘플링 활성화
-  async activateColorSampling() {
-    await this.colorSampler.activateSampling();
-    
-    // ColorSampler 이벤트 리스너 설정
-    window.sidePanel = this; // ColorSampler가 참조할 수 있도록 전역 설정
-  }
-  
-  // 색상 샘플링 비활성화
-  async deactivateColorSampling() {
-    await this.colorSampler.deactivateSampling();
-    
-    // 전역 참조 제거
-    if (window.sidePanel === this) {
-      window.sidePanel = null;
-    }
-  }
+
   
   // 색상 추가 콜백 (ColorSampler에서 호출)
   onColorAdded(color) {
@@ -5284,12 +5283,12 @@ class SidePanel {
     this.isSamplingActive = !this.isSamplingActive;
     
     if (this.isSamplingActive) {
-      this.activateColorSampling();
+      this.sampleColorWithEyeDropper(); // Directly call EyeDropper
       this.toggleSamplingBtn.innerHTML = '🔴 Stop Sampling';
       this.toggleSamplingBtn.className = 'btn btn-danger btn-sm';
       this.updateSamplingStatus(true);
     } else {
-      this.deactivateColorSampling();
+      // No need to deactivate a separate sampling process for EyeDropper
       this.toggleSamplingBtn.innerHTML = '🎯 Start Sampling';
       this.toggleSamplingBtn.className = 'btn btn-primary btn-sm';
       this.updateSamplingStatus(false);
@@ -5510,6 +5509,13 @@ class SidePanel {
     
     this.selectNoneAssetsBtn.addEventListener('click', () => {
       this.selectNoneAssets();
+    });
+
+    this.assetCategories.addEventListener('click', (e) => {
+      if (e.target.matches('.download-single-btn')) {
+        const assetId = e.target.getAttribute('data-asset');
+        this.downloadSingleAsset(assetId);
+      }
     });
 
     // 초기 asset 수집
@@ -5905,6 +5911,41 @@ class SidePanel {
       this.showError(`ZIP download failed: ${error.message}`);
     }
   }
+
+  async downloadSingleAsset(assetId) {
+    const asset = this.findAssetById(assetId);
+    if (!asset) {
+      this.showError('Asset not found.');
+      return;
+    }
+
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'download_assets',
+        assets: [asset]
+      });
+
+      if (response.success) {
+        this.showSuccessMessage(`Started downloading ${asset.filename}`);
+      } else {
+        this.showError('Failed to start download');
+      }
+    } catch (error) {
+      console.error('Download failed:', error);
+      this.showError('Download failed');
+    }
+  }
+
+  findAssetById(assetId) {
+    for (const category in this.collectedAssets) {
+      const found = this.collectedAssets[category].find(asset => asset.id === assetId);
+      if (found) {
+        return found;
+      }
+    }
+    return null;
+  }
+
 
   // 선택된 Asset 객체들 반환
   getSelectedAssetObjects() {
@@ -6608,20 +6649,22 @@ class SidePanel {
   
   // Premium 기능 접근 권한 체크
   async checkFeatureAccess(featureName) {
-    try {
-      const canUse = await planManager.canUseFeature(featureName);
-      
-      if (!canUse.allowed) {
-        // 업그레이드 모달 표시
-        this.showUpgradeModal(featureName);
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Failed to check feature access:', error);
-      return false;
+    if (!planManager) {
+      console.error('PlanManager not initialized!');
+      return false; // Promise resolves to false
     }
+
+    const canUse = await planManager.canUseFeature(featureName);
+
+    // Handle both boolean and object responses from canUseFeature
+    const isAllowed = (typeof canUse === 'boolean') ? canUse : canUse?.allowed;
+
+    if (!isAllowed) {
+      this.showUpgradeModal(featureName);
+      return false; // Promise resolves to false
+    }
+
+    return true; // Promise resolves to true
   }
 
   // Premium 기능 체크 및 사용 추적

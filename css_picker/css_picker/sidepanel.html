@@ -18,7 +18,7 @@
   <!-- clerk으로 주석처리했다: https://api.clerk.com https://*.clerk.accounts.dev -->
   
   <!-- 브라우저 탭에 표시될 페이지 제목입니다 -->
-  <title>CSS Element Picker</title>
+  <title>CSS Picker</title>
   
   <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -260,7 +260,7 @@
       <!-- CSS 정보 표시 섹션 -->
       <div class="css-info-section" id="cssInfoSection" style="display: none;">
         <div class="section-header">
-          <h3>🎯 CSS Picker</h3>
+          <h3>🎯 CSS Selector</h3>
           <div class="section-nav">
             <button id="toggleBtn" class="btn btn-secondary btn-sm">
               ⭐ Click to Activate
@@ -286,7 +286,7 @@
         <div class="picker-message active-picker-message" id="activePickerMessage" style="display: none;">
           <div class="message-content">
             <span class="message-icon">✨</span>
-            <span class="message-text">CSS Picker is Activated! Hover over elements to highlight them, then click to extract CSS properties.</span>
+            <span class="message-text">CSS Selector is Activated! Hover over elements to highlight them, then click to extract CSS properties.</span>
           </div>
         </div>
         
@@ -464,6 +464,15 @@
               <button class="btn btn-outline-dark btn-sm filter-btn" data-filter="failed-fetch">
                 🌐 Failed Fetch
               </button>
+              <button class="btn btn-outline-primary btn-sm filter-btn" data-filter="table">
+                🗂️ Table
+              </button>
+              <button class="btn btn-outline-secondary btn-sm filter-btn" data-filter="groupEnd">
+                🔚 GroupEnd
+              </button>
+              <button class="btn btn-outline-info btn-sm filter-btn" data-filter="trace">
+                ιχ Trace
+              </button>
             </div>
           </div>
           
@@ -517,7 +526,7 @@
           <div class="asset-summary">
             <span id="assetSummary">Loading assets...</span>
             <button id="refreshAssetsBtn" class="btn btn-outline-secondary btn-sm ms-2" title="Refresh Assets">
-              🔄
+              🔄 Refresh
             </button>
           </div>
         </div>
