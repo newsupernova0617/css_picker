@@ -3,6 +3,6 @@ venv/
 backend/venv/
 
 *.log
-
+.env
 # Firebase
 firebase-debug.log
