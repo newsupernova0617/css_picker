@@ -6628,23 +6628,12 @@ class SidePanel {
   
   // 업그레이드 버튼 클릭 처리
   handleUpgradeClick() {
-    try {
-      const upgradeUrl = planManager.getUpgradeUrl();
-      
-      // 새 탭에서 업그레이드 페이지 열기
-      chrome.tabs.create({ url: upgradeUrl });
-      
-      // 모달 닫기
-      const modal = bootstrap.Modal.getInstance(this.upgradeModal);
-      if (modal) {
-        modal.hide();
-      }
-      
-    } catch (error) {
-      console.error('Failed to handle upgrade click:', error);
-      // 백업: 직접 URL 열기
-      window.open('https://your-landing-page.com/upgrade', '_blank');
+    if (!planManager) {
+        console.error("PlanManager is not available.");
+        alert("Could not start the upgrade process. Please try again later.");
+        return;
     }
+    planManager.redirectToCheckout();
   }
   
   // Premium 기능 접근 권한 체크

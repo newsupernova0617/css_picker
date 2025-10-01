@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    match /users/{userId} {
+      // 본인만 읽기 가능
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // 생성/업데이트/삭제는 클라이언트에서 못하게 차단
+      allow create, update, delete: if false;
+    }
+  }
+}

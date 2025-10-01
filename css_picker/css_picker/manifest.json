@@ -4,15 +4,18 @@
   "description": "A Chrome extension for highlighting page elements on hover",
   "version": "1.0",
   "permissions": [
-  "tabs",
-  "sidePanel",
-  "scripting",
-  "downloads",
-  "activeTab",
-  "storage",
-  "identity",
-  "alarms"
-],
+    "tabs",
+    "sidePanel",
+    "scripting",
+    "downloads",
+    "activeTab",
+    "storage",
+    "identity",
+    "alarms"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "oauth2": {
     "client_id": "308268216165-jmac1fg2rbm696dl3dbqq31rgrv8llu0.apps.googleusercontent.com",
     "scopes": ["openid", "email", "profile"]
