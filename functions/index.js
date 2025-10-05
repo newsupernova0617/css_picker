@@ -1,23 +1,195 @@
-// Firebase Functions v6 (Gen2) + CommonJS 스타일
-const { getFirestore,FieldValue  } = require("firebase-admin/firestore");
-const functions = require("firebase-functions"); // 그대로 사용 가능 (v1 onCall/onRequest)
-const { beforeUserCreated  } = require("firebase-functions/v2/identity"); // ← 여기만 변경
-const admin = require("firebase-admin");
+// Firebase Admin & Functions V2
+const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const { onRequest, onCall } = require("firebase-functions/v2/https");
+const { beforeUserCreated } = require("firebase-functions/v2/identity");
+const { initializeApp } = require("firebase-admin/app");
+const crypto = require("crypto");
+const fetch = require("node-fetch");
 
-admin.initializeApp();
+initializeApp();
 const db = getFirestore();
 
+// 허용할 CORS 도메인
+const ALLOWED_ORIGINS = [/firebase\.com$/, "https://flutter.com", "https://www.csspicker.site","https://project-fastsaas.firebaseapp.com","https://project-fastsaas.web.app",    "http://localhost:5000",          // 로컬 개발 환경 주소 예시 (포트 번호는 실제 환경에 맞게 변경)
+    "http://127.0.0.1:5500"];
+
+/**
+ * 1️⃣ Lemon Squeezy Checkout 생성
+ */
+exports.createCheckout = onRequest(
+  {
+    secrets: ["LS_API_KEY"],
+    timeoutSeconds: 30,
+    rawBody: true,
+    cors: ALLOWED_ORIGINS,
+  },
+  async (req, res) => {
+    try {
+      if (req.method !== "POST")
+        return res.status(405).json({ error: "Method Not Allowed" });
+
+      // rawBody JSON 파싱
+      let body;
+      try {
+        body = req.rawBody ? JSON.parse(req.rawBody.toString()) : {};
+      } catch (err) {
+        return res.status(400).json({ error: "Invalid JSON" });
+      }
+
+      const { storeId, variantId, redirectUrl, testMode = false, firebaseUid } = body;
+      if (!storeId || !variantId)
+        return res
+          .status(400)
+          .json({ error: "storeId and variantId are required" });
+
+      if (!firebaseUid) // UID가 없으면 에러 처리
+        return res.status(400).json({ error: "firebaseUid is required" });
+
+      const apiKey = process.env.LS_API_KEY;
+      if (!apiKey)
+        return res.status(500).json({ error: "LS_API_KEY is missing" });
+
+      // Checkout payload
+      const payload = {
+        data: {
+          type: "checkouts",
+          attributes: {
+            checkout_data: { // checkout_data 추가
+              custom: {
+                firebase_uid: firebaseUid, // 여기에 UID를 넣어줘야 웹훅에서 사용 가능
+              },
+            },
+            product_options: { redirect_url: redirectUrl },
+            test_mode: !!testMode,
+          },
+          relationships: {
+            store: { data: { type: "stores", id: String(storeId) } },
+            variant: { data: { type: "variants", id: String(variantId) } },
+          },
+        },
+      };
+
+      const r = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey.trim()}`,
+          Accept: "application/vnd.api+json",
+          "Content-Type": "application/vnd.api+json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!r.ok) {
+        const errText = await r.text();
+        return res
+          .status(r.status)
+          .json({ error: "Lemon Squeezy error", detail: errText });
+      }
+
+      const data = await r.json();
+      const url = data?.data?.attributes?.url;
+      if (!url)
+        return res.status(500).json({ error: "Checkout URL not found" });
+
+      return res.status(200).json({ url });
+    } catch (err) {
+      console.error("createCheckout error:", err);
+      return res
+        .status(500)
+        .json({ error: err?.message || "Internal server error" });
+    }
+  }
+);
+
+/**
+ * 2️⃣ Lemon Squeezy Webhook 처리
+ */
+exports.handleWebhook = onRequest(
+  {
+    secrets: ["LS_WEBHOOK_SECRET"],
+    timeoutSeconds: 30,
+    rawBody: true,
+    cors: ALLOWED_ORIGINS,
+  },
+  async (req, res) => {
+    try {
+      if (req.method !== "POST")
+        return res.status(405).send("Method Not Allowed");
+
+      const signature = req.header("Lemon-Squeezy-Signature");
+      const payload = req.rawBody;
+      if (!signature || !payload)
+        return res.status(400).json({ error: "Missing signature or payload" });
+
+      const secret = process.env.LS_WEBHOOK_SECRET;
+      if (!secret)
+        return res.status(500).json({ error: "LS_WEBHOOK_SECRET is missing" });
+
+      const expectedSignature = crypto
+        .createHmac("sha256", secret)
+        .update(payload)
+        .digest("base64");
+
+      const signatureBuffer = Buffer.from(signature, "base64");
+      const expectedBuffer = Buffer.from(expectedSignature, "base64");
+
+      if (
+        signatureBuffer.length !== expectedBuffer.length ||
+        !crypto.timingSafeEqual(signatureBuffer, expectedBuffer)
+      ) {
+        return res.status(401).json({ error: "Invalid signature" });
+      }
+
+      const event = JSON.parse(payload.toString());
+      const { type, data } = event;
+      const uid = data?.attributes?.custom_data?.firebase_uid;
+
+      if (uid) {
+        const userRef = db.collection("users").doc(uid);
+
+        if (type === "order_created") {
+          await userRef.set(
+            {
+              status: "paid",
+              orderId: data.id,
+              purchasedAt: data.attributes.created_at,
+              updatedAt: FieldValue.serverTimestamp(),
+              email: data.attributes.user_email || null,
+            },
+            { merge: true }
+          );
+        } else if (type === "order_refunded") {
+          const doc = await userRef.get();
+          if (doc.exists) {
+            await userRef.update({
+              status: "refunded",
+              updatedAt: FieldValue.serverTimestamp(),
+            });
+          }
+        }
+      }
+
+      await db.collection("webhooks").add({
+        type,
+        data,
+        receivedAt: FieldValue.serverTimestamp(),
+      });
+
+      res.status(200).send("Webhook received");
+    } catch (err) {
+      console.error("Webhook error:", err);
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+/**
+ * 3️⃣ 유저 생성 전 처리
+ */
 exports.handleBeforeUserCreated = beforeUserCreated(async (event) => {
-  const user = event.data;  // 생성될 유저 데이터가 담겨 있음
+  const user = event.data;
   const uid = user.uid;
 
-  // 여기서 도메인 필터링 등 검증 가능
-  // 예: 이메일이 특정 도메인이 아니면 거부
-  // if (!user.email || !user.email.endsWith("@example.com")) {
-  //   throw new HttpsError('invalid-argument', 'Email domain not allowed');
-  // }
-
-  // Firestore에 유저 문서를 미리 생성
   await db.collection("users").doc(uid).set({
     status: "free",
     orderId: null,
@@ -25,27 +197,17 @@ exports.handleBeforeUserCreated = beforeUserCreated(async (event) => {
     updatedAt: FieldValue.serverTimestamp(),
     email: user.email || null,
   });
-
-  // blocking 함수는 보통 반환값이 특별히 필요 없을 수도 있음
-  return;
 });
+
 /**
- * 사용자 프로필 반환 (Callable Function)
+ * 4️⃣ Callable Function: 사용자 프로필 반환
  */
-exports.getUserProfile = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "The function must be called while authenticated."
-    );
-  }
+exports.getUserProfile = onCall(async (data, context) => {
+  if (!context.auth) throw new Error("Unauthenticated");
 
   const uid = context.auth.uid;
   const userDoc = await db.collection("users").doc(uid).get();
-
-  if (!userDoc.exists) {
-    throw new functions.https.HttpsError("not-found", "User not found in Firestore.");
-  }
+  if (!userDoc.exists) throw new Error("User not found");
 
   const userData = userDoc.data();
   return {
@@ -55,53 +217,4 @@ exports.getUserProfile = functions.https.onCall(async (data, context) => {
     email: userData.email || null,
     updatedAt: userData.updatedAt || null,
   };
-});
-
-
-
-
-
-/**
- * Lemon Squeezy 웹훅 처리 (HTTP Function)
- */
-exports.handleLemonWebhook = functions.https.onRequest(async (req, res) => {
-  try {
-    const event = req.body;
-    const eventType = event.meta?.event_name;
-    const uid = event.data?.attributes?.custom_data?.firebase_uid;
-
-    if (!uid) {
-      res.status(400).send("Missing firebase_uid in custom_data");
-      return;
-    }
-
-    const userRef = db.collection("users").doc(uid);
-
-    if (eventType === "order_created") {
-      await userRef.set(
-        {
-          status: "paid",
-          orderId: event.data.id,
-          purchasedAt: event.data.attributes.created_at,
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          email: event.data.attributes.user_email || null,
-        },
-        { merge: true }
-      );
-      functions.logger.info(`User ${uid} upgraded to paid.`);
-    }
-
-    if (eventType === "order_refunded") {
-      await userRef.update({
-        status: "refunded",
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-      functions.logger.info(`User ${uid} refunded, premium revoked.`);
-    }
-
-    res.status(200).send("ok");
-  } catch (error) {
-    functions.logger.error("Webhook handling error:", error);
-    res.status(500).send("Internal Server Error");
-  }
 });

@@ -1,0 +1,41 @@
+# .gemini/commands/push.toml
+description = "Stages, commits, and pushes all changes to the remote repository."
+
+# =====================
+# 설정 섹션: 수정 가능
+# =====================
+[config]
+# GitHub 원격 URL (HTTPS 또는 SSH)
+remote_url = "https://github.com/newsupernova0617/css_picker"
+
+# push할 브랜치
+branch = "firebase"
+
+# 자동 commit 메시지
+commit_message = "feat: Automated commit by Gemini"
+
+# =====================
+# 실행 단계
+# =====================
+
+[[steps]]
+name = "Set remote URL (if not set)"
+command = """
+git remote get-url origin || git remote add origin ${remote_url}
+"""
+description = "Ensure the GitHub remote URL is set."
+
+[[steps]]
+name = "Add all changes"
+command = "git add ."
+description = "Stage all new and modified files."
+
+[[steps]]
+name = "Commit changes"
+command = "git commit -m '${commit_message}' || echo 'No changes to commit.'"
+description = "Commit the staged changes. Skips if there are no changes."
+
+[[steps]]
+name = "Push to remote"
+command = "git push origin ${branch}"
+description = "Push the changes to the specified branch of the remote repository."
