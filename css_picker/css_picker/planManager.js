@@ -1,3 +1,5 @@
+import { stripePublishableKey } from './config.js'; // Import the config
+
 class PlanManager {
     constructor() {
         this.isReady = false;
@@ -12,21 +14,7 @@ class PlanManager {
             return;
         }
 
-        // Firebase 초기화
-        const firebaseConfig = {
-            apiKey: "AIzaSyBoSF6ymRxQShwtCUZ_tNkilChozl42SYU",
-            authDomain: "project-fastsaas.firebaseapp.com",
-            projectId: "project-fastsaas",
-            storageBucket: "project-fastsaas.appspot.com",
-            messagingSenderId: "359112377577",
-            appId: "1:359112377577:web:932e77fbf6a021f0bfdc78",
-            measurementId: "G-19E807NXPL"
-        };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        
+        // Use the existing firebase instance
         this.auth = firebase.auth();
         this.db = firebase.firestore();
         this.functions = firebase.functions();
@@ -35,8 +23,8 @@ class PlanManager {
     }
 
     async initialize() {
-        // Stripe.js는 sidepanel.html에서 로드됩니다.
-        this.stripe = Stripe('pk_test_51PZtYhRth3xRttw513s5Yn9dc2I4W2s8K3b0vO1kQ8v3n5d1j2vXw2bZ6c6X7x5X4s3s2a1b0c0d0e0f'); // Replace with your actual publishable key
+        // Stripe.js is loaded in sidepanel.html
+        this.stripe = Stripe(stripePublishableKey); // Use the key from config.js
 
         this.auth.onAuthStateChanged((user) => {
             if (user) {

@@ -1886,6 +1886,7 @@ class SidePanel {
     this.initializeAssetManager();
     this.initializeAuthentication();
     this.initializePlanManagement();
+
     
     // 백그라운드 스크립트에게 "사이드패널이 열렸다"고 알려줍니다
     setTimeout(() => {
