@@ -183,38 +183,29 @@ exports.handleWebhook = onRequest(
   }
 );
 
-/**
- * 3️⃣ 유저 생성 전 처리
- */
-exports.handleBeforeUserCreated = beforeUserCreated(async (event) => {
-  const user = event.data;
-  const uid = user.uid;
 
-  await db.collection("users").doc(uid).set({
-    status: "free",
-    orderId: null,
-    purchasedAt: null,
-    updatedAt: FieldValue.serverTimestamp(),
-    email: user.email || null,
-  });
-});
-
-/**
- * 4️⃣ Callable Function: 사용자 프로필 반환
- */
-exports.getUserProfile = onCall(async (data, context) => {
+exports.getOrCreateUserProfile = onCall(async (data, context) => {
   if (!context.auth) throw new Error("Unauthenticated");
 
   const uid = context.auth.uid;
-  const userDoc = await db.collection("users").doc(uid).get();
-  if (!userDoc.exists) throw new Error("User not found");
+  const userRef = db.collection("users").doc(uid);
+  const doc = await userRef.get();
 
-  const userData = userDoc.data();
-  return {
-    status: userData.status || "free",
-    orderId: userData.orderId || null,
-    purchasedAt: userData.purchasedAt || null,
-    email: userData.email || null,
-    updatedAt: userData.updatedAt || null,
-  };
+  if (!doc.exists) {
+    // Firestore에 문서 없으면 새로 추가
+    const newUser = {
+      email: context.auth.token.email || null,
+      name: context.auth.token.name || null,
+      status: "free",
+      orderId: null,
+      purchasedAt: null,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+    await userRef.set(newUser);
+    return newUser;
+  }
+
+  // 이미 있으면 기존 데이터 리턴
+  return doc.data();
 });

@@ -13,11 +13,16 @@
     "identity",
     "alarms"
   ],
+  "offscreen_documents": {
+  "auth": {
+    "url": "https://project-fastsaas.firebaseapp.com/__/auth/handler"
+  }
+},
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
   "oauth2": {
-    "client_id": "308268216165-jmac1fg2rbm696dl3dbqq31rgrv8llu0.apps.googleusercontent.com",
+    "client_id": "359112377577-plib4gnb85moo1s6aic1ikrc81l384v8.apps.googleusercontent.com",
     "scopes": ["openid", "email", "profile"]
   },
   "host_permissions": [
