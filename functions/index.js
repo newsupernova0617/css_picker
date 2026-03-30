@@ -91,11 +91,11 @@ exports.createCheckout = onRequest(
 );
 
 /**
- * 2️⃣ Lemon Squeezy Webhook 처리
+ * 2️⃣ Polar Webhook 처리
  */
 exports.handleWebhook = onRequest(
   {
-    secrets: ["LS_WEBHOOK_SECRET"],
+    secrets: ["POLAR_WEBHOOK_SECRET"],
     timeoutSeconds: 30,
     rawBody: true,
     cors: ALLOWED_ORIGINS,
@@ -105,14 +105,19 @@ exports.handleWebhook = onRequest(
       if (req.method !== "POST")
         return res.status(405).send("Method Not Allowed");
 
-      const signature = req.header("Lemon-Squeezy-Signature");
       const payload = req.rawBody;
-      if (!signature || !payload)
-        return res.status(400).json({ error: "Missing signature or payload" });
+      if (!payload)
+        return res.status(400).json({ error: "Missing payload" });
 
-      const secret = process.env.LS_WEBHOOK_SECRET;
+      const secret = process.env.POLAR_WEBHOOK_SECRET;
       if (!secret)
-        return res.status(500).json({ error: "LS_WEBHOOK_SECRET is missing" });
+        return res.status(500).json({ error: "POLAR_WEBHOOK_SECRET is missing" });
+
+      // Polar webhook signature verification
+      // Note: Verify the exact header name from Polar docs (Polar-Signature or X-Polar-Signature)
+      const signature = req.header("Polar-Signature") || req.header("X-Polar-Signature");
+      if (!signature)
+        return res.status(400).json({ error: "Missing signature header" });
 
       const expectedSignature = crypto
         .createHmac("sha256", secret)
@@ -131,23 +136,31 @@ exports.handleWebhook = onRequest(
 
       const event = JSON.parse(payload.toString());
       const { type, data } = event;
-      const uid = data?.attributes?.custom_data?.firebase_uid;
+
+      // Extract firebaseUid from custom data (field path may vary)
+      // Try multiple possible paths: customData, custom_data, metadata, etc.
+      const uid =
+        data?.customData?.firebaseUid ||
+        data?.custom_data?.firebaseUid ||
+        data?.metadata?.firebaseUid;
 
       if (uid) {
         const userRef = db.collection("users").doc(uid);
 
-        if (type === "order_created") {
+        // Handle order.created event (Polar format - may differ from Lemon Squeezy)
+        if (type === "order.created" || type === "order_created") {
           await userRef.set(
             {
               status: "paid",
-              orderId: data.id,
-              purchasedAt: data.attributes.created_at,
+              orderId: data.id || data.orderId,
+              purchasedAt: data.createdAt || data.created_at || new Date().toISOString(),
               updatedAt: FieldValue.serverTimestamp(),
-              email: data.attributes.user_email || null,
+              email: data.email || data.userEmail || null,
             },
             { merge: true }
           );
-        } else if (type === "order_refunded") {
+        } else if (type === "order.refunded" || type === "order_refunded") {
+          // Handle refund event
           const doc = await userRef.get();
           if (doc.exists) {
             await userRef.update({
@@ -158,6 +171,7 @@ exports.handleWebhook = onRequest(
         }
       }
 
+      // Log webhook for debugging
       await db.collection("webhooks").add({
         type,
         data,
