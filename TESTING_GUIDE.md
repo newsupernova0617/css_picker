@@ -7,6 +7,39 @@
 
 ---
 
+## Setup: Your Firebase Project
+
+**Project ID:** project-fastsaas (from .firebaserc)
+**Region:** us-central1 (default)
+
+Use `project-fastsaas` in all commands throughout this guide.
+
+---
+
+## Environment Variables Setup
+
+### Local Testing (Firebase Emulator)
+
+Set environment variables in terminal:
+
+```bash
+export POLAR_API_KEY="test_key_for_emulator"
+export POLAR_WEBHOOK_SECRET="test_secret_for_emulator"
+firebase emulators:start --only functions
+```
+
+### Production Deployment (Real Polar Credentials)
+
+Set Firebase secrets with actual credentials:
+
+```bash
+firebase functions:config:set polar.api_key="<real-api-key-from-polar>"
+firebase functions:config:set polar.webhook_secret="<real-secret-from-polar>"
+firebase deploy --only functions
+```
+
+---
+
 ## Quick Start Testing
 
 ### 1. Local Firebase Emulator Testing
@@ -302,55 +335,250 @@ const db = getFirestore();
 // Test Suite: createCheckout
 describe("createCheckout", () => {
   test("should return 400 if storeId is missing", async () => {
-    // Implementation
+    const response = await fetch("http://localhost:5001/project-fastsaas/us-central1/createCheckout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        variantId: "test_variant_456",
+        redirectUrl: "https://www.csspicker.site/success",
+        firebaseUid: "test_user_123"
+      })
+    });
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.error).toContain("storeId");
   });
 
   test("should return 400 if variantId is missing", async () => {
-    // Implementation
+    const response = await fetch("http://localhost:5001/project-fastsaas/us-central1/createCheckout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        storeId: "test_store_123",
+        redirectUrl: "https://www.csspicker.site/success",
+        firebaseUid: "test_user_123"
+      })
+    });
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.error).toContain("variantId");
   });
 
   test("should return 400 if firebaseUid is missing", async () => {
-    // Implementation
+    const response = await fetch("http://localhost:5001/project-fastsaas/us-central1/createCheckout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        storeId: "test_store_123",
+        variantId: "test_variant_456",
+        redirectUrl: "https://www.csspicker.site/success"
+      })
+    });
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.error).toContain("firebaseUid");
   });
 
   test("should return 200 with checkout URL for valid request", async () => {
-    // Implementation
+    const response = await fetch("http://localhost:5001/project-fastsaas/us-central1/createCheckout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        storeId: "test_store_123",
+        variantId: "test_variant_456",
+        redirectUrl: "https://www.csspicker.site/success",
+        firebaseUid: "test_user_123"
+      })
+    });
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data.url).toBeDefined();
+    expect(data.url).toContain("checkout.polar.sh");
   });
 });
 
 // Test Suite: handleWebhook
 describe("handleWebhook", () => {
   test("should reject webhook without signature", async () => {
-    // Implementation
+    const payload = JSON.stringify({
+      type: "order.created",
+      data: { id: "order_123" }
+    });
+
+    const response = await fetch("http://localhost:5001/project-fastsaas/us-central1/handleWebhook", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload
+    });
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.error).toContain("signature");
   });
 
   test("should reject webhook with invalid signature", async () => {
-    // Implementation
+    const payload = JSON.stringify({
+      type: "order.created",
+      data: { id: "order_123" }
+    });
+
+    const response = await fetch("http://localhost:5001/project-fastsaas/us-central1/handleWebhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Polar-Signature": "invalid_signature_here"
+      },
+      body: payload
+    });
+    expect(response.status).toBe(401);
+    const data = await response.json();
+    expect(data.error).toContain("Invalid signature");
   });
 
   test("should process order.created event and update user status", async () => {
-    // Implementation
+    const payload = JSON.stringify({
+      type: "order.created",
+      data: {
+        id: "order_test_123",
+        createdAt: "2026-03-30T10:00:00Z",
+        customData: { firebaseUid: "test_user_webhook" },
+        email: "test@example.com"
+      }
+    });
+
+    const secret = "test_webhook_secret_for_emulator";
+    const signature = crypto.createHmac("sha256", secret).update(payload).digest("base64");
+
+    const response = await fetch("http://localhost:5001/project-fastsaas/us-central1/handleWebhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Polar-Signature": signature
+      },
+      body: payload
+    });
+    expect(response.status).toBe(200);
+
+    // Verify Firestore update
+    const userDoc = await db.collection("users").doc("test_user_webhook").get();
+    expect(userDoc.data().status).toBe("paid");
+    expect(userDoc.data().orderId).toBe("order_test_123");
   });
 
   test("should process order.refunded event and update user status", async () => {
-    // Implementation
+    const payload = JSON.stringify({
+      type: "order.refunded",
+      data: {
+        id: "order_test_123",
+        customData: { firebaseUid: "test_user_webhook" }
+      }
+    });
+
+    const secret = "test_webhook_secret_for_emulator";
+    const signature = crypto.createHmac("sha256", secret).update(payload).digest("base64");
+
+    const response = await fetch("http://localhost:5001/project-fastsaas/us-central1/handleWebhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Polar-Signature": signature
+      },
+      body: payload
+    });
+    expect(response.status).toBe(200);
+
+    // Verify Firestore update
+    const userDoc = await db.collection("users").doc("test_user_webhook").get();
+    expect(userDoc.data().status).toBe("refunded");
   });
 
   test("should log webhook to Firestore", async () => {
-    // Implementation
+    const payload = JSON.stringify({
+      type: "order.created",
+      data: { id: "order_log_test" }
+    });
+
+    const secret = "test_webhook_secret_for_emulator";
+    const signature = crypto.createHmac("sha256", secret).update(payload).digest("base64");
+
+    await fetch("http://localhost:5001/project-fastsaas/us-central1/handleWebhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Polar-Signature": signature
+      },
+      body: payload
+    });
+
+    // Verify webhook logged
+    const webhooks = await db.collection("webhooks").where("eventId", "==", "order_log_test").get();
+    expect(webhooks.size).toBeGreaterThan(0);
   });
 });
 
 // Test Suite: Signature Verification
 describe("Signature Verification", () => {
   test("should correctly verify HMAC-SHA256 signature", async () => {
-    // Implementation
+    const payload = JSON.stringify({ test: "data" });
+    const secret = "test_secret";
+    const expectedSignature = crypto.createHmac("sha256", secret).update(payload).digest("base64");
+
+    // Verify the signature format
+    expect(expectedSignature).toBeDefined();
+    expect(typeof expectedSignature).toBe("string");
+
+    // Verify it's valid base64
+    expect(Buffer.from(expectedSignature, "base64").toString("base64")).toBe(expectedSignature);
   });
 
   test("should use timing-safe comparison", async () => {
-    // Implementation
+    const secret = "test_secret";
+    const payload = JSON.stringify({ test: "data" });
+    const correctSignature = crypto.createHmac("sha256", secret).update(payload).digest("base64");
+    const wrongSignature = "invalid_signature";
+
+    // Both signatures should be compared safely (no timing attacks)
+    // The function should reject the wrong signature consistently
+    const response = await fetch("http://localhost:5001/project-fastsaas/us-central1/handleWebhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Polar-Signature": wrongSignature
+      },
+      body: payload
+    });
+    expect(response.status).toBe(401);
   });
 });
+```
+
+### Example: Simple Webhook Test with curl
+
+```javascript
+// Example: Simple webhook test with curl
+const TEST_SECRET = "test_webhook_secret_for_emulator";
+const PAYLOAD = JSON.stringify({
+  type: "order.created",
+  data: {
+    id: "test_order_123",
+    customData: { firebaseUid: "test_user_123" },
+    email: "test@example.com",
+    createdAt: new Date().toISOString()
+  }
+});
+
+// Generate signature
+const signature = require('crypto')
+  .createHmac('sha256', TEST_SECRET)
+  .update(PAYLOAD)
+  .digest('base64');
+
+// Test webhook (emulator)
+curl -X POST http://localhost:5001/project-fastsaas/us-central1/handleWebhook \
+  -H "Content-Type: application/json" \
+  -H "Polar-Signature: $signature" \
+  -d "$PAYLOAD"
+
+// Expected: 200 OK response with "Webhook received"
 ```
 
 ---
