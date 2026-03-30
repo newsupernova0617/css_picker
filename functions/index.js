@@ -14,11 +14,11 @@ const ALLOWED_ORIGINS = [/firebase\.com$/, "https://flutter.com", "https://www.c
     "http://127.0.0.1:5500"];
 
 /**
- * 1️⃣ Lemon Squeezy Checkout 생성
+ * 1️⃣ Polar.sh Checkout 생성
  */
 exports.createCheckout = onRequest(
   {
-    secrets: ["LS_API_KEY"],
+    secrets: ["POLAR_API_KEY"],
     timeoutSeconds: 30,
     rawBody: true,
     cors: ALLOWED_ORIGINS,
@@ -45,36 +45,25 @@ exports.createCheckout = onRequest(
       if (!firebaseUid) // UID가 없으면 에러 처리
         return res.status(400).json({ error: "firebaseUid is required" });
 
-      const apiKey = process.env.LS_API_KEY;
+      const apiKey = process.env.POLAR_API_KEY;
       if (!apiKey)
-        return res.status(500).json({ error: "LS_API_KEY is missing" });
+        return res.status(500).json({ error: "POLAR_API_KEY is missing" });
 
-      // Checkout payload
+      // Polar Checkout payload
       const payload = {
-        data: {
-          type: "checkouts",
-          attributes: {
-            checkout_data: { // checkout_data 추가
-              custom: {
-                firebase_uid: firebaseUid, // 여기에 UID를 넣어줘야 웹훅에서 사용 가능
-              },
-            },
-            product_options: { redirect_url: redirectUrl },
-            test_mode: !!testMode,
-          },
-          relationships: {
-            store: { data: { type: "stores", id: String(storeId) } },
-            variant: { data: { type: "variants", id: String(variantId) } },
-          },
+        storeId: String(storeId),
+        variantId: String(variantId),
+        redirectUrl: redirectUrl,
+        customData: {
+          firebaseUid: firebaseUid,
         },
       };
 
-      const r = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
+      const r = await fetch("https://api.polar.sh/v1/checkouts", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey.trim()}`,
-          Accept: "application/vnd.api+json",
-          "Content-Type": "application/vnd.api+json",
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
@@ -83,13 +72,13 @@ exports.createCheckout = onRequest(
         const errText = await r.text();
         return res
           .status(r.status)
-          .json({ error: "Lemon Squeezy error", detail: errText });
+          .json({ error: "Polar API error", detail: errText });
       }
 
       const data = await r.json();
-      const url = data?.data?.attributes?.url;
+      const url = data?.url || data?.data?.url;
       if (!url)
-        return res.status(500).json({ error: "Checkout URL not found" });
+        return res.status(500).json({ error: "Checkout URL not found in Polar response" });
 
       return res.status(200).json({ url });
     } catch (err) {
