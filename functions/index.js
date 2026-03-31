@@ -113,18 +113,22 @@ exports.handleWebhook = onRequest(
       if (!secret)
         return res.status(500).json({ error: "POLAR_WEBHOOK_SECRET is missing" });
 
-      // Polar webhook signature verification
-      // Note: Verify the exact header name from Polar docs (Polar-Signature or X-Polar-Signature)
-      const signature = req.header("Polar-Signature") || req.header("X-Polar-Signature");
-      if (!signature)
-        return res.status(400).json({ error: "Missing signature header" });
+      // Polar webhook signature verification (Standard Webhooks format)
+      const webhookId = req.header("webhook-id");
+      const webhookTimestamp = req.header("webhook-timestamp");
+      const webhookSignature = req.header("webhook-signature");
 
+      if (!webhookId || !webhookTimestamp || !webhookSignature) {
+        return res.status(400).json({ error: "Missing webhook headers" });
+      }
+
+      const signedMessage = `${webhookId}.${webhookTimestamp}.${payload}`;
       const expectedSignature = crypto
         .createHmac("sha256", secret)
-        .update(payload)
+        .update(signedMessage)
         .digest("base64");
 
-      const signatureBuffer = Buffer.from(signature, "base64");
+      const signatureBuffer = Buffer.from(webhookSignature, "base64");
       const expectedBuffer = Buffer.from(expectedSignature, "base64");
 
       if (
