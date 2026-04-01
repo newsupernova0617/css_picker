@@ -27,78 +27,39 @@ const ALLOWED_ORIGINS = [
 // For future multi-tier support, consider making this configurable per plan type
 const SUBSCRIPTION_DURATION_MS = 365 * 24 * 60 * 60 * 1000; // 1 year in milliseconds
 
-/**
- * 1️⃣ Polar.sh Checkout 생성 (Callable)
- */
-exports.createCheckout = onCall(async (request) => {
-  try {
-    const { auth, data } = request;
-    if (!auth) throw new Error("Unauthenticated");
+// ============================================
+// Polar.sh 환경 설정 (하드코딩)
+// ============================================
+const POLAR_ENV = "sandbox";
 
-    const { redirectUrl, firebaseUid } = data;
+// Sandbox 환경 설정 (하드코딩)
+const POLAR_SANDBOX_API_KEY = "polar_oat_H8M8NBBqTmsbJaqNETo6kgr6OEY09CwOyLBUS0eBruT";
+const POLAR_SANDBOX_WEBHOOK_SECRET = "polar_whs_0WLpQb9zUNP2hOAhM0Vi2Bz0cFH1MU4jjjvjl0JESV1";
+const POLAR_SANDBOX_PRODUCT_ID = "8957f796-eaf0-4f85-8f51-b2b344f52e28";
 
-    if (!firebaseUid)
-      throw new Error("firebaseUid is required");
+// Production 환경 설정 (Firebase Secrets)
+const POLAR_PRODUCTION_API_KEY = process.env.POLAR_API_KEY;
+const POLAR_PRODUCTION_WEBHOOK_SECRET = process.env.POLAR_WEBHOOK_SECRET;
+const POLAR_PRODUCTION_PRODUCT_ID = "c4ade100-97d2-4e56-93fa-fcbcf2eeba72";
 
-    if (!redirectUrl)
-      throw new Error("redirectUrl is required");
+// 환경에 따라 자동 선택
+const POLAR_API_BASE_URL = POLAR_ENV === "production"
+  ? "https://api.polar.sh"
+  : "https://sandbox-api.polar.sh";
 
-    const apiKey = process.env.POLAR_API_KEY;
-    if (!apiKey)
-      throw new Error("POLAR_API_KEY is missing");
+const POLAR_API_KEY = POLAR_ENV === "production"
+  ? POLAR_PRODUCTION_API_KEY
+  : POLAR_SANDBOX_API_KEY;
 
-    // 🔴 PASTE YOUR PRODUCT ID HERE 🔴
-    const POLAR_PRODUCT_ID = "c4ade100-97d2-4e56-93fa-fcbcf2eeba72";
-
-    // Get customer name from Firebase auth
-    const customerName = auth.token.name || auth.token.email || "Premium User";
-
-    // Polar Checkout payload - using correct API format
-    const payload = {
-      products: [POLAR_PRODUCT_ID],
-      customerName: customerName,
-      customerBillingAddress: {
-        country: "US"
-      },
-      locale: "en",
-      custom_data: {
-        firebaseUid: firebaseUid,
-      },
-    };
-
-    const r = await fetch("https://api.polar.sh/v1/checkouts", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey.trim()}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!r.ok) {
-      const errText = await r.text();
-      throw new Error(`Polar API error: ${r.status} - ${errText}`);
-    }
-
-    const responseData = await r.json();
-    const url = responseData?.url || responseData?.data?.url;
-    if (!url)
-      throw new Error("Checkout URL not found in Polar response");
-
-    return { url };
-  } catch (err) {
-    const errorMessage = err?.message || "Internal server error";
-    console.error("createCheckout error:", errorMessage, err);
-    throw new Error(errorMessage);
-  }
-});
+const POLAR_WEBHOOK_SECRET = POLAR_ENV === "production"
+  ? POLAR_PRODUCTION_WEBHOOK_SECRET
+  : POLAR_SANDBOX_WEBHOOK_SECRET;
 
 /**
- * 2️⃣ Polar Webhook 처리
+ * 1️⃣ Polar Webhook 처리
  */
 exports.handleWebhook = onRequest(
   {
-    secrets: ["POLAR_WEBHOOK_SECRET"],
     timeoutSeconds: 30,
     rawBody: true,
     cors: ALLOWED_ORIGINS,
@@ -108,21 +69,52 @@ exports.handleWebhook = onRequest(
       if (req.method !== "POST")
         return res.status(405).send("Method Not Allowed");
 
-      const payload = req.rawBody;
+      console.log("[WEBHOOK RECEIVED] Type:", typeof req.rawBody, "isBuffer:", Buffer.isBuffer(req.rawBody));
+
+      // rawBody를 string으로 변환 (Buffer인 경우 처리)
+      let payload = req.rawBody;
+      if (Buffer.isBuffer(payload)) {
+        payload = payload.toString("utf-8");
+      } else if (typeof payload === "object") {
+        // JSON 객체인 경우 다시 string으로
+        payload = JSON.stringify(payload);
+      }
+
+      console.log("[WEBHOOK PAYLOAD]", {
+        type: typeof payload,
+        length: payload.length,
+        first100chars: payload.substring(0, 100)
+      });
+
       if (!payload)
         return res.status(400).json({ error: "Missing payload" });
 
-      const secret = process.env.POLAR_WEBHOOK_SECRET;
-      if (!secret)
-        return res.status(500).json({ error: "POLAR_WEBHOOK_SECRET is missing" });
+      // Production 환경 검증
+      if (POLAR_ENV === "production" && !POLAR_WEBHOOK_SECRET) {
+        return res.status(500).json({ error: "POLAR_WEBHOOK_SECRET is missing in Firebase secrets" });
+      }
+
+      let secret = POLAR_WEBHOOK_SECRET;
+      if (!secret || secret.includes("YOUR_"))
+        return res.status(500).json({ error: "POLAR_WEBHOOK_SECRET is not configured" });
+
+      // Polar secret에서 prefix 제거 (polar_whs_XXXXXX → XXXXXX)
+      if (secret.startsWith("polar_whs_")) {
+        secret = secret.replace("polar_whs_", "");
+      }
 
       // Polar webhook signature verification (Standard Webhooks format)
       const webhookId = req.header("webhook-id");
       const webhookTimestamp = req.header("webhook-timestamp");
-      const webhookSignature = req.header("webhook-signature");
+      let webhookSignature = req.header("webhook-signature");
 
       if (!webhookId || !webhookTimestamp || !webhookSignature) {
         return res.status(400).json({ error: "Missing webhook headers" });
+      }
+
+      // Polar signature format: v1,<signature> → remove v1, prefix
+      if (webhookSignature.startsWith("v1,")) {
+        webhookSignature = webhookSignature.substring(3);
       }
 
       const signedMessage = `${webhookId}.${webhookTimestamp}.${payload}`;
@@ -131,13 +123,20 @@ exports.handleWebhook = onRequest(
         .update(signedMessage)
         .digest("base64");
 
-      const signatureBuffer = Buffer.from(webhookSignature, "base64");
-      const expectedBuffer = Buffer.from(expectedSignature, "base64");
+      console.log("[WEBHOOK DEBUG]", {
+        webhookId,
+        webhookTimestamp,
+        payloadLength: payload.length,
+        receivedSignature: webhookSignature.substring(0, 30) + "...",
+        expectedSignature: expectedSignature.substring(0, 30) + "...",
+        signatureMatch: webhookSignature === expectedSignature,
+      });
 
-      if (
-        signatureBuffer.length !== expectedBuffer.length ||
-        !crypto.timingSafeEqual(signatureBuffer, expectedBuffer)
-      ) {
+      if (webhookSignature !== expectedSignature) {
+        console.error("[WEBHOOK SIGNATURE FAILED]");
+        console.error("  Received: ", webhookSignature);
+        console.error("  Expected: ", expectedSignature);
+        console.error("  Signed Message:", signedMessage.substring(0, 100) + "...");
         return res.status(401).json({ error: "Invalid signature" });
       }
 
