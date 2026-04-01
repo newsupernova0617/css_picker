@@ -32,6 +32,15 @@ const SUBSCRIPTION_DURATION_MS = 365 * 24 * 60 * 60 * 1000; // 1 year in millise
 // ============================================
 const POLAR_ENV = "sandbox";
 
+// Pre-generated Polar checkout link (created in Polar dashboard)
+const POLAR_CHECKOUT_LINK_SANDBOX = "https://sandbox-api.polar.sh/v1/checkout-links/polar_cl_4HnQ8H67tsAtbxfWhBtzS5Mh64LoPdjw9iipP2MVpdG/redirect";
+const POLAR_CHECKOUT_LINK_PRODUCTION = "https://checkout.polar.sh/YOUR_PRODUCTION_CHECKOUT_LINK";
+
+// Select based on environment
+const POLAR_CHECKOUT_LINK = POLAR_ENV === "production"
+  ? POLAR_CHECKOUT_LINK_PRODUCTION
+  : POLAR_CHECKOUT_LINK_SANDBOX;
+
 // Sandbox 환경 설정 (하드코딩)
 const POLAR_SANDBOX_API_KEY = "polar_oat_H8M8NBBqTmsbJaqNETo6kgr6OEY09CwOyLBUS0eBruT";
 const POLAR_SANDBOX_WEBHOOK_SECRET = "polar_whs_0WLpQb9zUNP2hOAhM0Vi2Bz0cFH1MU4jjjvjl0JESV1";
