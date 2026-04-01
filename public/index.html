@@ -1265,37 +1265,29 @@ async function handleUpgradeClick() {
     }
 }
 
-// pay: 백엔드로 보내기 직전의 데이터가 무엇인지 콘솔에 출력합니다.
+// pay: Firebase callable function으로 체크아웃 생성
 async function pay(uid) {
     console.log(`▶️ pay function called with UID: ${uid}`);
 
-    // 백엔드로 보낼 데이터 객체
-    const requestBody = {
-        storeId: "226265",
-        variantId: "1025119",
-        redirectUrl: window.location.href,
-        testMode: true,
-        firebaseUid: uid 
-    };
-
-    console.log("📦 Sending this data to backend:", requestBody);
-
     try {
-        const res = await fetch("https://createcheckout-pk52nl2gva-uc.a.run.app", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestBody),
+        // Firebase Callable Function 사용
+        const createCheckout = firebase.functions().httpsCallable('createCheckout');
+        const result = await createCheckout({
+            storeId: "226265",
+            variantId: "1025119",
+            redirectUrl: window.location.href,
+            testMode: true,
+            firebaseUid: uid
         });
 
-        // 백엔드 응답 상태 확인
-        console.log(`Backend response status: ${res.status}`);
+        console.log("📦 Received checkout URL:", result.data);
 
-        const data = await res.json();
-        console.log("📦 Received this data from backend:", data);
+        if (!result.data.url) {
+            throw new Error("Checkout URL not found in response");
+        }
 
-        if (!data.url) throw new Error("Checkout URL not found in response");
-
-        window.location.href = data.url;
+        // Polar checkout 페이지로 리다이렉트
+        window.location.href = result.data.url;
     } catch (err) {
         console.error("❌ Error in pay function:", err);
         alert("An error occurred while creating checkout.");

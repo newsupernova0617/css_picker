@@ -27,81 +27,67 @@ const ALLOWED_ORIGINS = [
 const SUBSCRIPTION_DURATION_MS = 365 * 24 * 60 * 60 * 1000; // 1 year in milliseconds
 
 /**
- * 1️⃣ Polar.sh Checkout 생성
+ * 1️⃣ Polar.sh Checkout 생성 (Callable)
  */
-exports.createCheckout = onRequest(
-  {
-    secrets: ["POLAR_API_KEY"],
-    timeoutSeconds: 30,
-    rawBody: true,
-    cors: ALLOWED_ORIGINS,
-  },
-  async (req, res) => {
-    try {
-      if (req.method !== "POST")
-        return res.status(405).json({ error: "Method Not Allowed" });
+exports.createCheckout = onCall(async (request) => {
+  try {
+    const { auth, data } = request;
+    if (!auth) throw new Error("Unauthenticated");
 
-      // rawBody JSON 파싱
-      let body;
-      try {
-        body = req.rawBody ? JSON.parse(req.rawBody.toString()) : {};
-      } catch (err) {
-        return res.status(400).json({ error: "Invalid JSON" });
-      }
+    const { storeId, variantId, redirectUrl, testMode = false, firebaseUid } = data;
+    if (!storeId || !variantId)
+      throw new Error("storeId and variantId are required");
 
-      const { storeId, variantId, redirectUrl, testMode = false, firebaseUid } = body;
-      if (!storeId || !variantId)
-        return res
-          .status(400)
-          .json({ error: "storeId and variantId are required" });
+    if (!firebaseUid)
+      throw new Error("firebaseUid is required");
 
-      if (!firebaseUid) // UID가 없으면 에러 처리
-        return res.status(400).json({ error: "firebaseUid is required" });
+    if (!redirectUrl)
+      throw new Error("redirectUrl is required");
 
-      const apiKey = process.env.POLAR_API_KEY;
-      if (!apiKey)
-        return res.status(500).json({ error: "POLAR_API_KEY is missing" });
+    const apiKey = process.env.POLAR_API_KEY;
+    if (!apiKey)
+      throw new Error("POLAR_API_KEY is missing");
 
-      // Polar Checkout payload
-      const payload = {
-        storeId: String(storeId),
-        variantId: String(variantId),
-        redirectUrl: redirectUrl,
-        customData: {
-          firebaseUid: firebaseUid,
-        },
-      };
+    // Polar Checkout payload - using correct API format
+    const payload = {
+      products: [
+        {
+          product_id: String(storeId),
+          variant_id: String(variantId)
+        }
+      ],
+      redirect_url: redirectUrl,
+      custom_data: {
+        firebaseUid: firebaseUid,
+      },
+    };
 
-      const r = await fetch("https://api.polar.sh/v1/checkouts", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey.trim()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+    const r = await fetch("https://api.polar.sh/v1/checkouts", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey.trim()}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
 
-      if (!r.ok) {
-        const errText = await r.text();
-        return res
-          .status(r.status)
-          .json({ error: "Polar API error", detail: errText });
-      }
-
-      const data = await r.json();
-      const url = data?.url || data?.data?.url;
-      if (!url)
-        return res.status(500).json({ error: "Checkout URL not found in Polar response" });
-
-      return res.status(200).json({ url });
-    } catch (err) {
-      console.error("createCheckout error:", err);
-      return res
-        .status(500)
-        .json({ error: err?.message || "Internal server error" });
+    if (!r.ok) {
+      const errText = await r.text();
+      throw new Error(`Polar API error: ${r.status} - ${errText}`);
     }
+
+    const responseData = await r.json();
+    const url = responseData?.url || responseData?.data?.url;
+    if (!url)
+      throw new Error("Checkout URL not found in Polar response");
+
+    return { url };
+  } catch (err) {
+    const errorMessage = err?.message || "Internal server error";
+    console.error("createCheckout error:", errorMessage, err);
+    throw new Error(errorMessage);
   }
-);
+});
 
 /**
  * 2️⃣ Polar Webhook 처리
