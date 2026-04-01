@@ -223,8 +223,8 @@ body::-webkit-scrollbar {
   align-items: center;
   justify-content: space-between;
   padding: var(--space-5);
-  background: var(--gradient-primary);
-  color: white;
+  background: white;
+  color: var(--text-primary);
   border-radius: var(--radius-2xl);
   margin: 0;
   box-shadow: var(--shadow-lg);
