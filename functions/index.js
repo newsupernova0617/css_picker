@@ -11,8 +11,14 @@ initializeApp();
 const db = getFirestore();
 
 // 허용할 CORS 도메인
-const ALLOWED_ORIGINS = [/firebase\.com$/, "https://flutter.com", "https://www.csspicker.site","https://project-fastsaas.firebaseapp.com","https://project-fastsaas.web.app",    "http://localhost:5000",          // 로컬 개발 환경 주소 예시 (포트 번호는 실제 환경에 맞게 변경)
-    "http://127.0.0.1:5500"];
+const ALLOWED_ORIGINS = [
+  /firebase\.com$/,
+  "https://www.csspicker.site",
+  "https://css-picker.firebaseapp.com",
+  "https://css-picker.web.app",
+  "http://localhost:5000",
+  "http://127.0.0.1:5500"
+];
 
 // Subscription expires after 1 year (365 days) from purchase date
 // For future multi-tier support, consider making this configurable per plan type
