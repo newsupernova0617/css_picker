@@ -71,7 +71,7 @@ exports.getCheckoutLink = onCall(async (request) => {
 
 // Sandbox 환경 설정 (하드코딩)
 const POLAR_SANDBOX_API_KEY = "polar_oat_H8M8NBBqTmsbJaqNETo6kgr6OEY09CwOyLBUS0eBruT";
-const POLAR_SANDBOX_WEBHOOK_SECRET = "polar_whs_0WLpQb9zUNP2hOAhM0Vi2Bz0cFH1MU4jjjvjl0JESV1";
+const POLAR_SANDBOX_WEBHOOK_SECRET = "polar_whs_Qgh7Ga6cBIPgpE9zleKRMNPgz62gfWEhfE31t0qHC4T";
 const POLAR_SANDBOX_PRODUCT_ID = "8957f796-eaf0-4f85-8f51-b2b344f52e28";
 
 // Production 환경 설정 (Firebase Secrets)
