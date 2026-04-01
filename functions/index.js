@@ -41,6 +41,34 @@ const POLAR_CHECKOUT_LINK = POLAR_ENV === "production"
   ? POLAR_CHECKOUT_LINK_PRODUCTION
   : POLAR_CHECKOUT_LINK_SANDBOX;
 
+/**
+ * 1️⃣ Get Polar Checkout Link (Callable)
+ *
+ * Returns the pre-generated checkout link to the frontend.
+ * The frontend will redirect users to this link with their UID as a query parameter.
+ */
+exports.getCheckoutLink = onCall(async (request) => {
+  try {
+    const { auth } = request;
+
+    // Verify user is authenticated
+    if (!auth) {
+      throw new Error("Unauthenticated");
+    }
+
+    // Return the pre-generated checkout link
+    // Frontend will append ?uid=USER_UID to track which user made the purchase
+    return {
+      url: POLAR_CHECKOUT_LINK,
+      message: "Checkout link retrieved successfully"
+    };
+  } catch (err) {
+    const errorMessage = err?.message || "Internal server error";
+    console.error("getCheckoutLink error:", errorMessage, err);
+    throw new Error(errorMessage);
+  }
+});
+
 // Sandbox 환경 설정 (하드코딩)
 const POLAR_SANDBOX_API_KEY = "polar_oat_H8M8NBBqTmsbJaqNETo6kgr6OEY09CwOyLBUS0eBruT";
 const POLAR_SANDBOX_WEBHOOK_SECRET = "polar_whs_0WLpQb9zUNP2hOAhM0Vi2Bz0cFH1MU4jjjvjl0JESV1";
