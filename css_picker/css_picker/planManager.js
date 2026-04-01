@@ -84,7 +84,30 @@ class PlanManager {
   }
 
   async redirectToCheckout() {
-    chrome.tabs.create({ url: 'https://project-fastsaas.firebaseapp.com/pricing' });
+    try {
+      // Get the pre-generated checkout link from backend
+      const functions = firebase.functions();
+      const getCheckoutLink = functions.httpsCallable('getCheckoutLink');
+      const result = await getCheckoutLink();
+
+      if (!result.data || !result.data.url) {
+        throw new Error("Failed to get checkout link");
+      }
+
+      // Get current user's UID
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      // Redirect to checkout with user's UID as query parameter
+      // Polar will show the checkout page, and we'll get a webhook after payment
+      const checkoutUrl = `${result.data.url}?uid=${user.uid}`;
+      chrome.tabs.create({ url: checkoutUrl });
+    } catch (error) {
+      console.error("Error redirecting to checkout:", error);
+      alert("Could not open checkout. Please try again.");
+    }
   }
 }
 
