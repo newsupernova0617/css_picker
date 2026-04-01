@@ -6,12 +6,17 @@ const { initializeApp } = require("firebase-admin/app");
 const crypto = require("crypto");
 const fetch = require("node-fetch");
 
+const admin = require("firebase-admin");
 initializeApp();
 const db = getFirestore();
 
 // 허용할 CORS 도메인
 const ALLOWED_ORIGINS = [/firebase\.com$/, "https://flutter.com", "https://www.csspicker.site","https://project-fastsaas.firebaseapp.com","https://project-fastsaas.web.app",    "http://localhost:5000",          // 로컬 개발 환경 주소 예시 (포트 번호는 실제 환경에 맞게 변경)
     "http://127.0.0.1:5500"];
+
+// Subscription expires after 1 year (365 days) from purchase date
+// For future multi-tier support, consider making this configurable per plan type
+const SUBSCRIPTION_DURATION_MS = 365 * 24 * 60 * 60 * 1000; // 1 year in milliseconds
 
 /**
  * 1️⃣ Polar.sh Checkout 생성
@@ -148,32 +153,40 @@ exports.handleWebhook = onRequest(
         data?.custom_data?.firebaseUid ||
         data?.metadata?.firebaseUid;
 
-      if (uid) {
-        const userRef = db.collection("users").doc(uid);
+      if (!uid) {
+        return res.status(400).json({ error: "Missing firebaseUid in webhook data" });
+      }
 
-        // Handle order.created event (Polar format - may differ from Lemon Squeezy)
-        if (type === "order.created" || type === "order_created") {
-          await userRef.set(
-            {
-              status: "paid",
-              planType: "pro",
-              orderId: data.id || data.orderId,
-              purchasedAt: data.createdAt || data.created_at || new Date().toISOString(),
-              expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-              updatedAt: FieldValue.serverTimestamp(),
-              email: data.email || data.userEmail || null,
-            },
-            { merge: true }
-          );
-        } else if (type === "order.refunded" || type === "order_refunded") {
-          // Handle refund event
-          const doc = await userRef.get();
-          if (doc.exists) {
-            await userRef.update({
-              status: "refunded",
-              updatedAt: FieldValue.serverTimestamp(),
-            });
-          }
+      // ✨ Add this validation block
+      if (!data.id) {
+        console.warn("Webhook received order.created event without order ID");
+        return res.status(400).json({ error: "Missing order ID in webhook data" });
+      }
+
+      const userRef = db.collection("users").doc(uid);
+
+      // Handle order.created event (Polar format - may differ from Lemon Squeezy)
+      if (type === "order.created" || type === "order_created") {
+        await userRef.set(
+          {
+            status: "paid",
+            planType: "pro",
+            orderId: data.id || data.orderId,
+            purchasedAt: FieldValue.serverTimestamp(),
+            expiresAt: admin.firestore.Timestamp.fromDate(new Date(Date.now() + SUBSCRIPTION_DURATION_MS)),
+            updatedAt: FieldValue.serverTimestamp(),
+            email: data.email || data.userEmail || null,
+          },
+          { merge: true }
+        );
+      } else if (type === "order.refunded" || type === "order_refunded") {
+        // Handle refund event
+        const doc = await userRef.get();
+        if (doc.exists) {
+          await userRef.update({
+            status: "refunded",
+            updatedAt: FieldValue.serverTimestamp(),
+          });
         }
       }
 
