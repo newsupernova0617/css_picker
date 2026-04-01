@@ -180,25 +180,34 @@ exports.handleWebhook = onRequest(
       const event = JSON.parse(payload.toString());
       const { type, data } = event;
 
-      // Extract firebaseUid from custom data (field path may vary)
-      // Try multiple possible paths: customData, custom_data, metadata, etc.
-      const uid =
-        data?.customData?.firebaseUid ||
-        data?.custom_data?.firebaseUid ||
-        data?.metadata?.firebaseUid;
+      // Option A: Look up Firebase user by email (from Polar webhook)
+      // This is more reliable than relying on metadata since the email always comes from Polar
+      const customerEmail = data?.customer?.email || data?.email;
 
-      if (!uid) {
-        return res.status(400).json({ error: "Missing firebaseUid in webhook data" });
+      if (!customerEmail) {
+        console.error("[WEBHOOK] Missing customer email in webhook data");
+        return res.status(400).json({ error: "Missing customer email in webhook data" });
       }
 
-      // NEW: Verify the user actually exists in Firebase
+      console.log(`[WEBHOOK] Processing order for customer email: ${customerEmail}`);
+
+      // Find the Firebase user by email
+      // Query users collection to find matching email
+      const usersSnapshot = await db.collection("users").where("email", "==", customerEmail).get();
+
+      if (usersSnapshot.empty) {
+        console.warn(`[WEBHOOK] No Firebase user found with email: ${customerEmail}`);
+        // Note: This could happen if user pays before creating Firebase account
+        // For now, we skip processing but a real app might want to create a pending user
+        return res.status(400).json({ error: "No Firebase user found with this email" });
+      }
+
+      // Get the first matching user (there should only be one)
+      const userDoc = usersSnapshot.docs[0];
+      const uid = userDoc.id;
       const userRef = db.collection("users").doc(uid);
-      const userDoc = await userRef.get();
 
-      if (!userDoc.exists) {
-        console.warn(`[WEBHOOK] Attempted purchase for non-existent user: ${uid}`);
-        return res.status(400).json({ error: "User does not exist" });
-      }
+      console.log(`[WEBHOOK] Found Firebase user: ${uid} for email: ${customerEmail}`);
 
       // ✨ Add this validation block
       if (!data.id) {
