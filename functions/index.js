@@ -191,13 +191,20 @@ exports.handleWebhook = onRequest(
         return res.status(400).json({ error: "Missing firebaseUid in webhook data" });
       }
 
+      // NEW: Verify the user actually exists in Firebase
+      const userRef = db.collection("users").doc(uid);
+      const userDoc = await userRef.get();
+
+      if (!userDoc.exists) {
+        console.warn(`[WEBHOOK] Attempted purchase for non-existent user: ${uid}`);
+        return res.status(400).json({ error: "User does not exist" });
+      }
+
       // ✨ Add this validation block
       if (!data.id) {
         console.warn("Webhook received order.created event without order ID");
         return res.status(400).json({ error: "Missing order ID in webhook data" });
       }
-
-      const userRef = db.collection("users").doc(uid);
 
       // Handle order.created event (Polar format - may differ from Lemon Squeezy)
       if (type === "order.created" || type === "order_created") {
