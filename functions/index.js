@@ -17,7 +17,9 @@ const ALLOWED_ORIGINS = [
   "https://css-picker.firebaseapp.com",
   "https://css-picker.web.app",
   "http://localhost:5000",
-  "http://127.0.0.1:5500"
+  "http://localhost:3000",
+  "http://127.0.0.1:5500",
+  "http://127.0.0.1:3000"
 ];
 
 // Subscription expires after 1 year (365 days) from purchase date
@@ -191,6 +193,7 @@ exports.handleWebhook = onRequest(
         if (doc.exists) {
           await userRef.update({
             status: "refunded",
+            refundedAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
           });
         }
