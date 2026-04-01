@@ -1,0 +1,2168 @@
+[
+  {
+    "insertId": "69cd020e000780b01a4b9673",
+    "httpRequest": {
+      "requestMethod": "OPTIONS",
+      "requestUrl": "https://us-central1-css-picker.cloudfunctions.net/createCheckout",
+      "requestSize": "763",
+      "status": 204,
+      "responseSize": "259",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+      "remoteIp": "210.220.24.186",
+      "referer": "https://csspicker.site/",
+      "serverIp": "216.239.36.54",
+      "latency": "0.003716350s",
+      "protocol": "HTTP/1.1"
+    },
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "revision_name": "createcheckout-00008-fiv",
+        "configuration_name": "createcheckout",
+        "project_id": "css-picker",
+        "service_name": "createcheckout",
+        "location": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-01T11:31:26.480676Z",
+    "severity": "INFO",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "firebase-functions-hash": "a136eb2b5f84a23d1180d8cc3922ed35deb4c67d",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "instanceId": "008c15ff08d9126824bf1a2ac1c214b2ea0fa09a7801e652306ecddf990a65bfe67372529f4663ee59ad9b307be6d2746420b5eeba6b07e2098f2e13dabc9ea0b517ffaaaf8fe8c0490c9b2fdb",
+      "deployment-callable": "true"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Frequests",
+    "trace": "projects/css-picker/traces/683793f72993e310aa333c1b44727f7e",
+    "receiveTimestamp": "2026-04-01T11:31:26.497091793Z",
+    "spanId": "155c7564620b8287",
+    "traceSampled": true
+  },
+  {
+    "insertId": "69cd020e000ea651a4ba9a77",
+    "httpRequest": {
+      "requestMethod": "POST",
+      "requestUrl": "https://us-central1-css-picker.cloudfunctions.net/createCheckout",
+      "requestSize": "2132",
+      "status": 500,
+      "responseSize": "252",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+      "remoteIp": "210.220.24.186",
+      "referer": "https://csspicker.site/",
+      "serverIp": "216.239.36.54",
+      "latency": "0.219937490s",
+      "protocol": "HTTP/1.1"
+    },
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "css-picker",
+        "revision_name": "createcheckout-00008-fiv",
+        "configuration_name": "createcheckout",
+        "service_name": "createcheckout",
+        "location": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-01T11:31:26.738650Z",
+    "severity": "ERROR",
+    "labels": {
+      "deployment-callable": "true",
+      "instanceId": "008c15ff08d9126824bf1a2ac1c214b2ea0fa09a7801e652306ecddf990a65bfe67372529f4663ee59ad9b307be6d2746420b5eeba6b07e2098f2e13dabc9ea0b517ffaaaf8fe8c0490c9b2fdb",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "firebase-functions-hash": "a136eb2b5f84a23d1180d8cc3922ed35deb4c67d",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Frequests",
+    "trace": "projects/css-picker/traces/d522f16e2ebd058baa333c1b44727006",
+    "receiveTimestamp": "2026-04-01T11:31:27.163381920Z",
+    "spanId": "94433ccc3c7c8a9f"
+  },
+  {
+    "insertId": "69cd020e000b5d1f4c9e3d5a",
+    "jsonPayload": {
+      "verifications": {
+        "auth": "VALID",
+        "app": "MISSING"
+      },
+      "message": "Callable request verification passed"
+    },
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "createcheckout",
+        "revision_name": "createcheckout-00008-fiv",
+        "project_id": "css-picker",
+        "location": "us-central1",
+        "service_name": "createcheckout"
+      }
+    },
+    "timestamp": "2026-04-01T11:31:26.744735Z",
+    "severity": "DEBUG",
+    "labels": {
+      "execution_id": "fytndkqhhttl",
+      "deployment-callable": "true",
+      "firebase-functions-hash": "a136eb2b5f84a23d1180d8cc3922ed35deb4c67d",
+      "firebase-log-type": "callable-request-verification",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "goog-managed-by": "cloudfunctions",
+      "instanceId": "008c15ff08d9126824bf1a2ac1c214b2ea0fa09a7801e652306ecddf990a65bfe67372529f4663ee59ad9b307be6d2746420b5eeba6b07e2098f2e13dabc9ea0b517ffaaaf8fe8c0490c9b2fdb",
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/nodejs20:nodejs20_20260321_20_20_0_RC00",
+      "goog-drz-cloudfunctions-location": "us-central1"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Fstdout",
+    "trace": "projects/css-picker/traces/d522f16e2ebd058baa333c1b44727006",
+    "receiveTimestamp": "2026-04-01T11:31:26.748483354Z",
+    "spanId": "10683449588938738335"
+  },
+  {
+    "textPayload": "createCheckout error: Polar API error: 422 - {\"error\":\"RequestValidationError\",\"detail\":[{\"type\":\"uuid_type\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductsCreate]]\",\"products\",0],\"msg\":\"UUID input should be a string, bytes or UUID object\",\"input\":{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductCreate]]\",\"product_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutPriceCreate]]\",\"product_price_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}}]} Error: Polar API error: 422 - {\"error\":\"RequestValidationError\",\"detail\":[{\"type\":\"uuid_type\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductsCreate]]\",\"products\",0],\"msg\":\"UUID input should be a string, bytes or UUID object\",\"input\":{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductCreate]]\",\"product_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutPriceCreate]]\",\"product_price_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}}]}\n    at /workspace/index.js:76:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async /workspace/node_modules/firebase-functions/lib/common/providers/https.js:544:26\n",
+    "insertId": "69cd020e000ea0b240c37888",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "createcheckout",
+        "location": "us-central1",
+        "project_id": "css-picker",
+        "configuration_name": "createcheckout",
+        "revision_name": "createcheckout-00008-fiv"
+      }
+    },
+    "timestamp": "2026-04-01T11:31:26.958642Z",
+    "labels": {
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "instanceId": "008c15ff08d9126824bf1a2ac1c214b2ea0fa09a7801e652306ecddf990a65bfe67372529f4663ee59ad9b307be6d2746420b5eeba6b07e2098f2e13dabc9ea0b517ffaaaf8fe8c0490c9b2fdb",
+      "deployment-callable": "true",
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/nodejs20:nodejs20_20260321_20_20_0_RC00",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "goog-managed-by": "cloudfunctions",
+      "execution_id": "fytndkqhhttl",
+      "firebase-functions-hash": "a136eb2b5f84a23d1180d8cc3922ed35deb4c67d"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Fstderr",
+    "receiveTimestamp": "2026-04-01T11:31:26.963915733Z",
+    "spanId": "10683449588938738335",
+    "errorGroups": [
+      {
+        "id": "CP_Insv7w8CScQ"
+      }
+    ]
+  },
+  {
+    "textPayload": "Unhandled error Error: Polar API error: 422 - {\"error\":\"RequestValidationError\",\"detail\":[{\"type\":\"uuid_type\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductsCreate]]\",\"products\",0],\"msg\":\"UUID input should be a string, bytes or UUID object\",\"input\":{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductCreate]]\",\"product_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutPriceCreate]]\",\"product_price_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}}]}\n    at /workspace/index.js:88:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async /workspace/node_modules/firebase-functions/lib/common/providers/https.js:544:26",
+    "insertId": "69cd020e000ea1d38c160115",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "createcheckout",
+        "location": "us-central1",
+        "project_id": "css-picker",
+        "configuration_name": "createcheckout",
+        "revision_name": "createcheckout-00008-fiv"
+      }
+    },
+    "timestamp": "2026-04-01T11:31:26.958931Z",
+    "severity": "ERROR",
+    "labels": {
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/nodejs20:nodejs20_20260321_20_20_0_RC00",
+      "instanceId": "008c15ff08d9126824bf1a2ac1c214b2ea0fa09a7801e652306ecddf990a65bfe67372529f4663ee59ad9b307be6d2746420b5eeba6b07e2098f2e13dabc9ea0b517ffaaaf8fe8c0490c9b2fdb",
+      "deployment-callable": "true",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "goog-managed-by": "cloudfunctions",
+      "firebase-functions-hash": "a136eb2b5f84a23d1180d8cc3922ed35deb4c67d",
+      "execution_id": "fytndkqhhttl"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Fstderr",
+    "trace": "projects/css-picker/traces/d522f16e2ebd058baa333c1b44727006",
+    "receiveTimestamp": "2026-04-01T11:31:27.297681940Z",
+    "spanId": "10683449588938738335",
+    "errorGroups": [
+      {
+        "id": "CNKtiY2AtN2-fQ"
+      }
+    ]
+  },
+  {
+    "insertId": "69cd0219000e28712eeedf3b",
+    "httpRequest": {
+      "requestMethod": "OPTIONS",
+      "requestUrl": "https://us-central1-css-picker.cloudfunctions.net/createCheckout",
+      "requestSize": "763",
+      "status": 204,
+      "responseSize": "259",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+      "remoteIp": "210.220.24.186",
+      "referer": "https://csspicker.site/",
+      "serverIp": "216.239.36.54",
+      "latency": "0.003552370s",
+      "protocol": "HTTP/1.1"
+    },
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "createcheckout",
+        "location": "us-central1",
+        "project_id": "css-picker",
+        "revision_name": "createcheckout-00008-fiv",
+        "configuration_name": "createcheckout"
+      }
+    },
+    "timestamp": "2026-04-01T11:31:37.922765Z",
+    "severity": "INFO",
+    "labels": {
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "instanceId": "008c15ff08d9126824bf1a2ac1c214b2ea0fa09a7801e652306ecddf990a65bfe67372529f4663ee59ad9b307be6d2746420b5eeba6b07e2098f2e13dabc9ea0b517ffaaaf8fe8c0490c9b2fdb",
+      "deployment-callable": "true",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "goog-managed-by": "cloudfunctions",
+      "firebase-functions-hash": "a136eb2b5f84a23d1180d8cc3922ed35deb4c67d"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Frequests",
+    "trace": "projects/css-picker/traces/e4bbbfdd0ac1b8da4910758f01a32bd8",
+    "receiveTimestamp": "2026-04-01T11:31:38.154716794Z",
+    "spanId": "257ac55a88911820",
+    "traceSampled": true
+  },
+  {
+    "insertId": "69cd021a0006b9130704b31f",
+    "httpRequest": {
+      "requestMethod": "POST",
+      "requestUrl": "https://us-central1-css-picker.cloudfunctions.net/createCheckout",
+      "requestSize": "2133",
+      "status": 500,
+      "responseSize": "252",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+      "remoteIp": "210.220.24.186",
+      "referer": "https://csspicker.site/",
+      "serverIp": "216.239.36.54",
+      "latency": "0.190245870s",
+      "protocol": "HTTP/1.1"
+    },
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "us-central1",
+        "service_name": "createcheckout",
+        "configuration_name": "createcheckout",
+        "revision_name": "createcheckout-00008-fiv",
+        "project_id": "css-picker"
+      }
+    },
+    "timestamp": "2026-04-01T11:31:38.248368Z",
+    "severity": "ERROR",
+    "labels": {
+      "firebase-functions-hash": "a136eb2b5f84a23d1180d8cc3922ed35deb4c67d",
+      "goog-managed-by": "cloudfunctions",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "deployment-callable": "true",
+      "instanceId": "008c15ff08d9126824bf1a2ac1c214b2ea0fa09a7801e652306ecddf990a65bfe67372529f4663ee59ad9b307be6d2746420b5eeba6b07e2098f2e13dabc9ea0b517ffaaaf8fe8c0490c9b2fdb",
+      "goog-drz-cloudfunctions-location": "us-central1"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Frequests",
+    "trace": "projects/css-picker/traces/300056ed452b5b294910758f01a32ed9",
+    "receiveTimestamp": "2026-04-01T11:31:38.486500767Z",
+    "spanId": "f2f082f200c99b1a"
+  },
+  {
+    "insertId": "69cd021a0003ea40e7f71163",
+    "jsonPayload": {
+      "message": "Callable request verification passed",
+      "verifications": {
+        "auth": "VALID",
+        "app": "MISSING"
+      }
+    },
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "css-picker",
+        "configuration_name": "createcheckout",
+        "revision_name": "createcheckout-00008-fiv",
+        "location": "us-central1",
+        "service_name": "createcheckout"
+      }
+    },
+    "timestamp": "2026-04-01T11:31:38.256576Z",
+    "severity": "DEBUG",
+    "labels": {
+      "firebase-functions-hash": "a136eb2b5f84a23d1180d8cc3922ed35deb4c67d",
+      "firebase-log-type": "callable-request-verification",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "goog-managed-by": "cloudfunctions",
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/nodejs20:nodejs20_20260321_20_20_0_RC00",
+      "instanceId": "008c15ff08d9126824bf1a2ac1c214b2ea0fa09a7801e652306ecddf990a65bfe67372529f4663ee59ad9b307be6d2746420b5eeba6b07e2098f2e13dabc9ea0b517ffaaaf8fe8c0490c9b2fdb",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "execution_id": "fytw9a89jc0b",
+      "deployment-callable": "true"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Fstdout",
+    "trace": "projects/css-picker/traces/300056ed452b5b294910758f01a32ed9",
+    "receiveTimestamp": "2026-04-01T11:31:38.406818923Z",
+    "spanId": "17505635727496026906"
+  },
+  {
+    "textPayload": "createCheckout error: Polar API error: 422 - {\"error\":\"RequestValidationError\",\"detail\":[{\"type\":\"uuid_type\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductsCreate]]\",\"products\",0],\"msg\":\"UUID input should be a string, bytes or UUID object\",\"input\":{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductCreate]]\",\"product_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutPriceCreate]]\",\"product_price_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}}]} Error: Polar API error: 422 - {\"error\":\"RequestValidationError\",\"detail\":[{\"type\":\"uuid_type\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductsCreate]]\",\"products\",0],\"msg\":\"UUID input should be a string, bytes or UUID object\",\"input\":{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductCreate]]\",\"product_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutPriceCreate]]\",\"product_price_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}}]}\n    at /workspace/index.js:76:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async /workspace/node_modules/firebase-functions/lib/common/providers/https.js:544:26\n",
+    "insertId": "69cd021a0006b4757eae9162",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "createcheckout",
+        "revision_name": "createcheckout-00008-fiv",
+        "project_id": "css-picker",
+        "service_name": "createcheckout",
+        "location": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-01T11:31:38.439413Z",
+    "labels": {
+      "execution_id": "fytw9a89jc0b",
+      "firebase-functions-hash": "a136eb2b5f84a23d1180d8cc3922ed35deb4c67d",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "goog-managed-by": "cloudfunctions",
+      "instanceId": "008c15ff08d9126824bf1a2ac1c214b2ea0fa09a7801e652306ecddf990a65bfe67372529f4663ee59ad9b307be6d2746420b5eeba6b07e2098f2e13dabc9ea0b517ffaaaf8fe8c0490c9b2fdb",
+      "deployment-callable": "true",
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/nodejs20:nodejs20_20260321_20_20_0_RC00",
+      "goog-drz-cloudfunctions-location": "us-central1"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Fstderr",
+    "receiveTimestamp": "2026-04-01T11:31:38.619202817Z",
+    "spanId": "17505635727496026906",
+    "errorGroups": [
+      {
+        "id": "CP_Insv7w8CScQ"
+      }
+    ]
+  },
+  {
+    "textPayload": "Unhandled error Error: Polar API error: 422 - {\"error\":\"RequestValidationError\",\"detail\":[{\"type\":\"uuid_type\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductsCreate]]\",\"products\",0],\"msg\":\"UUID input should be a string, bytes or UUID object\",\"input\":{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductCreate]]\",\"product_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutPriceCreate]]\",\"product_price_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}}]}\n    at /workspace/index.js:88:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async /workspace/node_modules/firebase-functions/lib/common/providers/https.js:544:26",
+    "insertId": "69cd021a0006b545c7de4aaf",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "css-picker",
+        "revision_name": "createcheckout-00008-fiv",
+        "configuration_name": "createcheckout",
+        "location": "us-central1",
+        "service_name": "createcheckout"
+      }
+    },
+    "timestamp": "2026-04-01T11:31:38.439621Z",
+    "severity": "ERROR",
+    "labels": {
+      "instanceId": "008c15ff08d9126824bf1a2ac1c214b2ea0fa09a7801e652306ecddf990a65bfe67372529f4663ee59ad9b307be6d2746420b5eeba6b07e2098f2e13dabc9ea0b517ffaaaf8fe8c0490c9b2fdb",
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/nodejs20:nodejs20_20260321_20_20_0_RC00",
+      "deployment-callable": "true",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "firebase-functions-hash": "a136eb2b5f84a23d1180d8cc3922ed35deb4c67d",
+      "execution_id": "fytw9a89jc0b",
+      "goog-managed-by": "cloudfunctions",
+      "goog-drz-cloudfunctions-id": "createcheckout"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Fstderr",
+    "trace": "projects/css-picker/traces/300056ed452b5b294910758f01a32ed9",
+    "receiveTimestamp": "2026-04-01T11:31:38.619202817Z",
+    "spanId": "17505635727496026906",
+    "errorGroups": [
+      {
+        "id": "CNKtiY2AtN2-fQ"
+      }
+    ]
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "service-50897249016@gcf-admin-robot.iam.gserviceaccount.com"
+      },
+      "requestMetadata": {
+        "requestAttributes": {
+          "time": "2026-04-01T11:35:44.875744Z",
+          "auth": {}
+        },
+        "destinationAttributes": {}
+      },
+      "serviceName": "run.googleapis.com",
+      "methodName": "google.cloud.serverless.internal.InternalServices.ReplaceInternalService",
+      "authorizationInfo": [
+        {
+          "resource": "namespaces/css-picker/services/createcheckout",
+          "permission": "run.services.update",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "namespaces/css-picker/services/createcheckout",
+          "permission": "run.services.update",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "run.googleapis.com/",
+            "name": "namespaces/css-picker/services/createcheckout",
+            "type": "run.googleapis.com/Service"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "namespaces/css-picker/services/createcheckout",
+      "resourceLocation": {
+        "currentLocations": [
+          "us-central1"
+        ]
+      }
+    },
+    "insertId": "flhat2dbl5g",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "css-picker",
+        "revision_name": "",
+        "configuration_name": "",
+        "location": "us-central1",
+        "service_name": "createcheckout"
+      }
+    },
+    "timestamp": "2026-04-01T11:35:44.575843Z",
+    "severity": "NOTICE",
+    "logName": "projects/css-picker/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2026-04-01T11:35:45.815217319Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "yj43773@gmail.com",
+        "principalSubject": "user:yj43773@gmail.com",
+        "oauthInfo": {
+          "oauthClientId": "563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"
+        }
+      },
+      "requestMetadata": {
+        "callerIp": "210.220.24.186",
+        "callerSuppliedUserAgent": "FirebaseCLI/15.12.0,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {
+          "time": "2026-04-01T11:35:44.347531287Z",
+          "auth": {}
+        },
+        "destinationAttributes": {}
+      },
+      "serviceName": "cloudfunctions.googleapis.com",
+      "methodName": "google.cloud.functions.v2.FunctionService.UpdateFunction",
+      "authorizationInfo": [
+        {
+          "resource": "projects/css-picker/locations/us-central1/functions/createCheckout",
+          "permission": "cloudfunctions.functions.update",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "cloudfunctions.googleapis.com",
+            "name": "projects/css-picker/locations/us-central1/functions/createCheckout",
+            "type": "cloudfunctions.googleapis.com/Function"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "projects/css-picker/locations/us-central1/functions/createCheckout",
+      "request": {
+        "update_mask": {
+          "paths": [
+            "name",
+            "build_config.runtime",
+            "build_config.entry_point",
+            "build_config.source.storage_source.bucket",
+            "build_config.source.storage_source.object",
+            "build_config.environment_variables",
+            "build_config.source_token",
+            "service_config.environment_variables",
+            "service_config.ingress_settings",
+            "service_config.timeout_seconds",
+            "service_config.service_account_email",
+            "service_config.available_memory",
+            "service_config.min_instance_count",
+            "service_config.max_instance_count",
+            "service_config.max_instance_request_concurrency",
+            "service_config.available_cpu",
+            "service_config.vpc_connector",
+            "service_config.vpc_connector_egress_settings",
+            "service_config.direct_vpc_network_interface",
+            "service_config.direct_vpc_egress",
+            "labels"
+          ]
+        },
+        "@type": "type.googleapis.com/google.cloud.functions.v2.UpdateFunctionRequest",
+        "function": {
+          "name": "projects/css-picker/locations/us-central1/functions/createCheckout",
+          "service_config": {
+            "available_cpu": "1",
+            "available_memory": "256Mi",
+            "max_instance_request_concurrency": 80
+          },
+          "labels": {
+            "deployment-tool": "cli-firebase",
+            "firebase-functions-hash": "4a7a1df010a7056cd602a81d72c0fa67e139d037",
+            "deployment-callable": "true"
+          },
+          "build_config": {
+            "entry_point": "createCheckout",
+            "runtime": "nodejs24",
+            "source": {}
+          }
+        }
+      },
+      "response": {
+        "@type": "type.googleapis.com/google.longrunning.Operation"
+      },
+      "resourceLocation": {
+        "currentLocations": [
+          "us-central1"
+        ]
+      }
+    },
+    "insertId": "efriegddyhz",
+    "resource": {
+      "type": "cloud_function",
+      "labels": {
+        "project_id": "css-picker",
+        "function_name": "createCheckout",
+        "region": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-01T11:35:45.271886551Z",
+    "severity": "NOTICE",
+    "logName": "projects/css-picker/logs/cloudaudit.googleapis.com%2Factivity",
+    "operation": {
+      "id": "projects/css-picker/locations/us-central1/operations/operation-1775043344347-64e647c0032ec-5415769c-79bc3c22",
+      "producer": "cloudfunctions.googleapis.com",
+      "first": true
+    },
+    "receiveTimestamp": "2026-04-01T11:35:45.615260385Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "service-50897249016@gcf-admin-robot.iam.gserviceaccount.com"
+      },
+      "requestMetadata": {
+        "requestAttributes": {
+          "time": "2026-04-01T11:36:49.967735Z",
+          "auth": {}
+        },
+        "destinationAttributes": {}
+      },
+      "serviceName": "run.googleapis.com",
+      "methodName": "google.cloud.serverless.internal.InternalServices.ReplaceInternalService",
+      "authorizationInfo": [
+        {
+          "resource": "namespaces/css-picker/services/createcheckout",
+          "permission": "run.services.update",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "namespaces/css-picker/services/createcheckout",
+          "permission": "run.services.update",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "run.googleapis.com/",
+            "name": "namespaces/css-picker/services/createcheckout",
+            "type": "run.googleapis.com/Service"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "namespaces/css-picker/services/createcheckout",
+      "resourceLocation": {
+        "currentLocations": [
+          "us-central1"
+        ]
+      }
+    },
+    "insertId": "nce9atd8otg",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "createcheckout",
+        "location": "us-central1",
+        "revision_name": "",
+        "configuration_name": "",
+        "project_id": "css-picker"
+      }
+    },
+    "timestamp": "2026-04-01T11:36:49.690339Z",
+    "severity": "NOTICE",
+    "logName": "projects/css-picker/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2026-04-01T11:36:50.237144712Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69cd0356000068008b73049d",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "us-central1",
+        "service_name": "createcheckout",
+        "project_id": "css-picker",
+        "revision_name": "createcheckout-00009-fem",
+        "configuration_name": "createcheckout"
+      }
+    },
+    "timestamp": "2026-04-01T11:36:54.026624Z",
+    "severity": "INFO",
+    "labels": {
+      "firebase-functions-hash": "4a7a1df010a7056cd602a81d72c0fa67e139d037",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "goog-managed-by": "cloudfunctions",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "deployment-callable": "true",
+      "instanceId": "008c15ff0865757c57413c44de7e2ca2715ba7a495dbd582728aa035bd97cd328ae024ab2501da1e36e1abaf59b422a62dc283812a543645386a075e744d2489909318d4ccc888f87c76deecf3ea47319469250e",
+      "goog-drz-cloudfunctions-location": "us-central1"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-01T11:36:54.030888131Z"
+  },
+  {
+    "textPayload": "Default STARTUP TCP probe succeeded after 1 attempt for container \"worker\" on port 8080.",
+    "insertId": "69cd0357000ab34d582b7228",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "createcheckout",
+        "location": "us-central1",
+        "revision_name": "createcheckout-00009-fem",
+        "configuration_name": "createcheckout",
+        "project_id": "css-picker"
+      }
+    },
+    "timestamp": "2026-04-01T11:36:55.701261Z",
+    "severity": "INFO",
+    "labels": {
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-24-full/runtimes/nodejs24:nodejs24_20260314_24_13_0_RC00",
+      "deployment-callable": "true",
+      "instanceId": "008c15ff0865757c57413c44de7e2ca2715ba7a495dbd582728aa035bd97cd328ae024ab2501da1e36e1abaf59b422a62dc283812a543645386a075e744d2489909318d4ccc888f87c76deecf3ea47319469250e",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "firebase-functions-hash": "4a7a1df010a7056cd602a81d72c0fa67e139d037",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-01T11:36:56.030662026Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {
+        "message": "Ready condition status changed to True for Revision createcheckout-00009-fem with message: Deploying revision succeeded in 5.72s."
+      },
+      "serviceName": "run.googleapis.com",
+      "methodName": "/InternalServices.ReplaceInternalService",
+      "resourceName": "namespaces/css-picker/revisions/createcheckout-00009-fem",
+      "response": {
+        "metadata": {
+          "name": "createcheckout-00009-fem",
+          "namespace": "50897249016",
+          "selfLink": "/apis/serving.knative.dev/v1/namespaces/50897249016/revisions/createcheckout-00009-fem",
+          "uid": "15a19c95-83b6-4844-9254-7147dc08deb8",
+          "resourceVersion": "AAZOZIBBzV0",
+          "generation": 1,
+          "creationTimestamp": "2026-04-01T11:36:50.037778Z",
+          "labels": {
+            "goog-drz-cloudfunctions-location": "us-central1",
+            "firebase-functions-hash": "4a7a1df010a7056cd602a81d72c0fa67e139d037",
+            "goog-drz-cloudfunctions-id": "createcheckout",
+            "deployment-callable": "true",
+            "goog-managed-by": "cloudfunctions",
+            "serving.knative.dev/configuration": "createcheckout",
+            "serving.knative.dev/configurationGeneration": "9",
+            "serving.knative.dev/service": "createcheckout",
+            "serving.knative.dev/serviceUid": "bbd8df66-9991-4c29-8363-170e47748960",
+            "goog-cloudfunctions-runtime": "nodejs24",
+            "cloud.googleapis.com/location": "us-central1",
+            "serving.knative.dev/route": "createcheckout",
+            "run.googleapis.com/startupProbeType": "Default"
+          },
+          "annotations": {
+            "run.googleapis.com/client-name": "cli-firebase",
+            "cloudfunctions.googleapis.com/trigger-type": "HTTP_TRIGGER",
+            "run.googleapis.com/secrets": "secret-6d18fe05-922e-3739-b984-d54aa4b6dbb5:projects/css-picker/secrets/POLAR_API_KEY",
+            "autoscaling.knative.dev/maxScale": "20",
+            "serving.knative.dev/creator": "service-50897249016@gcf-admin-robot.iam.gserviceaccount.com",
+            "run.googleapis.com/build-source-location": "{\"worker\":\"gs://gcf-v2-sources-50897249016-us-central1/createCheckout/function-source.zip#1775043345203098\"}",
+            "run.googleapis.com/build-id": "{\"worker\":\"153639e9-d025-45a8-9b69-144bad1a5683\"}",
+            "run.googleapis.com/build-function-target": "{\"worker\":\"createCheckout\"}",
+            "run.googleapis.com/operation-id": "9eade953-d3b3-4ad4-b16f-7cbe400af55f",
+            "run.googleapis.com/startup-cpu-boost": "true",
+            "run.googleapis.com/base-images": "{\"worker\":\"us-central1-docker.pkg.dev/serverless-runtimes/google-24-full/runtimes/nodejs24\"}"
+          },
+          "ownerReferences": [
+            {
+              "kind": "Configuration",
+              "name": "createcheckout",
+              "uid": "b9e7d72a-a80d-4a20-8bbd-96c01a261e00",
+              "apiVersion": "serving.knative.dev/v1",
+              "controller": true,
+              "blockOwnerDeletion": true
+            }
+          ]
+        },
+        "apiVersion": "serving.knative.dev/v1",
+        "kind": "Revision",
+        "spec": {
+          "containerConcurrency": 80,
+          "timeoutSeconds": 60,
+          "serviceAccountName": "50897249016-compute@developer.gserviceaccount.com",
+          "containers": [
+            {
+              "name": "worker",
+              "image": "us-central1-docker.pkg.dev/css-picker/gcf-artifacts/css--picker__us--central1__create_checkout@sha256:5ab0f247a3a33cf023b2beb49c4bc187e2fe2a32574340df01f50d1b221cb2c0",
+              "ports": [
+                {
+                  "name": "http1",
+                  "containerPort": 8080
+                }
+              ],
+              "env": [
+                {
+                  "name": "FIREBASE_CONFIG",
+                  "value": "{\"projectId\":\"css-picker\",\"storageBucket\":\"css-picker.firebasestorage.app\"}"
+                },
+                {
+                  "name": "GCLOUD_PROJECT",
+                  "value": "css-picker"
+                },
+                {
+                  "name": "EVENTARC_CLOUD_EVENT_SOURCE",
+                  "value": "projects/css-picker/locations/us-central1/services/createCheckout"
+                },
+                {
+                  "name": "FUNCTION_TARGET",
+                  "value": "createCheckout"
+                },
+                {
+                  "name": "LOG_EXECUTION_ID",
+                  "value": "true"
+                },
+                {
+                  "name": "POLAR_API_KEY",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "1",
+                      "name": "secret-6d18fe05-922e-3739-b984-d54aa4b6dbb5"
+                    }
+                  }
+                }
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                  "memory": "256Mi"
+                }
+              },
+              "startupProbe": {
+                "timeoutSeconds": 240,
+                "periodSeconds": 240,
+                "failureThreshold": 1,
+                "tcpSocket": {
+                  "port": 8080
+                }
+              }
+            }
+          ],
+          "runtimeClassName": "run.googleapis.com/linux-base-image-update"
+        },
+        "status": {
+          "observedGeneration": 1,
+          "conditions": [
+            {
+              "type": "Ready",
+              "status": "True",
+              "message": "Deploying revision succeeded in 5.72s.",
+              "lastTransitionTime": "2026-04-01T11:36:55.756125Z"
+            },
+            {
+              "type": "ContainerHealthy",
+              "status": "True",
+              "message": "Containers became healthy in 1.51s.",
+              "lastTransitionTime": "2026-04-01T11:36:55.712967Z"
+            },
+            {
+              "type": "ContainerReady",
+              "status": "True",
+              "message": "Container image import completed in 1.44s.",
+              "lastTransitionTime": "2026-04-01T11:36:52.191286Z"
+            },
+            {
+              "type": "ResourcesAvailable",
+              "status": "True",
+              "message": "Provisioning imported containers completed in 1.65s. Checking container health. This will wait for up to 4m for the configured startup probe, including an initial delay of 0s.",
+              "lastTransitionTime": "2026-04-01T11:36:53.843629Z"
+            }
+          ],
+          "logUrl": "https://console.cloud.google.com/logs/viewer?project=css-picker&resource=cloud_run_revision/service_name/createcheckout/revision_name/createcheckout-00009-fem&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22createcheckout%22%0Aresource.labels.revision_name%3D%22createcheckout-00009-fem%22",
+          "imageDigest": "us-central1-docker.pkg.dev/css-picker/gcf-artifacts/css--picker__us--central1__create_checkout@sha256:5ab0f247a3a33cf023b2beb49c4bc187e2fe2a32574340df01f50d1b221cb2c0",
+          "containerStatuses": [
+            {
+              "name": "worker",
+              "imageDigest": "us-central1-docker.pkg.dev/css-picker/gcf-artifacts/css--picker__us--central1__create_checkout@sha256:5ab0f247a3a33cf023b2beb49c4bc187e2fe2a32574340df01f50d1b221cb2c0"
+            }
+          ]
+        },
+        "@type": "type.googleapis.com/google.cloud.run.v1.Revision"
+      }
+    },
+    "insertId": "flhat2dblgg",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "createcheckout",
+        "location": "us-central1",
+        "revision_name": "createcheckout-00009-fem",
+        "configuration_name": "createcheckout",
+        "project_id": "css-picker"
+      }
+    },
+    "timestamp": "2026-04-01T11:36:55.765260Z",
+    "severity": "INFO",
+    "logName": "projects/css-picker/logs/cloudaudit.googleapis.com%2Fsystem_event",
+    "receiveTimestamp": "2026-04-01T11:36:56.983253463Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {
+        "message": "Ready condition status changed to True for Service createcheckout."
+      },
+      "serviceName": "run.googleapis.com",
+      "methodName": "/InternalServices.ReplaceInternalService",
+      "resourceName": "namespaces/css-picker/services/createcheckout",
+      "response": {
+        "metadata": {
+          "name": "createcheckout",
+          "namespace": "50897249016",
+          "selfLink": "/apis/serving.knative.dev/v1/namespaces/50897249016/services/createcheckout",
+          "uid": "bbd8df66-9991-4c29-8363-170e47748960",
+          "resourceVersion": "AAZOZIBloGc",
+          "generation": 9,
+          "creationTimestamp": "2026-04-01T01:02:17.046070Z",
+          "labels": {
+            "goog-drz-cloudfunctions-location": "us-central1",
+            "firebase-functions-hash": "4a7a1df010a7056cd602a81d72c0fa67e139d037",
+            "goog-managed-by": "cloudfunctions",
+            "goog-cloudfunctions-runtime": "nodejs24",
+            "cloud.googleapis.com/location": "us-central1",
+            "goog-drz-cloudfunctions-id": "createcheckout",
+            "deployment-callable": "true"
+          },
+          "annotations": {
+            "serving.knative.dev/creator": "service-50897249016@gcf-admin-robot.iam.gserviceaccount.com",
+            "serving.knative.dev/lastModifier": "service-50897249016@gcf-admin-robot.iam.gserviceaccount.com",
+            "run.googleapis.com/custom-audiences": "[\"https://us-central1-css-picker.cloudfunctions.net/createCheckout\"]",
+            "run.googleapis.com/client-name": "cli-firebase",
+            "cloudfunctions.googleapis.com/function-id": "createCheckout",
+            "run.googleapis.com/build-source-location": "gs://gcf-v2-sources-50897249016-us-central1/createCheckout/function-source.zip#1775043345203098",
+            "run.googleapis.com/build-environment-variables": "{\"GOOGLE_NODE_RUN_SCRIPTS\":\"\"}",
+            "run.googleapis.com/build-function-target": "createCheckout",
+            "run.googleapis.com/build-service-account": "projects/css-picker/serviceAccounts/50897249016-compute@developer.gserviceaccount.com",
+            "run.googleapis.com/build-enable-automatic-updates": "true",
+            "run.googleapis.com/build-base-image": "us-central1-docker.pkg.dev/serverless-runtimes/google-24-full/runtimes/nodejs24",
+            "run.googleapis.com/build-image-uri": "us-central1-docker.pkg.dev/css-picker/gcf-artifacts/css--picker__us--central1__create_checkout:version_1",
+            "run.googleapis.com/build-name": "projects/50897249016/locations/us-central1/builds/153639e9-d025-45a8-9b69-144bad1a5683",
+            "run.googleapis.com/operation-id": "9eade953-d3b3-4ad4-b16f-7cbe400af55f",
+            "run.googleapis.com/ingress": "all",
+            "run.googleapis.com/ingress-status": "all",
+            "run.googleapis.com/maxScale": "20",
+            "run.googleapis.com/urls": "[\"https://createcheckout-50897249016.us-central1.run.app\",\"https://us-central1-css-picker.cloudfunctions.net/createCheckout\",\"https://createcheckout-lfimgqcnxq-uc.a.run.app\"]"
+          }
+        },
+        "apiVersion": "serving.knative.dev/v1",
+        "kind": "Service",
+        "spec": {
+          "template": {
+            "metadata": {
+              "name": "createcheckout-00009-fem",
+              "labels": {
+                "goog-drz-cloudfunctions-location": "us-central1",
+                "firebase-functions-hash": "4a7a1df010a7056cd602a81d72c0fa67e139d037",
+                "goog-drz-cloudfunctions-id": "createcheckout",
+                "deployment-callable": "true",
+                "run.googleapis.com/startupProbeType": "Default"
+              },
+              "annotations": {
+                "run.googleapis.com/client-name": "cli-firebase",
+                "cloudfunctions.googleapis.com/trigger-type": "HTTP_TRIGGER",
+                "run.googleapis.com/secrets": "secret-6d18fe05-922e-3739-b984-d54aa4b6dbb5:projects/css-picker/secrets/POLAR_API_KEY",
+                "autoscaling.knative.dev/maxScale": "20",
+                "run.googleapis.com/base-images": "{\"worker\":\"us-central1-docker.pkg.dev/serverless-runtimes/google-24-full/runtimes/nodejs24\"}",
+                "run.googleapis.com/startup-cpu-boost": "true"
+              }
+            },
+            "spec": {
+              "containerConcurrency": 80,
+              "timeoutSeconds": 60,
+              "serviceAccountName": "50897249016-compute@developer.gserviceaccount.com",
+              "containers": [
+                {
+                  "name": "worker",
+                  "image": "us-central1-docker.pkg.dev/css-picker/gcf-artifacts/css--picker__us--central1__create_checkout:version_1",
+                  "ports": [
+                    {
+                      "name": "http1",
+                      "containerPort": 8080
+                    }
+                  ],
+                  "env": [
+                    {
+                      "name": "FIREBASE_CONFIG",
+                      "value": "{\"projectId\":\"css-picker\",\"storageBucket\":\"css-picker.firebasestorage.app\"}"
+                    },
+                    {
+                      "name": "GCLOUD_PROJECT",
+                      "value": "css-picker"
+                    },
+                    {
+                      "name": "EVENTARC_CLOUD_EVENT_SOURCE",
+                      "value": "projects/css-picker/locations/us-central1/services/createCheckout"
+                    },
+                    {
+                      "name": "FUNCTION_TARGET",
+                      "value": "createCheckout"
+                    },
+                    {
+                      "name": "LOG_EXECUTION_ID",
+                      "value": "true"
+                    },
+                    {
+                      "name": "POLAR_API_KEY",
+                      "valueFrom": {
+                        "secretKeyRef": {
+                          "key": "1",
+                          "name": "secret-6d18fe05-922e-3739-b984-d54aa4b6dbb5"
+                        }
+                      }
+                    }
+                  ],
+                  "resources": {
+                    "limits": {
+                      "cpu": "1",
+                      "memory": "256Mi"
+                    }
+                  },
+                  "startupProbe": {
+                    "timeoutSeconds": 240,
+                    "periodSeconds": 240,
+                    "failureThreshold": 1,
+                    "tcpSocket": {
+                      "port": 8080
+                    }
+                  }
+                }
+              ],
+              "runtimeClassName": "run.googleapis.com/linux-base-image-update"
+            }
+          },
+          "traffic": [
+            {
+              "percent": 100,
+              "latestRevision": true
+            }
+          ]
+        },
+        "status": {
+          "observedGeneration": 9,
+          "conditions": [
+            {
+              "type": "Ready",
+              "status": "True",
+              "lastTransitionTime": "2026-04-01T11:36:58.103911Z"
+            },
+            {
+              "type": "BaseImageValidated",
+              "status": "True",
+              "severity": "Info"
+            },
+            {
+              "type": "ConfigurationsReady",
+              "status": "True",
+              "lastTransitionTime": "2026-04-01T11:36:52.303740Z"
+            },
+            {
+              "type": "RoutesReady",
+              "status": "True",
+              "lastTransitionTime": "2026-04-01T11:36:58.069390Z"
+            }
+          ],
+          "latestReadyRevisionName": "createcheckout-00009-fem",
+          "latestCreatedRevisionName": "createcheckout-00009-fem",
+          "traffic": [
+            {
+              "revisionName": "createcheckout-00009-fem",
+              "percent": 100,
+              "latestRevision": true
+            }
+          ],
+          "url": "https://createcheckout-lfimgqcnxq-uc.a.run.app",
+          "address": {
+            "url": "https://createcheckout-lfimgqcnxq-uc.a.run.app"
+          }
+        },
+        "@type": "type.googleapis.com/google.cloud.run.v1.Service"
+      }
+    },
+    "insertId": "ypdyxbdi86s",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "css-picker",
+        "configuration_name": "",
+        "revision_name": "",
+        "location": "us-central1",
+        "service_name": "createcheckout"
+      }
+    },
+    "timestamp": "2026-04-01T11:36:58.115719Z",
+    "severity": "INFO",
+    "logName": "projects/css-picker/logs/cloudaudit.googleapis.com%2Fsystem_event",
+    "receiveTimestamp": "2026-04-01T11:36:59.051966356Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "yj43773@gmail.com",
+        "principalSubject": "user:yj43773@gmail.com",
+        "oauthInfo": {
+          "oauthClientId": "563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"
+        }
+      },
+      "requestMetadata": {
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "cloudfunctions.googleapis.com",
+      "methodName": "google.cloud.functions.v2.FunctionService.UpdateFunction",
+      "resourceName": "projects/css-picker/locations/us-central1/functions/createCheckout",
+      "response": {
+        "serviceConfig": {
+          "secretEnvironmentVariables": [
+            {
+              "projectId": "css-picker",
+              "key": "POLAR_API_KEY",
+              "version": "1",
+              "secret": "POLAR_API_KEY"
+            }
+          ],
+          "revision": "createcheckout-00009-fem",
+          "availableCpu": "1",
+          "ingressSettings": "ALLOW_ALL",
+          "availableMemory": "256Mi",
+          "timeoutSeconds": 60,
+          "serviceAccountEmail": "50897249016-compute@developer.gserviceaccount.com",
+          "maxInstanceRequestConcurrency": 80,
+          "maxInstanceCount": 20,
+          "uri": "https://createcheckout-lfimgqcnxq-uc.a.run.app",
+          "allTrafficOnLatestRevision": true
+        },
+        "name": "projects/css-picker/locations/us-central1/functions/createCheckout",
+        "@type": "type.googleapis.com/google.cloud.functions.v2.Function",
+        "satisfiesPzi": true,
+        "updateTime": "2026-04-01T11:35:45.258368751Z",
+        "state": "ACTIVE",
+        "createTime": "2026-04-01T01:01:28.939164415Z",
+        "url": "https://us-central1-css-picker.cloudfunctions.net/createCheckout",
+        "environment": "GEN_2",
+        "labels": {
+          "deployment-tool": "cli-firebase",
+          "deployment-callable": "true",
+          "firebase-functions-hash": "4a7a1df010a7056cd602a81d72c0fa67e139d037"
+        },
+        "buildConfig": {
+          "entryPoint": "createCheckout",
+          "dockerRepository": "projects/css-picker/locations/us-central1/repositories/gcf-artifacts",
+          "dockerRegistry": "ARTIFACT_REGISTRY",
+          "automaticUpdatePolicy": {},
+          "source": {},
+          "runtime": "nodejs24",
+          "serviceAccount": "projects/css-picker/serviceAccounts/50897249016-compute@developer.gserviceaccount.com"
+        }
+      },
+      "resourceLocation": {
+        "currentLocations": [
+          "us-central1"
+        ]
+      }
+    },
+    "insertId": "efriegddylr",
+    "resource": {
+      "type": "cloud_function",
+      "labels": {
+        "function_name": "createCheckout",
+        "region": "us-central1",
+        "project_id": "css-picker"
+      }
+    },
+    "timestamp": "2026-04-01T11:36:58.499640265Z",
+    "severity": "NOTICE",
+    "logName": "projects/css-picker/logs/cloudaudit.googleapis.com%2Factivity",
+    "operation": {
+      "id": "projects/css-picker/locations/us-central1/operations/operation-1775043344347-64e647c0032ec-5415769c-79bc3c22",
+      "producer": "cloudfunctions.googleapis.com",
+      "last": true
+    },
+    "receiveTimestamp": "2026-04-01T11:36:58.724692125Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "service-50897249016@gcf-admin-robot.iam.gserviceaccount.com"
+      },
+      "requestMetadata": {
+        "requestAttributes": {
+          "time": "2026-04-01T11:39:14.438452Z",
+          "auth": {}
+        },
+        "destinationAttributes": {}
+      },
+      "serviceName": "run.googleapis.com",
+      "methodName": "google.cloud.serverless.internal.InternalServices.ReplaceInternalService",
+      "authorizationInfo": [
+        {
+          "resource": "namespaces/css-picker/services/createcheckout",
+          "permission": "run.services.update",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "namespaces/css-picker/services/createcheckout",
+          "permission": "run.services.update",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "run.googleapis.com/",
+            "name": "namespaces/css-picker/services/createcheckout",
+            "type": "run.googleapis.com/Service"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "namespaces/css-picker/services/createcheckout",
+      "resourceLocation": {
+        "currentLocations": [
+          "us-central1"
+        ]
+      }
+    },
+    "insertId": "xlat63dargo",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "css-picker",
+        "configuration_name": "",
+        "revision_name": "",
+        "service_name": "createcheckout",
+        "location": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-01T11:39:14.277776Z",
+    "severity": "NOTICE",
+    "logName": "projects/css-picker/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2026-04-01T11:39:14.781010093Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "yj43773@gmail.com",
+        "principalSubject": "user:yj43773@gmail.com",
+        "oauthInfo": {
+          "oauthClientId": "563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"
+        }
+      },
+      "requestMetadata": {
+        "callerIp": "210.220.24.186",
+        "callerSuppliedUserAgent": "FirebaseCLI/15.12.0,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {
+          "time": "2026-04-01T11:39:14.028736788Z",
+          "auth": {}
+        },
+        "destinationAttributes": {}
+      },
+      "serviceName": "cloudfunctions.googleapis.com",
+      "methodName": "google.cloud.functions.v2.FunctionService.UpdateFunction",
+      "authorizationInfo": [
+        {
+          "resource": "projects/css-picker/locations/us-central1/functions/createCheckout",
+          "permission": "cloudfunctions.functions.update",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "cloudfunctions.googleapis.com",
+            "name": "projects/css-picker/locations/us-central1/functions/createCheckout",
+            "type": "cloudfunctions.googleapis.com/Function"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "projects/css-picker/locations/us-central1/functions/createCheckout",
+      "request": {
+        "@type": "type.googleapis.com/google.cloud.functions.v2.UpdateFunctionRequest",
+        "update_mask": {
+          "paths": [
+            "name",
+            "build_config.runtime",
+            "build_config.entry_point",
+            "build_config.source.storage_source.bucket",
+            "build_config.source.storage_source.object",
+            "build_config.environment_variables",
+            "build_config.source_token",
+            "service_config.environment_variables",
+            "service_config.ingress_settings",
+            "service_config.timeout_seconds",
+            "service_config.service_account_email",
+            "service_config.available_memory",
+            "service_config.min_instance_count",
+            "service_config.max_instance_count",
+            "service_config.max_instance_request_concurrency",
+            "service_config.available_cpu",
+            "service_config.vpc_connector",
+            "service_config.vpc_connector_egress_settings",
+            "service_config.direct_vpc_network_interface",
+            "service_config.direct_vpc_egress",
+            "labels"
+          ]
+        },
+        "function": {
+          "service_config": {
+            "available_cpu": "1",
+            "max_instance_request_concurrency": 80,
+            "available_memory": "256Mi"
+          },
+          "labels": {
+            "deployment-tool": "cli-firebase",
+            "firebase-functions-hash": "a9d64b97c2d4baea13ef6f3de300e8222a129ef0",
+            "deployment-callable": "true"
+          },
+          "build_config": {
+            "source": {},
+            "runtime": "nodejs24",
+            "entry_point": "createCheckout"
+          },
+          "name": "projects/css-picker/locations/us-central1/functions/createCheckout"
+        }
+      },
+      "response": {
+        "@type": "type.googleapis.com/google.longrunning.Operation"
+      },
+      "resourceLocation": {
+        "currentLocations": [
+          "us-central1"
+        ]
+      }
+    },
+    "insertId": "1nfgi1ad4sj0",
+    "resource": {
+      "type": "cloud_function",
+      "labels": {
+        "function_name": "createCheckout",
+        "project_id": "css-picker",
+        "region": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-01T11:39:14.875303665Z",
+    "severity": "NOTICE",
+    "logName": "projects/css-picker/logs/cloudaudit.googleapis.com%2Factivity",
+    "operation": {
+      "id": "projects/css-picker/locations/us-central1/operations/operation-1775043554029-64e64887fae75-3a7b955b-2ba0c092",
+      "producer": "cloudfunctions.googleapis.com",
+      "first": true
+    },
+    "receiveTimestamp": "2026-04-01T11:39:15.381218894Z"
+  },
+  {
+    "insertId": "69cd03fb000a994c13d7ec46",
+    "httpRequest": {
+      "requestMethod": "OPTIONS",
+      "requestUrl": "https://us-central1-css-picker.cloudfunctions.net/createCheckout",
+      "requestSize": "721",
+      "status": 204,
+      "responseSize": "259",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+      "remoteIp": "210.220.24.186",
+      "referer": "https://csspicker.site/",
+      "serverIp": "216.239.36.54",
+      "latency": "0.039800863s",
+      "protocol": "HTTP/1.1"
+    },
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "css-picker",
+        "configuration_name": "createcheckout",
+        "revision_name": "createcheckout-00009-fem",
+        "service_name": "createcheckout",
+        "location": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-01T11:39:39.646463Z",
+    "severity": "INFO",
+    "labels": {
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "instanceId": "008c15ff0865757c57413c44de7e2ca2715ba7a495dbd582728aa035bd97cd328ae024ab2501da1e36e1abaf59b422a62dc283812a543645386a075e744d2489909318d4ccc888f87c76deecf3ea47319469250e",
+      "deployment-callable": "true",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "goog-managed-by": "cloudfunctions",
+      "firebase-functions-hash": "4a7a1df010a7056cd602a81d72c0fa67e139d037"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Frequests",
+    "trace": "projects/css-picker/traces/8e839c1c6cd1a72b57ebe5b2def679a9",
+    "receiveTimestamp": "2026-04-01T11:39:39.698983042Z",
+    "spanId": "d47e12abb9cbf8bb",
+    "traceSampled": true
+  },
+  {
+    "insertId": "69cd03fc0006f78dbbabf7a4",
+    "httpRequest": {
+      "requestMethod": "POST",
+      "requestUrl": "https://us-central1-css-picker.cloudfunctions.net/createCheckout",
+      "requestSize": "2089",
+      "status": 500,
+      "responseSize": "252",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+      "remoteIp": "210.220.24.186",
+      "referer": "https://csspicker.site/",
+      "serverIp": "216.239.36.54",
+      "latency": "0.524541369s",
+      "protocol": "HTTP/1.1"
+    },
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "css-picker",
+        "revision_name": "createcheckout-00009-fem",
+        "configuration_name": "createcheckout",
+        "location": "us-central1",
+        "service_name": "createcheckout"
+      }
+    },
+    "timestamp": "2026-04-01T11:39:39.930330Z",
+    "severity": "ERROR",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "firebase-functions-hash": "4a7a1df010a7056cd602a81d72c0fa67e139d037",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "instanceId": "008c15ff0865757c57413c44de7e2ca2715ba7a495dbd582728aa035bd97cd328ae024ab2501da1e36e1abaf59b422a62dc283812a543645386a075e744d2489909318d4ccc888f87c76deecf3ea47319469250e",
+      "deployment-callable": "true"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Frequests",
+    "trace": "projects/css-picker/traces/94425bedf2c188c257ebe5b2def67ffc",
+    "receiveTimestamp": "2026-04-01T11:39:40.699272897Z",
+    "spanId": "a05b90838f331e68"
+  },
+  {
+    "insertId": "69cd03fc0000876490129c2d",
+    "jsonPayload": {
+      "verifications": {
+        "app": "MISSING",
+        "auth": "VALID"
+      },
+      "message": "Callable request verification passed"
+    },
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "us-central1",
+        "service_name": "createcheckout",
+        "revision_name": "createcheckout-00009-fem",
+        "configuration_name": "createcheckout",
+        "project_id": "css-picker"
+      }
+    },
+    "timestamp": "2026-04-01T11:39:40.034660Z",
+    "severity": "DEBUG",
+    "labels": {
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "instanceId": "008c15ff0865757c57413c44de7e2ca2715ba7a495dbd582728aa035bd97cd328ae024ab2501da1e36e1abaf59b422a62dc283812a543645386a075e744d2489909318d4ccc888f87c76deecf3ea47319469250e",
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-24-full/runtimes/nodejs24:nodejs24_20260314_24_13_0_RC00",
+      "goog-managed-by": "cloudfunctions",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "firebase-log-type": "callable-request-verification",
+      "firebase-functions-hash": "4a7a1df010a7056cd602a81d72c0fa67e139d037",
+      "deployment-callable": "true",
+      "execution_id": "fz47xttr21nj"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Fstdout",
+    "trace": "projects/css-picker/traces/94425bedf2c188c257ebe5b2def67ffc",
+    "receiveTimestamp": "2026-04-01T11:39:40.039874583Z",
+    "spanId": "11554988163666746984"
+  },
+  {
+    "textPayload": "createCheckout error: Polar API error: 422 - {\"error\":\"RequestValidationError\",\"detail\":[{\"type\":\"uuid_type\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductsCreate]]\",\"products\",0],\"msg\":\"UUID input should be a string, bytes or UUID object\",\"input\":{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductCreate]]\",\"product_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutPriceCreate]]\",\"product_price_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}}]} Error: Polar API error: 422 - {\"error\":\"RequestValidationError\",\"detail\":[{\"type\":\"uuid_type\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductsCreate]]\",\"products\",0],\"msg\":\"UUID input should be a string, bytes or UUID object\",\"input\":{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductCreate]]\",\"product_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutPriceCreate]]\",\"product_price_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}}]}\n    at /workspace/index.js:77:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async /workspace/node_modules/firebase-functions/lib/common/providers/https.js:513:14\n",
+    "insertId": "69cd03fc0006ebb2c74191b4",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "createcheckout",
+        "location": "us-central1",
+        "project_id": "css-picker",
+        "configuration_name": "createcheckout",
+        "revision_name": "createcheckout-00009-fem"
+      }
+    },
+    "timestamp": "2026-04-01T11:39:40.453554Z",
+    "labels": {
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "goog-managed-by": "cloudfunctions",
+      "execution_id": "fz47xttr21nj",
+      "firebase-functions-hash": "4a7a1df010a7056cd602a81d72c0fa67e139d037",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-24-full/runtimes/nodejs24:nodejs24_20260314_24_13_0_RC00",
+      "deployment-callable": "true",
+      "instanceId": "008c15ff0865757c57413c44de7e2ca2715ba7a495dbd582728aa035bd97cd328ae024ab2501da1e36e1abaf59b422a62dc283812a543645386a075e744d2489909318d4ccc888f87c76deecf3ea47319469250e"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Fstderr",
+    "receiveTimestamp": "2026-04-01T11:39:40.465878210Z",
+    "spanId": "11554988163666746984",
+    "errorGroups": [
+      {
+        "id": "CP_Insv7w8CScQ"
+      }
+    ]
+  },
+  {
+    "textPayload": "Unhandled error Error: Polar API error: 422 - {\"error\":\"RequestValidationError\",\"detail\":[{\"type\":\"uuid_type\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductsCreate]]\",\"products\",0],\"msg\":\"UUID input should be a string, bytes or UUID object\",\"input\":{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutProductCreate]]\",\"product_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}},{\"type\":\"missing\",\"loc\":[\"body\",\"function-after[_validate_seat_constraints(), function-after[is_complete_configuration(), CheckoutPriceCreate]]\",\"product_price_id\"],\"msg\":\"Field required\",\"input\":{\"products\":[{\"product_id\":\"226265\",\"variant_id\":\"1025119\"}],\"redirect_url\":\"https://csspicker.site/\",\"custom_data\":{\"firebaseUid\":\"JhGhDTZenagMdI2BhqmXtu1VIdc2\"}}}]}\n    at /workspace/index.js:89:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async /workspace/node_modules/firebase-functions/lib/common/providers/https.js:513:14",
+    "insertId": "69cd03fc0006eda7886be08c",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "revision_name": "createcheckout-00009-fem",
+        "configuration_name": "createcheckout",
+        "project_id": "css-picker",
+        "service_name": "createcheckout",
+        "location": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-01T11:39:40.454055Z",
+    "severity": "ERROR",
+    "labels": {
+      "execution_id": "fz47xttr21nj",
+      "firebase-functions-hash": "4a7a1df010a7056cd602a81d72c0fa67e139d037",
+      "goog-managed-by": "cloudfunctions",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "instanceId": "008c15ff0865757c57413c44de7e2ca2715ba7a495dbd582728aa035bd97cd328ae024ab2501da1e36e1abaf59b422a62dc283812a543645386a075e744d2489909318d4ccc888f87c76deecf3ea47319469250e",
+      "deployment-callable": "true",
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-24-full/runtimes/nodejs24:nodejs24_20260314_24_13_0_RC00",
+      "goog-drz-cloudfunctions-location": "us-central1"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Fstderr",
+    "trace": "projects/css-picker/traces/94425bedf2c188c257ebe5b2def67ffc",
+    "receiveTimestamp": "2026-04-01T11:39:40.791668032Z",
+    "spanId": "11554988163666746984",
+    "errorGroups": [
+      {
+        "id": "CNKtiY2AtN2-fQ"
+      }
+    ]
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "service-50897249016@gcf-admin-robot.iam.gserviceaccount.com"
+      },
+      "requestMetadata": {
+        "requestAttributes": {
+          "time": "2026-04-01T11:39:58.514799Z",
+          "auth": {}
+        },
+        "destinationAttributes": {}
+      },
+      "serviceName": "run.googleapis.com",
+      "methodName": "google.cloud.serverless.internal.InternalServices.ReplaceInternalService",
+      "authorizationInfo": [
+        {
+          "resource": "namespaces/css-picker/services/createcheckout",
+          "permission": "run.services.update",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "namespaces/css-picker/services/createcheckout",
+          "permission": "run.services.update",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "run.googleapis.com/",
+            "name": "namespaces/css-picker/services/createcheckout",
+            "type": "run.googleapis.com/Service"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "namespaces/css-picker/services/createcheckout",
+      "resourceLocation": {
+        "currentLocations": [
+          "us-central1"
+        ]
+      }
+    },
+    "insertId": "6yfbi9dgas4",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "createcheckout",
+        "location": "us-central1",
+        "configuration_name": "",
+        "revision_name": "",
+        "project_id": "css-picker"
+      }
+    },
+    "timestamp": "2026-04-01T11:39:58.358155Z",
+    "severity": "NOTICE",
+    "logName": "projects/css-picker/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2026-04-01T11:39:59.086789564Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69cd04130003575adde96979",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "css-picker",
+        "configuration_name": "createcheckout",
+        "revision_name": "createcheckout-00010-vor",
+        "location": "us-central1",
+        "service_name": "createcheckout"
+      }
+    },
+    "timestamp": "2026-04-01T11:40:03.218970Z",
+    "severity": "INFO",
+    "labels": {
+      "instanceId": "008c15ff08a305427e805ba818e1fb667e1a518937b4e6c005acb3bffd1703a69afacfc5c261161809b191a771bc1e1002d0329f3e6d4f5c2f137dc4b625dceea9d6e0b65a6d4b50e46d9ca3570357",
+      "deployment-callable": "true",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "firebase-functions-hash": "a9d64b97c2d4baea13ef6f3de300e8222a129ef0",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-01T11:40:03.224505115Z"
+  },
+  {
+    "textPayload": "Default STARTUP TCP probe succeeded after 1 attempt for container \"worker\" on port 8080.",
+    "insertId": "69cd0415000513fb12c42f40",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "revision_name": "createcheckout-00010-vor",
+        "configuration_name": "createcheckout",
+        "project_id": "css-picker",
+        "service_name": "createcheckout",
+        "location": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-01T11:40:05.332795Z",
+    "severity": "INFO",
+    "labels": {
+      "instanceId": "008c15ff08a305427e805ba818e1fb667e1a518937b4e6c005acb3bffd1703a69afacfc5c261161809b191a771bc1e1002d0329f3e6d4f5c2f137dc4b625dceea9d6e0b65a6d4b50e46d9ca3570357",
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-24-full/runtimes/nodejs24:nodejs24_20260314_24_13_0_RC00",
+      "deployment-callable": "true",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "firebase-functions-hash": "a9d64b97c2d4baea13ef6f3de300e8222a129ef0",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-01T11:40:05.555959665Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {
+        "message": "Ready condition status changed to True for Revision createcheckout-00010-vor with message: Deploying revision succeeded in 6.82s."
+      },
+      "serviceName": "run.googleapis.com",
+      "methodName": "/InternalServices.ReplaceInternalService",
+      "resourceName": "namespaces/css-picker/revisions/createcheckout-00010-vor",
+      "response": {
+        "metadata": {
+          "name": "createcheckout-00010-vor",
+          "namespace": "50897249016",
+          "selfLink": "/apis/serving.knative.dev/v1/namespaces/50897249016/revisions/createcheckout-00010-vor",
+          "uid": "5ca80665-9af2-460a-b28b-0ff4685d6e87",
+          "resourceVersion": "AAZOZIuPhQg",
+          "generation": 1,
+          "creationTimestamp": "2026-04-01T11:39:58.576823Z",
+          "labels": {
+            "goog-drz-cloudfunctions-location": "us-central1",
+            "firebase-functions-hash": "a9d64b97c2d4baea13ef6f3de300e8222a129ef0",
+            "goog-drz-cloudfunctions-id": "createcheckout",
+            "deployment-callable": "true",
+            "goog-managed-by": "cloudfunctions",
+            "serving.knative.dev/configuration": "createcheckout",
+            "serving.knative.dev/configurationGeneration": "10",
+            "serving.knative.dev/service": "createcheckout",
+            "serving.knative.dev/serviceUid": "bbd8df66-9991-4c29-8363-170e47748960",
+            "goog-cloudfunctions-runtime": "nodejs24",
+            "cloud.googleapis.com/location": "us-central1",
+            "serving.knative.dev/route": "createcheckout",
+            "run.googleapis.com/startupProbeType": "Default"
+          },
+          "annotations": {
+            "run.googleapis.com/client-name": "cli-firebase",
+            "cloudfunctions.googleapis.com/trigger-type": "HTTP_TRIGGER",
+            "run.googleapis.com/secrets": "secret-6d18fe05-922e-3739-b984-d54aa4b6dbb5:projects/css-picker/secrets/POLAR_API_KEY",
+            "autoscaling.knative.dev/maxScale": "20",
+            "serving.knative.dev/creator": "service-50897249016@gcf-admin-robot.iam.gserviceaccount.com",
+            "run.googleapis.com/build-source-location": "{\"worker\":\"gs://gcf-v2-sources-50897249016-us-central1/createCheckout/function-source.zip#1775043554799046\"}",
+            "run.googleapis.com/build-id": "{\"worker\":\"f407557f-887b-4cdf-bdbb-c2e26ad49549\"}",
+            "run.googleapis.com/build-function-target": "{\"worker\":\"createCheckout\"}",
+            "run.googleapis.com/operation-id": "c8f2d004-d313-4b3c-a422-d6906268c7ce",
+            "run.googleapis.com/startup-cpu-boost": "true",
+            "run.googleapis.com/base-images": "{\"worker\":\"us-central1-docker.pkg.dev/serverless-runtimes/google-24-full/runtimes/nodejs24\"}"
+          },
+          "ownerReferences": [
+            {
+              "kind": "Configuration",
+              "name": "createcheckout",
+              "uid": "b9e7d72a-a80d-4a20-8bbd-96c01a261e00",
+              "apiVersion": "serving.knative.dev/v1",
+              "controller": true,
+              "blockOwnerDeletion": true
+            }
+          ]
+        },
+        "apiVersion": "serving.knative.dev/v1",
+        "kind": "Revision",
+        "spec": {
+          "containerConcurrency": 80,
+          "timeoutSeconds": 60,
+          "serviceAccountName": "50897249016-compute@developer.gserviceaccount.com",
+          "containers": [
+            {
+              "name": "worker",
+              "image": "us-central1-docker.pkg.dev/css-picker/gcf-artifacts/css--picker__us--central1__create_checkout@sha256:95cbec5d7c3b92cb173e0a6c6a1f3f440c296bcd90ae4ccb6a0059cf84b60465",
+              "ports": [
+                {
+                  "name": "http1",
+                  "containerPort": 8080
+                }
+              ],
+              "env": [
+                {
+                  "name": "FIREBASE_CONFIG",
+                  "value": "{\"projectId\":\"css-picker\",\"storageBucket\":\"css-picker.firebasestorage.app\"}"
+                },
+                {
+                  "name": "GCLOUD_PROJECT",
+                  "value": "css-picker"
+                },
+                {
+                  "name": "EVENTARC_CLOUD_EVENT_SOURCE",
+                  "value": "projects/css-picker/locations/us-central1/services/createCheckout"
+                },
+                {
+                  "name": "FUNCTION_TARGET",
+                  "value": "createCheckout"
+                },
+                {
+                  "name": "LOG_EXECUTION_ID",
+                  "value": "true"
+                },
+                {
+                  "name": "POLAR_API_KEY",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "1",
+                      "name": "secret-6d18fe05-922e-3739-b984-d54aa4b6dbb5"
+                    }
+                  }
+                }
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                  "memory": "256Mi"
+                }
+              },
+              "startupProbe": {
+                "timeoutSeconds": 240,
+                "periodSeconds": 240,
+                "failureThreshold": 1,
+                "tcpSocket": {
+                  "port": 8080
+                }
+              }
+            }
+          ],
+          "runtimeClassName": "run.googleapis.com/linux-base-image-update"
+        },
+        "status": {
+          "observedGeneration": 1,
+          "conditions": [
+            {
+              "type": "Ready",
+              "status": "True",
+              "message": "Deploying revision succeeded in 6.82s.",
+              "lastTransitionTime": "2026-04-01T11:40:05.398792Z"
+            },
+            {
+              "type": "ContainerHealthy",
+              "status": "True",
+              "message": "Containers became healthy in 1.93s.",
+              "lastTransitionTime": "2026-04-01T11:40:05.346830Z"
+            },
+            {
+              "type": "ContainerReady",
+              "status": "True",
+              "message": "Container image import completed in 2.05s.",
+              "lastTransitionTime": "2026-04-01T11:40:01.546708Z"
+            },
+            {
+              "type": "ResourcesAvailable",
+              "status": "True",
+              "message": "Provisioning imported containers completed in 1.57s. Checking container health. This will wait for up to 4m for the configured startup probe, including an initial delay of 0s.",
+              "lastTransitionTime": "2026-04-01T11:40:03.118940Z"
+            }
+          ],
+          "logUrl": "https://console.cloud.google.com/logs/viewer?project=css-picker&resource=cloud_run_revision/service_name/createcheckout/revision_name/createcheckout-00010-vor&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22createcheckout%22%0Aresource.labels.revision_name%3D%22createcheckout-00010-vor%22",
+          "imageDigest": "us-central1-docker.pkg.dev/css-picker/gcf-artifacts/css--picker__us--central1__create_checkout@sha256:95cbec5d7c3b92cb173e0a6c6a1f3f440c296bcd90ae4ccb6a0059cf84b60465",
+          "containerStatuses": [
+            {
+              "name": "worker",
+              "imageDigest": "us-central1-docker.pkg.dev/css-picker/gcf-artifacts/css--picker__us--central1__create_checkout@sha256:95cbec5d7c3b92cb173e0a6c6a1f3f440c296bcd90ae4ccb6a0059cf84b60465"
+            }
+          ]
+        },
+        "@type": "type.googleapis.com/google.cloud.run.v1.Revision"
+      }
+    },
+    "insertId": "-sjvecwd6o8a",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "createcheckout",
+        "location": "us-central1",
+        "configuration_name": "createcheckout",
+        "revision_name": "createcheckout-00010-vor",
+        "project_id": "css-picker"
+      }
+    },
+    "timestamp": "2026-04-01T11:40:05.411496Z",
+    "severity": "INFO",
+    "logName": "projects/css-picker/logs/cloudaudit.googleapis.com%2Fsystem_event",
+    "receiveTimestamp": "2026-04-01T11:40:05.599768361Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {
+        "message": "Ready condition status changed to True for Service createcheckout."
+      },
+      "serviceName": "run.googleapis.com",
+      "methodName": "/InternalServices.ReplaceInternalService",
+      "resourceName": "namespaces/css-picker/services/createcheckout",
+      "response": {
+        "metadata": {
+          "name": "createcheckout",
+          "namespace": "50897249016",
+          "selfLink": "/apis/serving.knative.dev/v1/namespaces/50897249016/services/createcheckout",
+          "uid": "bbd8df66-9991-4c29-8363-170e47748960",
+          "resourceVersion": "AAZOZIww98g",
+          "generation": 10,
+          "creationTimestamp": "2026-04-01T01:02:17.046070Z",
+          "labels": {
+            "goog-drz-cloudfunctions-location": "us-central1",
+            "firebase-functions-hash": "a9d64b97c2d4baea13ef6f3de300e8222a129ef0",
+            "goog-managed-by": "cloudfunctions",
+            "goog-cloudfunctions-runtime": "nodejs24",
+            "cloud.googleapis.com/location": "us-central1",
+            "goog-drz-cloudfunctions-id": "createcheckout",
+            "deployment-callable": "true"
+          },
+          "annotations": {
+            "serving.knative.dev/creator": "service-50897249016@gcf-admin-robot.iam.gserviceaccount.com",
+            "serving.knative.dev/lastModifier": "service-50897249016@gcf-admin-robot.iam.gserviceaccount.com",
+            "run.googleapis.com/custom-audiences": "[\"https://us-central1-css-picker.cloudfunctions.net/createCheckout\"]",
+            "run.googleapis.com/client-name": "cli-firebase",
+            "cloudfunctions.googleapis.com/function-id": "createCheckout",
+            "run.googleapis.com/build-source-location": "gs://gcf-v2-sources-50897249016-us-central1/createCheckout/function-source.zip#1775043554799046",
+            "run.googleapis.com/build-environment-variables": "{\"GOOGLE_NODE_RUN_SCRIPTS\":\"\"}",
+            "run.googleapis.com/build-function-target": "createCheckout",
+            "run.googleapis.com/build-service-account": "projects/css-picker/serviceAccounts/50897249016-compute@developer.gserviceaccount.com",
+            "run.googleapis.com/build-enable-automatic-updates": "true",
+            "run.googleapis.com/build-base-image": "us-central1-docker.pkg.dev/serverless-runtimes/google-24-full/runtimes/nodejs24",
+            "run.googleapis.com/build-image-uri": "us-central1-docker.pkg.dev/css-picker/gcf-artifacts/css--picker__us--central1__create_checkout:version_1",
+            "run.googleapis.com/build-name": "projects/50897249016/locations/us-central1/builds/f407557f-887b-4cdf-bdbb-c2e26ad49549",
+            "run.googleapis.com/operation-id": "c8f2d004-d313-4b3c-a422-d6906268c7ce",
+            "run.googleapis.com/ingress": "all",
+            "run.googleapis.com/ingress-status": "all",
+            "run.googleapis.com/maxScale": "20",
+            "run.googleapis.com/urls": "[\"https://createcheckout-50897249016.us-central1.run.app\",\"https://us-central1-css-picker.cloudfunctions.net/createCheckout\",\"https://createcheckout-lfimgqcnxq-uc.a.run.app\"]"
+          }
+        },
+        "apiVersion": "serving.knative.dev/v1",
+        "kind": "Service",
+        "spec": {
+          "template": {
+            "metadata": {
+              "name": "createcheckout-00010-vor",
+              "labels": {
+                "goog-drz-cloudfunctions-location": "us-central1",
+                "firebase-functions-hash": "a9d64b97c2d4baea13ef6f3de300e8222a129ef0",
+                "goog-drz-cloudfunctions-id": "createcheckout",
+                "deployment-callable": "true",
+                "run.googleapis.com/startupProbeType": "Default"
+              },
+              "annotations": {
+                "run.googleapis.com/client-name": "cli-firebase",
+                "cloudfunctions.googleapis.com/trigger-type": "HTTP_TRIGGER",
+                "run.googleapis.com/secrets": "secret-6d18fe05-922e-3739-b984-d54aa4b6dbb5:projects/css-picker/secrets/POLAR_API_KEY",
+                "autoscaling.knative.dev/maxScale": "20",
+                "run.googleapis.com/base-images": "{\"worker\":\"us-central1-docker.pkg.dev/serverless-runtimes/google-24-full/runtimes/nodejs24\"}",
+                "run.googleapis.com/startup-cpu-boost": "true"
+              }
+            },
+            "spec": {
+              "containerConcurrency": 80,
+              "timeoutSeconds": 60,
+              "serviceAccountName": "50897249016-compute@developer.gserviceaccount.com",
+              "containers": [
+                {
+                  "name": "worker",
+                  "image": "us-central1-docker.pkg.dev/css-picker/gcf-artifacts/css--picker__us--central1__create_checkout:version_1",
+                  "ports": [
+                    {
+                      "name": "http1",
+                      "containerPort": 8080
+                    }
+                  ],
+                  "env": [
+                    {
+                      "name": "FIREBASE_CONFIG",
+                      "value": "{\"projectId\":\"css-picker\",\"storageBucket\":\"css-picker.firebasestorage.app\"}"
+                    },
+                    {
+                      "name": "GCLOUD_PROJECT",
+                      "value": "css-picker"
+                    },
+                    {
+                      "name": "EVENTARC_CLOUD_EVENT_SOURCE",
+                      "value": "projects/css-picker/locations/us-central1/services/createCheckout"
+                    },
+                    {
+                      "name": "FUNCTION_TARGET",
+                      "value": "createCheckout"
+                    },
+                    {
+                      "name": "LOG_EXECUTION_ID",
+                      "value": "true"
+                    },
+                    {
+                      "name": "POLAR_API_KEY",
+                      "valueFrom": {
+                        "secretKeyRef": {
+                          "key": "1",
+                          "name": "secret-6d18fe05-922e-3739-b984-d54aa4b6dbb5"
+                        }
+                      }
+                    }
+                  ],
+                  "resources": {
+                    "limits": {
+                      "cpu": "1",
+                      "memory": "256Mi"
+                    }
+                  },
+                  "startupProbe": {
+                    "timeoutSeconds": 240,
+                    "periodSeconds": 240,
+                    "failureThreshold": 1,
+                    "tcpSocket": {
+                      "port": 8080
+                    }
+                  }
+                }
+              ],
+              "runtimeClassName": "run.googleapis.com/linux-base-image-update"
+            }
+          },
+          "traffic": [
+            {
+              "percent": 100,
+              "latestRevision": true
+            }
+          ]
+        },
+        "status": {
+          "observedGeneration": 10,
+          "conditions": [
+            {
+              "type": "Ready",
+              "status": "True",
+              "lastTransitionTime": "2026-04-01T11:40:15.979464Z"
+            },
+            {
+              "type": "BaseImageValidated",
+              "status": "True",
+              "severity": "Info"
+            },
+            {
+              "type": "ConfigurationsReady",
+              "status": "True",
+              "lastTransitionTime": "2026-04-01T11:40:01.655471Z"
+            },
+            {
+              "type": "RoutesReady",
+              "status": "True",
+              "lastTransitionTime": "2026-04-01T11:40:15.937426Z"
+            }
+          ],
+          "latestReadyRevisionName": "createcheckout-00010-vor",
+          "latestCreatedRevisionName": "createcheckout-00010-vor",
+          "traffic": [
+            {
+              "revisionName": "createcheckout-00010-vor",
+              "percent": 100,
+              "latestRevision": true
+            }
+          ],
+          "url": "https://createcheckout-lfimgqcnxq-uc.a.run.app",
+          "address": {
+            "url": "https://createcheckout-lfimgqcnxq-uc.a.run.app"
+          }
+        },
+        "@type": "type.googleapis.com/google.cloud.run.v1.Service"
+      }
+    },
+    "insertId": "auiw4mdbi3o",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "css-picker",
+        "revision_name": "",
+        "configuration_name": "",
+        "service_name": "createcheckout",
+        "location": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-01T11:40:15.993787Z",
+    "severity": "INFO",
+    "logName": "projects/css-picker/logs/cloudaudit.googleapis.com%2Fsystem_event",
+    "receiveTimestamp": "2026-04-01T11:40:16.832123298Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "yj43773@gmail.com",
+        "principalSubject": "user:yj43773@gmail.com",
+        "oauthInfo": {
+          "oauthClientId": "563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"
+        }
+      },
+      "requestMetadata": {
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "cloudfunctions.googleapis.com",
+      "methodName": "google.cloud.functions.v2.FunctionService.UpdateFunction",
+      "resourceName": "projects/css-picker/locations/us-central1/functions/createCheckout",
+      "response": {
+        "url": "https://us-central1-css-picker.cloudfunctions.net/createCheckout",
+        "labels": {
+          "deployment-tool": "cli-firebase",
+          "firebase-functions-hash": "a9d64b97c2d4baea13ef6f3de300e8222a129ef0",
+          "deployment-callable": "true"
+        },
+        "name": "projects/css-picker/locations/us-central1/functions/createCheckout",
+        "state": "ACTIVE",
+        "updateTime": "2026-04-01T11:39:14.860113841Z",
+        "serviceConfig": {
+          "allTrafficOnLatestRevision": true,
+          "ingressSettings": "ALLOW_ALL",
+          "availableMemory": "256Mi",
+          "maxInstanceCount": 20,
+          "maxInstanceRequestConcurrency": 80,
+          "uri": "https://createcheckout-lfimgqcnxq-uc.a.run.app",
+          "availableCpu": "1",
+          "secretEnvironmentVariables": [
+            {
+              "key": "POLAR_API_KEY",
+              "projectId": "css-picker",
+              "secret": "POLAR_API_KEY",
+              "version": "1"
+            }
+          ],
+          "timeoutSeconds": 60,
+          "revision": "createcheckout-00010-vor",
+          "serviceAccountEmail": "50897249016-compute@developer.gserviceaccount.com"
+        },
+        "buildConfig": {
+          "dockerRepository": "projects/css-picker/locations/us-central1/repositories/gcf-artifacts",
+          "entryPoint": "createCheckout",
+          "automaticUpdatePolicy": {},
+          "serviceAccount": "projects/css-picker/serviceAccounts/50897249016-compute@developer.gserviceaccount.com",
+          "runtime": "nodejs24",
+          "dockerRegistry": "ARTIFACT_REGISTRY",
+          "source": {}
+        },
+        "@type": "type.googleapis.com/google.cloud.functions.v2.Function",
+        "satisfiesPzi": true,
+        "createTime": "2026-04-01T01:01:28.939164415Z",
+        "environment": "GEN_2"
+      },
+      "resourceLocation": {
+        "currentLocations": [
+          "us-central1"
+        ]
+      }
+    },
+    "insertId": "1nfgi1ad4so8",
+    "resource": {
+      "type": "cloud_function",
+      "labels": {
+        "project_id": "css-picker",
+        "region": "us-central1",
+        "function_name": "createCheckout"
+      }
+    },
+    "timestamp": "2026-04-01T11:40:16.240277610Z",
+    "severity": "NOTICE",
+    "logName": "projects/css-picker/logs/cloudaudit.googleapis.com%2Factivity",
+    "operation": {
+      "id": "projects/css-picker/locations/us-central1/operations/operation-1775043554029-64e64887fae75-3a7b955b-2ba0c092",
+      "producer": "cloudfunctions.googleapis.com",
+      "last": true
+    },
+    "receiveTimestamp": "2026-04-01T11:40:16.443292523Z"
+  },
+  {
+    "insertId": "69cd0453000dc3538c186b88",
+    "httpRequest": {
+      "requestMethod": "OPTIONS",
+      "requestUrl": "https://us-central1-css-picker.cloudfunctions.net/createCheckout",
+      "requestSize": "720",
+      "status": 204,
+      "responseSize": "259",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+      "remoteIp": "210.220.24.186",
+      "referer": "https://csspicker.site/",
+      "serverIp": "216.239.36.54",
+      "latency": "0.045708518s",
+      "protocol": "HTTP/1.1"
+    },
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "revision_name": "createcheckout-00010-vor",
+        "configuration_name": "createcheckout",
+        "project_id": "css-picker",
+        "location": "us-central1",
+        "service_name": "createcheckout"
+      }
+    },
+    "timestamp": "2026-04-01T11:41:07.837215Z",
+    "severity": "INFO",
+    "labels": {
+      "firebase-functions-hash": "a9d64b97c2d4baea13ef6f3de300e8222a129ef0",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "goog-managed-by": "cloudfunctions",
+      "instanceId": "008c15ff08a305427e805ba818e1fb667e1a518937b4e6c005acb3bffd1703a69afacfc5c261161809b191a771bc1e1002d0329f3e6d4f5c2f137dc4b625dceea9d6e0b65a6d4b50e46d9ca3570357",
+      "deployment-callable": "true",
+      "goog-drz-cloudfunctions-location": "us-central1"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Frequests",
+    "trace": "projects/css-picker/traces/46d8798bc329587c9c6335ac771bc9d0",
+    "receiveTimestamp": "2026-04-01T11:41:07.908159463Z",
+    "spanId": "93bc4dff27f9c88f",
+    "traceSampled": true
+  },
+  {
+    "insertId": "69cd0454000dc9d5d437c0fd",
+    "httpRequest": {
+      "requestMethod": "POST",
+      "requestUrl": "https://us-central1-css-picker.cloudfunctions.net/createCheckout",
+      "requestSize": "2089",
+      "status": 200,
+      "responseSize": "298",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+      "remoteIp": "210.220.24.186",
+      "referer": "https://csspicker.site/",
+      "serverIp": "216.239.36.54",
+      "latency": "0.758563968s",
+      "protocol": "HTTP/1.1"
+    },
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "createcheckout",
+        "location": "us-central1",
+        "project_id": "css-picker",
+        "configuration_name": "createcheckout",
+        "revision_name": "createcheckout-00010-vor"
+      }
+    },
+    "timestamp": "2026-04-01T11:41:08.142745Z",
+    "severity": "INFO",
+    "labels": {
+      "instanceId": "008c15ff08a305427e805ba818e1fb667e1a518937b4e6c005acb3bffd1703a69afacfc5c261161809b191a771bc1e1002d0329f3e6d4f5c2f137dc4b625dceea9d6e0b65a6d4b50e46d9ca3570357",
+      "deployment-callable": "true",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "firebase-functions-hash": "a9d64b97c2d4baea13ef6f3de300e8222a129ef0",
+      "goog-managed-by": "cloudfunctions",
+      "goog-drz-cloudfunctions-id": "createcheckout"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Frequests",
+    "trace": "projects/css-picker/traces/46d3d5738c5c438a9c6335ac771bc016",
+    "receiveTimestamp": "2026-04-01T11:41:09.242283916Z",
+    "spanId": "1b0d66bababa7d30"
+  },
+  {
+    "insertId": "69cd04540003ec2b0e0cd4d8",
+    "jsonPayload": {
+      "message": "Callable request verification passed",
+      "verifications": {
+        "app": "MISSING",
+        "auth": "VALID"
+      }
+    },
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "us-central1",
+        "service_name": "createcheckout",
+        "project_id": "css-picker",
+        "revision_name": "createcheckout-00010-vor",
+        "configuration_name": "createcheckout"
+      }
+    },
+    "timestamp": "2026-04-01T11:41:08.257067Z",
+    "severity": "DEBUG",
+    "labels": {
+      "deployment-callable": "true",
+      "execution_id": "fz640cdyn2k9",
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-24-full/runtimes/nodejs24:nodejs24_20260314_24_13_0_RC00",
+      "instanceId": "008c15ff08a305427e805ba818e1fb667e1a518937b4e6c005acb3bffd1703a69afacfc5c261161809b191a771bc1e1002d0329f3e6d4f5c2f137dc4b625dceea9d6e0b65a6d4b50e46d9ca3570357",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "firebase-functions-hash": "a9d64b97c2d4baea13ef6f3de300e8222a129ef0",
+      "goog-drz-cloudfunctions-id": "createcheckout",
+      "firebase-log-type": "callable-request-verification",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/css-picker/logs/run.googleapis.com%2Fstdout",
+    "trace": "projects/css-picker/traces/46d3d5738c5c438a9c6335ac771bc016",
+    "receiveTimestamp": "2026-04-01T11:41:08.263067842Z",
+    "spanId": "1949327165904026928"
+  }
+]
