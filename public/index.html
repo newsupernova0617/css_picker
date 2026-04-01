@@ -1265,29 +1265,24 @@ async function handleUpgradeClick() {
     }
 }
 
-// pay: Firebase callable function으로 체크아웃 생성
+// pay: Firebase callable function으로 체크아웃 링크 가져오기
 async function pay(uid) {
     console.log(`▶️ pay function called with UID: ${uid}`);
 
     try {
-        // Firebase Callable Function 사용
-        const createCheckout = firebase.functions().httpsCallable('createCheckout');
-        const result = await createCheckout({
-            storeId: "226265",
-            variantId: "1025119",
-            redirectUrl: window.location.href,
-            testMode: true,
-            firebaseUid: uid
-        });
+        // Firebase Callable Function 사용 - getCheckoutLink으로 변경
+        const getCheckoutLink = firebase.functions().httpsCallable('getCheckoutLink');
+        const result = await getCheckoutLink();
 
         console.log("📦 Received checkout URL:", result.data);
 
-        if (!result.data.url) {
+        if (!result.data || !result.data.url) {
             throw new Error("Checkout URL not found in response");
         }
 
-        // Polar checkout 페이지로 리다이렉트
-        window.location.href = result.data.url;
+        // UID를 쿼리 파라미터로 추가하여 Polar checkout 페이지로 리다이렉트
+        const checkoutUrl = `${result.data.url}?uid=${uid}`;
+        window.location.href = checkoutUrl;
     } catch (err) {
         console.error("❌ Error in pay function:", err);
         alert("An error occurred while creating checkout.");
