@@ -215,21 +215,22 @@ exports.handleWebhook = onRequest(
 );
 
 
-exports.getOrCreateUserProfile = onCall(async (data, context) => {
-  console.log("DEBUG context.auth:", context.auth);
-  console.log("DEBUG context.auth type:", typeof context.auth);
-  console.log("DEBUG context.auth?.uid:", context.auth?.uid);
-  if (!context.auth) throw new Error("Unauthenticated");
+exports.getOrCreateUserProfile = onCall(async (request) => {
+  const { auth, data } = request;
+  console.log("DEBUG auth:", auth);
+  console.log("DEBUG auth type:", typeof auth);
+  console.log("DEBUG auth?.uid:", auth?.uid);
+  if (!auth) throw new Error("Unauthenticated");
 
-  const uid = context.auth.uid;
+  const uid = auth.uid;
   const userRef = db.collection("users").doc(uid);
   const doc = await userRef.get();
 
   if (!doc.exists) {
     // Firestore에 문서 없으면 새로 추가
     const newUser = {
-      email: context.auth.token.email || null,
-      name: context.auth.token.name || null,
+      email: auth.token.email || null,
+      name: auth.token.name || null,
       status: "free",  // "free" | "paid" | "cancelled" | "refunded"
       planType: "basic",  // Plan type
       orderId: null,
@@ -241,9 +242,9 @@ exports.getOrCreateUserProfile = onCall(async (data, context) => {
       updatedAt: FieldValue.serverTimestamp(),
     };
     await userRef.set(newUser);
-    return newUser;
+    return { data: newUser };
   }
 
   // 이미 있으면 기존 데이터 리턴
-  return doc.data();
+  return { data: doc.data() };
 });
