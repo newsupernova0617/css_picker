@@ -1249,10 +1249,10 @@ async function handleUpgradeClick() {
         const profile = await getOrCreateUserProfile();
         console.log("User profile:", profile.data);
 
-        // 3️⃣ 두 번째 필터: 이미 premium이면 결제 막기
-        if (profile.data.status === "premium") {
+        // 3️⃣ 두 번째 필터: 이미 paid면 결제 막기
+        if (profile.data.status === "paid") {
             alert("You already have a premium subscription. Payment is not allowed.");
-            console.warn("⏹️ Pay process stopped. User is already premium.");
+            console.warn("⏹️ Pay process stopped. User already has paid subscription.");
             return;
         }
 
@@ -1321,7 +1321,7 @@ auth.onAuthStateChanged(async (user) => {
             document.getElementById('user-name').textContent = profile.data.name || 'User';
 
             // 4️⃣ 결제 버튼 상태 처리 (프리미엄이면 결제 금지)
-            if (profile.data.status === "premium" && payButton) {
+            if (profile.data.status === "paid" && payButton) {
                 payButton.disabled = true;
                 payButton.textContent = "Already Premium";
             } else if (payButton) {
