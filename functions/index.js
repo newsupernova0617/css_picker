@@ -156,8 +156,10 @@ exports.handleWebhook = onRequest(
           await userRef.set(
             {
               status: "paid",
+              planType: "pro",
               orderId: data.id || data.orderId,
               purchasedAt: data.createdAt || data.created_at || new Date().toISOString(),
+              expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
               updatedAt: FieldValue.serverTimestamp(),
               email: data.email || data.userEmail || null,
             },
@@ -203,9 +205,13 @@ exports.getOrCreateUserProfile = onCall(async (data, context) => {
     const newUser = {
       email: context.auth.token.email || null,
       name: context.auth.token.name || null,
-      status: "free",
+      status: "free",  // "free" | "paid" | "cancelled" | "refunded"
+      planType: "basic",  // Plan type
       orderId: null,
       purchasedAt: null,
+      expiresAt: null,  // Subscription expiration
+      refundedAt: null,  // Refund date
+      cancelledAt: null,  // Cancellation date
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     };
