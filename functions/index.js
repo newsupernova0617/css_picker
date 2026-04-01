@@ -4,7 +4,8 @@ const { onRequest, onCall } = require("firebase-functions/v2/https");
 const { beforeUserCreated } = require("firebase-functions/v2/identity");
 const { initializeApp } = require("firebase-admin/app");
 const crypto = require("crypto");
-const fetch = require("node-fetch");
+// Using Node.js 18+ built-in fetch (available in Node 24)
+const fetch = globalThis.fetch;
 
 const admin = require("firebase-admin");
 initializeApp();
@@ -34,9 +35,7 @@ exports.createCheckout = onCall(async (request) => {
     const { auth, data } = request;
     if (!auth) throw new Error("Unauthenticated");
 
-    const { storeId, variantId, redirectUrl, testMode = false, firebaseUid } = data;
-    if (!storeId || !variantId)
-      throw new Error("storeId and variantId are required");
+    const { redirectUrl, firebaseUid } = data;
 
     if (!firebaseUid)
       throw new Error("firebaseUid is required");
@@ -48,15 +47,20 @@ exports.createCheckout = onCall(async (request) => {
     if (!apiKey)
       throw new Error("POLAR_API_KEY is missing");
 
+    // 🔴 PASTE YOUR PRODUCT ID HERE 🔴
+    const POLAR_PRODUCT_ID = "c4ade100-97d2-4e56-93fa-fcbcf2eeba72";
+
+    // Get customer name from Firebase auth
+    const customerName = auth.token.name || auth.token.email || "Premium User";
+
     // Polar Checkout payload - using correct API format
     const payload = {
-      products: [
-        {
-          product_id: String(storeId),
-          variant_id: String(variantId)
-        }
-      ],
-      redirect_url: redirectUrl,
+      products: [POLAR_PRODUCT_ID],
+      customerName: customerName,
+      customerBillingAddress: {
+        country: "US"
+      },
+      locale: "en",
       custom_data: {
         firebaseUid: firebaseUid,
       },
