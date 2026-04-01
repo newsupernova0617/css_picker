@@ -135,10 +135,9 @@ exports.handleWebhook = onRequest(
       if (!secret || secret.includes("YOUR_"))
         return res.status(500).json({ error: "POLAR_WEBHOOK_SECRET is not configured" });
 
-      // Polar secret에서 prefix 제거 (polar_whs_XXXXXX → XXXXXX)
-      if (secret.startsWith("polar_whs_")) {
-        secret = secret.replace("polar_whs_", "");
-      }
+      // Use the full secret WITH the prefix for HMAC verification
+      // Polar signs webhooks using the full secret string: polar_whs_XXXXXX
+      // (DO NOT remove the prefix)
 
       // Polar webhook signature verification (Standard Webhooks format)
       const webhookId = req.header("webhook-id");
