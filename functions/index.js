@@ -216,6 +216,9 @@ exports.handleWebhook = onRequest(
 
 
 exports.getOrCreateUserProfile = onCall(async (data, context) => {
+  console.log("DEBUG context.auth:", context.auth);
+  console.log("DEBUG context.auth type:", typeof context.auth);
+  console.log("DEBUG context.auth?.uid:", context.auth?.uid);
   if (!context.auth) throw new Error("Unauthenticated");
 
   const uid = context.auth.uid;
