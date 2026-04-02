@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 const inputFile = path.join(__dirname, 'css_picker', 'content.js');
-const outputDir = path.join(__dirname, 'css_picker', 'css_picker', 'dist');
+const outputDir = path.join(__dirname, 'css_picker', 'dist');
 const outputFile = path.join(outputDir, 'content.js');
 
 // Ensure dist directory exists
