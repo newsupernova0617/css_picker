@@ -13,12 +13,6 @@
     "identity",
     "alarms"
   ],
-  "offscreen_documents": [
-    {
-      "document": "offscreen.html",
-      "reasons": ["AUTH_REQUEST"]
-    }
-  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
