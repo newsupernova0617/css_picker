@@ -272,6 +272,7 @@ exports.getOrCreateUserProfile = onCall(async (request) => {
     const newUser = {
       email: auth.token.email || null,
       name: auth.token.name || null,
+      emailVerified: auth.token.email_verified || false,
       status: "free",  // "free" | "paid" | "cancelled" | "refunded"
       planType: "basic",  // Plan type
       orderId: null,
@@ -286,6 +287,11 @@ exports.getOrCreateUserProfile = onCall(async (request) => {
     return { data: newUser };
   }
 
-  // 이미 있으면 기존 데이터 리턴
-  return { data: doc.data() };
+  // 이미 있으면 emailVerified 필드 갱신 후 기존 데이터 리턴
+  const existingData = doc.data();
+  await userRef.update({
+    emailVerified: auth.token.email_verified || false,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+  return { data: { ...existingData, emailVerified: auth.token.email_verified || false } };
 });
