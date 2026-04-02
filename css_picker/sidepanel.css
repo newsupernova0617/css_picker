@@ -223,8 +223,8 @@ body::-webkit-scrollbar {
   align-items: center;
   justify-content: space-between;
   padding: var(--space-5);
-  background: white;
-  color: var(--text-primary);
+  background: var(--gradient-primary);
+  color: white;
   border-radius: var(--radius-2xl);
   margin: 0;
   box-shadow: var(--shadow-lg);
@@ -514,7 +514,6 @@ body::-webkit-scrollbar {
 .feature-locked {
   position: relative;
   opacity: 0.8; /* 뿌연 효과를 줄여서 더 선명하게 */
-  pointer-events: none;
 }
 
 .feature-locked .premium-lock-overlay {
@@ -2337,7 +2336,8 @@ body::-webkit-scrollbar {
 
 .feature-card {
   display: flex;
-  align-items: stretch; /* Changed from center to stretch */
+  align-items: center;
+  justify-content: space-between;
   gap: var(--space-4);
   padding: var(--space-4);
   min-height: 150px; /* Increased height to accommodate premium overlay content */
@@ -2635,11 +2635,6 @@ body::-webkit-scrollbar {
 
 
 /* Premium Feature Card Overlay */
-.feature-card.premium-locked {
-  position: relative;
-  opacity: 0.9;
-}
-
 .feature-card .premium-card-overlay {
   position: absolute;
   top: 0;
